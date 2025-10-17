@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "BuildTrack",
+    "slug": "buildtrack",
+    "scheme": "buildtrack",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "sdkVersion": "54.0.0",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.buildtrack.app"
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.buildtrack.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a8596e39-81b8-4e27-bfe0-b9a8ad5e2722"
+      }
+    },
+    "owner": "tristankoo"
+  }
+}

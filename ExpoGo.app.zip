@@ -1,0 +1,1 @@
+{"errors":[{"code":"VALIDATION_ERROR","type":"USER","message":"\"shortUuidOrUuid\": Invalid string: must match pattern /^[123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ]+$/.","isTransient":false,"requestId":"0aa0f969-0512-4f59-a48e-c0ddb49e3d97"}]}
