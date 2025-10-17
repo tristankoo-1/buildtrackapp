@@ -99,61 +99,61 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
             {/* Current User Credentials */}
             <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <Text className="text-sm font-semibold text-blue-800 mb-3">
-                ✅ Working Test Credentials:
+                ✅ Working Supabase Test Credentials:
               </Text>
               
               <View className="space-y-2">
                 <View className="bg-purple-50 border border-purple-200 rounded p-2">
                   <Text className="text-xs font-semibold text-purple-800">
-                    👑 Manager Account
+                    📋 Manager Account (Company A)
                   </Text>
                   <Text className="text-xs text-purple-700">
-                    Email: manager@buildtrack.com
+                    Email: john.managera@test.com
                   </Text>
                   <Text className="text-xs text-purple-700">
-                    Password: password
-                  </Text>
-                </View>
-                
-                <View className="bg-blue-50 border border-blue-200 rounded p-2">
-                  <Text className="text-xs font-semibold text-blue-800">
-                    🔧 Admin Account
-                  </Text>
-                  <Text className="text-xs text-blue-700">
-                    Email: admin@buildtrack.com • Password: password
+                    Password: password123
                   </Text>
                 </View>
                 
                 <View className="bg-green-50 border border-green-200 rounded p-2">
                   <Text className="text-xs font-semibold text-green-800">
-                    👷 Worker Account
+                    👷 Worker Account (Company A)
                   </Text>
                   <Text className="text-xs text-green-700">
-                    Email: worker@buildtrack.com • Password: password
+                    Email: alice.workera1@test.com • Password: password123
+                  </Text>
+                </View>
+                
+                <View className="bg-blue-50 border border-blue-200 rounded p-2">
+                  <Text className="text-xs font-semibold text-blue-800">
+                    👷 Worker Account (Company A)
+                  </Text>
+                  <Text className="text-xs text-blue-700">
+                    Email: bob.workera2@test.com • Password: password123
                   </Text>
                 </View>
                 
                 <View className="bg-orange-50 border border-orange-200 rounded p-2">
                   <Text className="text-xs font-semibold text-orange-800">
-                    👤 Dennis Account
+                    📋 Manager Account (Company B)
                   </Text>
                   <Text className="text-xs text-orange-700">
-                    Email: dennis@buildtrack.com • Password: password
+                    Email: sarah.managerb@test.com • Password: password123
                   </Text>
                 </View>
                 
                 <View className="bg-teal-50 border border-teal-200 rounded p-2">
                   <Text className="text-xs font-semibold text-teal-800">
-                    🏗️ Mike Account (Metro Plumbing)
+                    👷 Worker Account (Company B)
                   </Text>
                   <Text className="text-xs text-teal-700">
-                    Email: mike@metroplumbing.com • Password: password
+                    Email: tom.workerb@test.com • Password: password123
                   </Text>
                 </View>
               </View>
               
               <Text className="text-xs text-gray-600 mt-3 italic">
-                💡 All accounts use password: "password"
+                💡 All accounts use password: "password123"
               </Text>
             </View>
 
