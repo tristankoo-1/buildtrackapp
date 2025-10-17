@@ -71,6 +71,26 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
     }
   };
 
+  const handleQuickLogin = async (email: string, password: string) => {
+    // Clear any existing errors
+    setErrors({});
+    
+    // Set the form fields for visual feedback
+    setEmail(email);
+    setPassword(password);
+    
+    // Perform login
+    const success = await login(email, password);
+    
+    if (!success) {
+      Alert.alert(
+        "Quick Login Failed",
+        `Failed to login with ${email}. Please try again.`,
+        [{ text: "OK" }]
+      );
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
@@ -103,9 +123,12 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
               </Text>
               
               <View className="space-y-2">
-                <View className="bg-purple-50 border border-purple-200 rounded p-2">
+                <Pressable 
+                  className="bg-purple-50 border border-purple-200 rounded p-2 active:bg-purple-100"
+                  onPress={() => handleQuickLogin('john.managera@test.com', 'password123')}
+                >
                   <Text className="text-xs font-semibold text-purple-800">
-                    📋 Manager Account (Company A)
+                    📋 Manager Account (Company A) - Tap to Login
                   </Text>
                   <Text className="text-xs text-purple-700">
                     Email: john.managera@test.com
@@ -113,47 +136,59 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
                   <Text className="text-xs text-purple-700">
                     Password: password123
                   </Text>
-                </View>
+                </Pressable>
                 
-                <View className="bg-green-50 border border-green-200 rounded p-2">
+                <Pressable 
+                  className="bg-green-50 border border-green-200 rounded p-2 active:bg-green-100"
+                  onPress={() => handleQuickLogin('alice.workera1@test.com', 'password123')}
+                >
                   <Text className="text-xs font-semibold text-green-800">
-                    👷 Worker Account (Company A)
+                    👷 Worker Account (Company A) - Tap to Login
                   </Text>
                   <Text className="text-xs text-green-700">
                     Email: alice.workera1@test.com • Password: password123
                   </Text>
-                </View>
+                </Pressable>
                 
-                <View className="bg-blue-50 border border-blue-200 rounded p-2">
+                <Pressable 
+                  className="bg-blue-50 border border-blue-200 rounded p-2 active:bg-blue-100"
+                  onPress={() => handleQuickLogin('bob.workera2@test.com', 'password123')}
+                >
                   <Text className="text-xs font-semibold text-blue-800">
-                    👷 Worker Account (Company A)
+                    👷 Worker Account (Company A) - Tap to Login
                   </Text>
                   <Text className="text-xs text-blue-700">
                     Email: bob.workera2@test.com • Password: password123
                   </Text>
-                </View>
+                </Pressable>
                 
-                <View className="bg-orange-50 border border-orange-200 rounded p-2">
+                <Pressable 
+                  className="bg-orange-50 border border-orange-200 rounded p-2 active:bg-orange-100"
+                  onPress={() => handleQuickLogin('sarah.managerb@test.com', 'password123')}
+                >
                   <Text className="text-xs font-semibold text-orange-800">
-                    📋 Manager Account (Company B)
+                    📋 Manager Account (Company B) - Tap to Login
                   </Text>
                   <Text className="text-xs text-orange-700">
                     Email: sarah.managerb@test.com • Password: password123
                   </Text>
-                </View>
+                </Pressable>
                 
-                <View className="bg-teal-50 border border-teal-200 rounded p-2">
+                <Pressable 
+                  className="bg-teal-50 border border-teal-200 rounded p-2 active:bg-teal-100"
+                  onPress={() => handleQuickLogin('tom.workerb@test.com', 'password123')}
+                >
                   <Text className="text-xs font-semibold text-teal-800">
-                    👷 Worker Account (Company B)
+                    👷 Worker Account (Company B) - Tap to Login
                   </Text>
                   <Text className="text-xs text-teal-700">
                     Email: tom.workerb@test.com • Password: password123
                   </Text>
-                </View>
+                </Pressable>
               </View>
               
               <Text className="text-xs text-gray-600 mt-3 italic">
-                💡 All accounts use password: "password123"
+                💡 All accounts use password: "password123" • Tap any card above to login instantly!
               </Text>
             </View>
 
