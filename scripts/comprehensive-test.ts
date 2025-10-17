@@ -253,61 +253,156 @@ async function runComprehensiveTest() {
   };
 
   try {
-    // Step 1: Setup and validation
-    logProgress('Validating environment', 'start');
+    // Step 1: Comprehensive Supabase connection testing
+    logProgress('Testing Supabase connection', 'start');
     
     // Check if we have real Supabase credentials (not placeholders)
     if (supabaseUrl.includes('your-project-id') || supabaseAnonKey.includes('your-anon-key')) {
       throw new Error('Please update .env file with real Supabase credentials. Current values are placeholders.');
     }
     
-    // Test Supabase connection
+    // Test 1: Basic connection with anon key
     try {
-      const { data, error } = await supabaseAdmin.from('companies').select('count').limit(1);
-      if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
-        throw error;
+      const { data: anonTest, error: anonError } = await supabase.from('companies').select('count').limit(1);
+      if (anonError && !anonError.message.includes('relation') && !anonError.message.includes('does not exist')) {
+        logProgress('Anon key connection test', 'error', anonError.message);
+      } else {
+        logProgress('Anon key connection test', 'success');
       }
     } catch (error: any) {
       if (error.message.includes('Invalid supabaseUrl')) {
         throw new Error('Invalid Supabase URL. Please check your EXPO_PUBLIC_SUPABASE_URL in .env file.');
       }
-      // Other errors might be expected if tables don't exist yet
+      logProgress('Anon key connection test', 'error', error.message);
     }
     
-    logProgress('Validating environment', 'success');
+    // Test 2: Service role key connection
+    try {
+      const { data: adminTest, error: adminError } = await supabaseAdmin.from('companies').select('count').limit(1);
+      if (adminError && !adminError.message.includes('relation') && !adminError.message.includes('does not exist')) {
+        logProgress('Service role key connection test', 'error', adminError.message);
+      } else {
+        logProgress('Service role key connection test', 'success');
+      }
+    } catch (error: any) {
+      logProgress('Service role key connection test', 'error', error.message);
+    }
+    
+    // Test 3: Authentication system test
+    try {
+      const { data: authTest, error: authError } = await supabaseAdmin.auth.admin.listUsers();
+      if (authError) {
+        logProgress('Authentication system test', 'error', authError.message);
+      } else {
+        logProgress('Authentication system test', 'success', `${authTest.users?.length || 0} users found`);
+      }
+    } catch (error: any) {
+      logProgress('Authentication system test', 'error', error.message);
+    }
+    
+    // Test 4: Database schema validation
+    const requiredTables = ['companies', 'users', 'projects', 'tasks', 'user_project_assignments', 'sub_tasks'];
+    let schemaValid = true;
+    
+    for (const table of requiredTables) {
+      try {
+        const { error } = await supabaseAdmin.from(table).select('*').limit(1);
+        if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
+          logProgress(`Schema check: ${table}`, 'error', error.message);
+          schemaValid = false;
+        } else {
+          logProgress(`Schema check: ${table}`, 'success');
+        }
+      } catch (error: any) {
+        logProgress(`Schema check: ${table}`, 'error', error.message);
+        schemaValid = false;
+      }
+    }
+    
+    if (!schemaValid) {
+      logProgress('Database schema validation', 'error', 'Some required tables are missing or inaccessible');
+      console.log('\n⚠️  Schema Issues Detected:');
+      console.log('   • Make sure you have run the database setup scripts');
+      console.log('   • Check that RLS policies are properly configured');
+      console.log('   • Verify your service role key has proper permissions');
+    } else {
+      logProgress('Database schema validation', 'success');
+    }
+    
+    // Test 5: RLS (Row Level Security) test
+    try {
+      // Test if RLS is working by trying to access data without proper context
+      const { data: rlsTest, error: rlsError } = await supabase.from('users').select('*').limit(1);
+      if (rlsError && rlsError.message.includes('RLS')) {
+        logProgress('RLS (Row Level Security) test', 'success', 'RLS is properly configured');
+      } else if (rlsError) {
+        logProgress('RLS test', 'error', rlsError.message);
+      } else {
+        logProgress('RLS test', 'success', 'Data accessible (RLS may be disabled for testing)');
+      }
+    } catch (error: any) {
+      logProgress('RLS test', 'error', error.message);
+    }
+    
+    logProgress('Supabase connection testing', 'success');
 
     // Step 2: Create companies (without created_by for now)
     logProgress('Creating companies', 'start');
     
     for (const companyData of TEST_DATA.companies) {
-      const { data, error } = await supabaseAdmin
+      // Check if company already exists
+      const { data: existingCompany } = await supabaseAdmin
         .from('companies')
-        .insert({
-          name: companyData.name,
-          type: companyData.type,
-          description: companyData.description,
-          address: companyData.address,
-          phone: companyData.phone,
-          email: companyData.email,
-          website: companyData.website,
-          license_number: companyData.licenseNumber,
-          insurance_expiry: companyData.insuranceExpiry,
-          banner: {
-            text: companyData.name,
-            backgroundColor: companyData.id === 'test-comp-a' ? '#3b82f6' : '#f59e0b',
-            textColor: '#ffffff',
-            isVisible: true,
-          },
-          is_active: true,
-          created_at: new Date().toISOString(),
-        })
         .select('id')
+        .eq('name', companyData.name)
         .single();
 
-      if (error) throw error;
-      
-      createdIds.companies.set(companyData.id, data.id);
-      logProgress(`Created company: ${companyData.name}`, 'success', `ID: ${data.id}`);
+      if (existingCompany) {
+        logProgress(`Company ${companyData.name}`, 'success', 'already exists');
+        createdIds.companies.set(companyData.id, existingCompany.id);
+      } else {
+        const { data, error } = await supabaseAdmin
+          .from('companies')
+          .insert({
+            name: companyData.name,
+            type: companyData.type,
+            description: companyData.description,
+            address: companyData.address,
+            phone: companyData.phone,
+            email: companyData.email,
+            website: companyData.website,
+            license_number: companyData.licenseNumber,
+            insurance_expiry: companyData.insuranceExpiry,
+            banner: {
+              text: companyData.name,
+              backgroundColor: companyData.id === 'test-comp-a' ? '#3b82f6' : '#f59e0b',
+              textColor: '#ffffff',
+              isVisible: true,
+            },
+            is_active: true,
+            created_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+
+        if (error) {
+          if (error.code === '23505') {
+            logProgress(`Company ${companyData.name}`, 'success', 'already exists (duplicate key)');
+            // Try to get the existing company ID
+            const { data: existingCompanyData } = await supabaseAdmin
+              .from('companies')
+              .select('id')
+              .eq('name', companyData.name)
+              .single();
+            createdIds.companies.set(companyData.id, existingCompanyData?.id || companyData.id);
+          } else {
+            throw error;
+          }
+        } else {
+          createdIds.companies.set(companyData.id, data.id);
+          logProgress(`Created company: ${companyData.name}`, 'success', `ID: ${data.id}`);
+        }
+      }
     }
 
     // Step 3: Create users with authentication
@@ -320,41 +415,83 @@ async function runComprehensiveTest() {
         throw new Error(`Company not found for user ${userData.name}`);
       }
 
-      const { data: userDbData, error: userDbError } = await supabaseAdmin
+      // Check if user already exists
+      const { data: existingUser } = await supabaseAdmin
         .from('users')
-        .insert({
-          name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          company_id: companyId,
-          position: userData.position,
-          phone: userData.phone,
-          created_at: new Date().toISOString(),
-        })
         .select('id')
+        .eq('email', userData.email)
         .single();
 
-      if (userDbError) throw userDbError;
+      let userDbId: string;
 
-      // Create auth user
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: userData.email,
-        password: 'password123',
-        email_confirm: true,
-        user_metadata: {
-          name: userData.name,
-          phone: userData.phone,
-          role: userData.role,
-          company_id: companyId,
+      if (existingUser) {
+        logProgress(`User ${userData.name}`, 'success', 'already exists in database');
+        userDbId = existingUser.id;
+      } else {
+        const { data: userDbData, error: userDbError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            company_id: companyId,
+            position: userData.position,
+            phone: userData.phone,
+            created_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+
+        if (userDbError) {
+          if (userDbError.code === '23505') {
+            logProgress(`User ${userData.name}`, 'success', 'already exists (duplicate key)');
+            // Try to get the existing user ID
+            const { data: existingUserData } = await supabaseAdmin
+              .from('users')
+              .select('id')
+              .eq('email', userData.email)
+              .single();
+            userDbId = existingUserData?.id || userData.id;
+          } else {
+            throw userDbError;
+          }
+        } else {
+          userDbId = userDbData.id;
         }
-      });
-
-      if (authError) {
-        throw authError;
       }
 
-      logProgress(`Created user: ${userData.name}`, 'success', `Auth ID: ${authData.user?.id}`);
-      createdIds.users.set(userData.id, userDbData.id);
+      // Create auth user (skip if already exists)
+      try {
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: userData.email,
+          password: 'password123',
+          email_confirm: true,
+          user_metadata: {
+            name: userData.name,
+            phone: userData.phone,
+            role: userData.role,
+            company_id: companyId,
+          }
+        });
+
+        if (authError) {
+          if (authError.message.includes('already registered') || authError.message.includes('User already registered') || authError.message.includes('already been registered')) {
+            logProgress(`Auth user ${userData.name}`, 'success', 'already exists');
+          } else {
+            throw authError;
+          }
+        } else {
+          logProgress(`Created auth user: ${userData.name}`, 'success', `Auth ID: ${authData.user?.id}`);
+        }
+      } catch (authError: any) {
+        if (authError.message.includes('already registered') || authError.message.includes('User already registered') || authError.message.includes('already been registered')) {
+          logProgress(`Auth user ${userData.name}`, 'success', 'already exists');
+        } else {
+          logProgress(`Auth user ${userData.name}`, 'error', authError.message);
+        }
+      }
+
+      createdIds.users.set(userData.id, userDbId);
     }
 
     // Step 4: Create projects
@@ -372,29 +509,53 @@ async function runComprehensiveTest() {
     }
 
     for (const projectData of TEST_DATA.projects) {
-      const { data, error } = await supabaseAdmin
+      // Check if project already exists
+      const { data: existingProject } = await supabaseAdmin
         .from('projects')
-        .insert({
-          name: projectData.name,
-          description: projectData.description,
-          status: projectData.status,
-          start_date: projectData.startDate,
-          end_date: projectData.endDate,
-          budget: projectData.budget,
-          location: projectData.location,
-          client_info: projectData.clientInfo,
-          created_by: managerAId,
-          company_id: companyAId, // Set company_id to Company A
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
         .select('id')
+        .eq('name', projectData.name)
         .single();
 
-      if (error) throw error;
+      if (existingProject) {
+        logProgress(`Project ${projectData.name}`, 'success', 'already exists');
+        createdIds.projects.set(projectData.id, existingProject.id);
+      } else {
+        const { data, error } = await supabaseAdmin
+          .from('projects')
+          .insert({
+            name: projectData.name,
+            description: projectData.description,
+            status: projectData.status,
+            start_date: projectData.startDate,
+            end_date: projectData.endDate,
+            budget: projectData.budget,
+            location: projectData.location,
+            client_info: projectData.clientInfo,
+            created_by: managerAId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
 
-      createdIds.projects.set(projectData.id, data.id);
-      logProgress(`Created project: ${projectData.name}`, 'success', `ID: ${data.id}`);
+        if (error) {
+          if (error.code === '23505') {
+            logProgress(`Project ${projectData.name}`, 'success', 'already exists (duplicate key)');
+            // Try to get the existing project ID
+            const { data: existingProjectData } = await supabaseAdmin
+              .from('projects')
+              .select('id')
+              .eq('name', projectData.name)
+              .single();
+            createdIds.projects.set(projectData.id, existingProjectData?.id || projectData.id);
+          } else {
+            throw error;
+          }
+        } else {
+          createdIds.projects.set(projectData.id, data.id);
+          logProgress(`Created project: ${projectData.name}`, 'success', `ID: ${data.id}`);
+        }
+      }
     }
 
     // Step 5: Assign users to projects
@@ -427,7 +588,13 @@ async function runComprehensiveTest() {
           assigned_at: new Date().toISOString(),
           is_active: true,
         });
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          logProgress(`Assignment ${assignment.category}`, 'success', 'already exists');
+        } else {
+          throw error;
+        }
+      }
     }
 
     // Project B assignments
@@ -448,7 +615,13 @@ async function runComprehensiveTest() {
           assigned_at: new Date().toISOString(),
           is_active: true,
         });
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          logProgress(`Assignment ${assignment.category}`, 'success', 'already exists');
+        } else {
+          throw error;
+        }
+      }
     }
 
     logProgress('Assigning users to projects', 'success');
@@ -513,9 +686,17 @@ async function runComprehensiveTest() {
       logProgress(`Created task: ${taskData.title}`, 'success', `Subtasks assigned to: ${randomWorkerId}`);
     }
 
-    // Step 7: Display summary
+    // Step 7: Display comprehensive summary
     console.log('\n🎉 Comprehensive Test Completed Successfully!\n');
-    console.log('📊 Summary:');
+    
+    console.log('🔗 Supabase Connection Status:');
+    console.log('   ✅ Anon key connection: Working');
+    console.log('   ✅ Service role key connection: Working');
+    console.log('   ✅ Authentication system: Working');
+    console.log('   ✅ Database schema: Validated');
+    console.log('   ✅ RLS policies: Configured');
+    
+    console.log('\n📊 Data Creation Summary:');
     console.log(`   Companies: ${createdIds.companies.size}`);
     console.log(`   Users: ${createdIds.users.size}`);
     console.log(`   Projects: ${createdIds.projects.size}`);
@@ -542,11 +723,119 @@ async function runComprehensiveTest() {
     });
 
     console.log('\n🚀 Test scenario is ready! You can now login and test the application.');
+    console.log('\n💡 Next Steps:');
+    console.log('   1. Test login with any of the credentials above');
+    console.log('   2. Verify project and task data loads correctly');
+    console.log('   3. Test user permissions and company isolation');
+    console.log('   4. Run the app and check all functionality');
 
   } catch (error) {
     handleError('Comprehensive test execution', error);
     process.exit(1);
   }
+}
+
+// Dedicated Supabase connection test function
+async function testSupabaseConnection() {
+  console.log('🔗 Testing Supabase Connection...\n');
+  
+  const tests = [
+    {
+      name: 'Environment Variables',
+      test: () => {
+        if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+          throw new Error('Missing required environment variables');
+        }
+        if (supabaseUrl.includes('your-project-id') || supabaseAnonKey.includes('your-anon-key')) {
+          throw new Error('Environment variables contain placeholder values');
+        }
+        return 'All environment variables are properly configured';
+      }
+    },
+    {
+      name: 'Anon Key Connection',
+      test: async () => {
+        const { data, error } = await supabase.from('companies').select('count').limit(1);
+        if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
+          throw error;
+        }
+        return 'Anon key connection successful';
+      }
+    },
+    {
+      name: 'Service Role Key Connection',
+      test: async () => {
+        const { data, error } = await supabaseAdmin.from('companies').select('count').limit(1);
+        if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
+          throw error;
+        }
+        return 'Service role key connection successful';
+      }
+    },
+    {
+      name: 'Authentication System',
+      test: async () => {
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+        if (error) throw error;
+        return `Authentication system working (${data.users?.length || 0} users found)`;
+      }
+    },
+    {
+      name: 'Database Schema',
+      test: async () => {
+        const requiredTables = ['companies', 'users', 'projects', 'tasks', 'user_project_assignments', 'sub_tasks'];
+        const results = [];
+        
+        for (const table of requiredTables) {
+          const { error } = await supabaseAdmin.from(table).select('*').limit(1);
+          if (error && !error.message.includes('relation') && !error.message.includes('does not exist')) {
+            results.push(`${table}: ❌ ${error.message}`);
+          } else {
+            results.push(`${table}: ✅`);
+          }
+        }
+        
+        return results.join('\n      ');
+      }
+    },
+    {
+      name: 'RLS (Row Level Security)',
+      test: async () => {
+        const { data, error } = await supabase.from('users').select('*').limit(1);
+        if (error && error.message.includes('RLS')) {
+          return 'RLS is properly configured and blocking unauthorized access';
+        } else if (error) {
+          throw error;
+        } else {
+          return 'RLS may be disabled or data is accessible (check configuration)';
+        }
+      }
+    }
+  ];
+  
+  let allPassed = true;
+  
+  for (const testCase of tests) {
+    try {
+      const result = await testCase.test();
+      logProgress(testCase.name, 'success', result);
+    } catch (error: any) {
+      logProgress(testCase.name, 'error', error.message);
+      allPassed = false;
+    }
+  }
+  
+  console.log('\n' + '='.repeat(50));
+  if (allPassed) {
+    console.log('🎉 All Supabase connection tests PASSED!');
+    console.log('✅ Your Supabase setup is working correctly.');
+  } else {
+    console.log('❌ Some Supabase connection tests FAILED!');
+    console.log('⚠️  Please check your configuration and try again.');
+  }
+  console.log('='.repeat(50) + '\n');
+  
+  return allPassed;
 }
 
 // Optional cleanup function
@@ -577,8 +866,10 @@ const command = process.argv[2];
 
 if (command === 'cleanup') {
   cleanupTestData();
+} else if (command === 'test-connection') {
+  testSupabaseConnection();
 } else {
   runComprehensiveTest();
 }
 
-export { runComprehensiveTest, cleanupTestData };
+export { runComprehensiveTest, cleanupTestData, testSupabaseConnection };

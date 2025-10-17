@@ -21,6 +21,12 @@
         "projectId": "a8596e39-81b8-4e27-bfe0-b9a8ad5e2722"
       }
     },
-    "owner": "tristankoo"
+    "owner": "tristankoo",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a8596e39-81b8-4e27-bfe0-b9a8ad5e2722"
+    }
   }
 }

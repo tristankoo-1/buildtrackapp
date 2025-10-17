@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   Modal,
   Image,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -21,6 +22,7 @@ import { cn } from "../utils/cn";
 import CompanyBanner from "../components/CompanyBanner";
 import { checkSupabaseConnection } from "../api/supabase";
 import { LoadingIndicator } from "../components/LoadingIndicator";
+import { detectEnvironment, getEnvironmentStyles } from "../utils/environmentDetector";
 
 interface DashboardScreenProps {
   onNavigateToTasks: () => void;
@@ -46,13 +48,48 @@ export default function DashboardScreen({
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<"my_tasks" | "assigned_tasks" | "my_self_tasks" | null>(null);
   const [supabaseStatus, setSupabaseStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+  const [environmentInfo] = useState(() => detectEnvironment());
+  const [isBlinking, setIsBlinking] = useState(false);
+  const blinkAnimation = useRef(new Animated.Value(1)).current;
   const t = useTranslation();
+
+  // Blinking animation function
+  const triggerBlinkingAnimation = () => {
+    setIsBlinking(true);
+    
+    // Create blinking animation
+    const blinkSequence = Animated.loop(
+      Animated.sequence([
+        Animated.timing(blinkAnimation, {
+          toValue: 0.3,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(blinkAnimation, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: 5 } // Blink 5 times (3 seconds total)
+    );
+
+    blinkSequence.start(() => {
+      // Animation completed
+      setIsBlinking(false);
+      blinkAnimation.setValue(1);
+    });
+  };
 
   // Manual refresh function
   const handleRefresh = async () => {
     if (!user) return;
     
     console.log('🔄 Manual refresh triggered from Dashboard...');
+    
+    // Trigger blinking animation when starting data fetch
+    triggerBlinkingAnimation();
+    
     try {
       await Promise.all([
         fetchProjects(),
@@ -74,6 +111,8 @@ export default function DashboardScreen({
         
         if (isConnected && user) {
           console.log('🔄 Auto-refreshing data on Dashboard mount...');
+          // Trigger blinking animation for auto-refresh
+          triggerBlinkingAnimation();
           await handleRefresh();
         }
       } catch (error) {
@@ -407,32 +446,51 @@ export default function DashboardScreen({
             {t.nav.dashboard}
           </Text>
           
-          {/* Refresh Button */}
-          <Pressable 
-            onPress={handleRefresh}
-            className="bg-blue-500 rounded-full p-2"
-          >
-            <Ionicons name="refresh" size={20} color="white" />
-          </Pressable>
-          
-          {/* Supabase Connection Status */}
-          <View className="flex-row items-center">
-            <View className={cn(
-              "w-2 h-2 rounded-full mr-2",
-              supabaseStatus === "connected" ? "bg-green-500" :
-              supabaseStatus === "disconnected" ? "bg-red-500" :
-              "bg-yellow-500"
-            )} />
-            <Text className={cn(
-              "text-xs font-medium",
-              supabaseStatus === "connected" ? "text-green-700" :
-              supabaseStatus === "disconnected" ? "text-red-700" :
-              "text-yellow-700"
-            )}>
-              {supabaseStatus === "connected" ? "Cloud" :
-               supabaseStatus === "disconnected" ? "Offline" :
-               "Checking..."}
-            </Text>
+          {/* Environment and Connection Status */}
+          <View className="flex-row items-center space-x-3">
+            {/* Environment Indicator */}
+            <View className="flex-row items-center">
+              <View 
+                className="w-2 h-2 rounded-full mr-2"
+                style={{ backgroundColor: getEnvironmentStyles(environmentInfo).backgroundColor }}
+              />
+              <Text className="text-xs font-medium text-gray-700">
+                {environmentInfo.displayName}
+              </Text>
+            </View>
+            
+            {/* Supabase Connection Status */}
+            <View className="flex-row items-center">
+              <Animated.View 
+                className={cn(
+                  "w-2 h-2 rounded-full mr-2",
+                  supabaseStatus === "connected" ? "bg-green-500" :
+                  supabaseStatus === "disconnected" ? "bg-red-500" :
+                  "bg-yellow-500"
+                )}
+                style={{
+                  opacity: blinkAnimation,
+                }}
+              />
+              <Text className={cn(
+                "text-xs font-medium",
+                supabaseStatus === "connected" ? "text-green-700" :
+                supabaseStatus === "disconnected" ? "text-red-700" :
+                "text-yellow-700"
+              )}>
+                {supabaseStatus === "connected" ? "Cloud" :
+                 supabaseStatus === "disconnected" ? "Offline" :
+                 "Checking..."}
+              </Text>
+            </View>
+            
+            {/* Refresh Button - Moved to rightmost position */}
+            <Pressable 
+              onPress={handleRefresh}
+              className="bg-blue-500 rounded-full p-2"
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+            </Pressable>
           </View>
         </View>
       </View>
