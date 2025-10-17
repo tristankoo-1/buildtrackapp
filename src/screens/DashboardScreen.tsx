@@ -46,7 +46,7 @@ export default function DashboardScreen({
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [selectedSection, setSelectedSection] = useState<"my_tasks" | "assigned_tasks" | "my_self_tasks" | null>(null);
+  const [selectedSection, setSelectedSection] = useState<"my_tasks" | "inbox_tasks" | "outbox_tasks" | null>(null);
   const [supabaseStatus, setSupabaseStatus] = useState<"checking" | "connected" | "disconnected">("checking");
   const [environmentInfo] = useState(() => detectEnvironment());
   const [isBlinking, setIsBlinking] = useState(false);
@@ -175,47 +175,9 @@ export default function DashboardScreen({
     return result;
   };
 
-  // Section 1: Tasks assigned TO me (same as "My Tasks" tab in Tasks screen)
-  // Include both parent tasks and subtasks assigned to me
-  // BUT: Don't show parent task if user is only assigned to its subtasks
-  // IMPORTANT: Exclude tasks that are already in "MY TASKS" (created by me AND assigned to me)
-  const myParentTasks = projectFilteredTasks.filter(task => {
-    // Exclude tasks created by the user (these belong in OUTBOX or MY TASKS)
-    if (task.assignedBy === user.id) {
-      return false;
-    }
-    
-    // Only include parent task if user is directly assigned to it
-    const assignedTo = task.assignedTo || [];
-    const isDirectlyAssigned = Array.isArray(assignedTo) && assignedTo.includes(user.id);
-    
-    // Check if user is assigned to any subtasks
-    const hasAssignedSubtasks = collectSubTasksAssignedTo(task.subTasks, user.id).length > 0;
-    
-    // Include parent task only if directly assigned, regardless of subtask assignments
-    // This prevents showing parent task when user is only assigned to subtasks
-    return isDirectlyAssigned && !hasAssignedSubtasks;
-  });
-  
-  const mySubTasks = projectFilteredTasks.flatMap(task => {
-    // Exclude subtasks from tasks created by the user (these belong in OUTBOX)
-    if (task.assignedBy === user.id) {
-      return [];
-    }
-    
-    // Only see subtasks assigned to the user
-    return collectSubTasksAssignedTo(task.subTasks, user.id)
-      .map(subTask => ({ ...subTask, isSubTask: true as const }));
-  });
-  const myAllTasks = [...myParentTasks, ...mySubTasks];
-  
-  const myNotStartedTasks = myAllTasks.filter(task => task.currentStatus === "not_started");
-  const myInProgressTasks = myAllTasks.filter(task => task.currentStatus === "in_progress");
-  const myCompletedTasks = myAllTasks.filter(task => task.currentStatus === "completed");
-  const myBlockedTasks = myAllTasks.filter(task => task.currentStatus === "blocked");
-
-  // Section 0: My tasks (created by me AND assigned to me)
-  const mySelfTasks = projectFilteredTasks.filter(task => {
+  // Section 1: My Tasks - Tasks I assigned to myself (my own to-do list)
+  // These are tasks where I am both the creator AND the assignee
+  const myTasks = projectFilteredTasks.filter(task => {
     const assignedTo = task.assignedTo || [];
     const isAssignedToMe = Array.isArray(assignedTo) && assignedTo.includes(user.id);
     const isCreatedByMe = task.assignedBy === user.id;
@@ -223,41 +185,72 @@ export default function DashboardScreen({
     return isCreatedByMe && isAssignedToMe;
   });
 
-  const mySelfSubTasks = projectFilteredTasks.flatMap(task => {
+  const mySubTasks = projectFilteredTasks.flatMap(task => {
     // Only include subtasks that are created by me AND assigned to me
     return collectSubTasksAssignedTo(task.subTasks, user.id)
       .filter(subTask => subTask.assignedBy === user.id)
       .map(subTask => ({ ...subTask, isSubTask: true as const }));
   });
 
-  const mySelfAllTasks = [...mySelfTasks, ...mySelfSubTasks];
+  const myAllTasks = [...myTasks, ...mySubTasks];
   
-  const mySelfNotStartedTasks = mySelfAllTasks.filter(task => task.currentStatus === "not_started");
-  const mySelfInProgressTasks = mySelfAllTasks.filter(task => task.currentStatus === "in_progress");
-  const mySelfCompletedTasks = mySelfAllTasks.filter(task => task.currentStatus === "completed");
-  const mySelfBlockedTasks = mySelfAllTasks.filter(task => task.currentStatus === "blocked");
-  
-  // Section 2: Tasks assigned BY me to others (same as "Assigned Tasks" tab in Tasks screen)
-  // Include both parent tasks and subtasks assigned by me
-  // Same logic: Don't show parent if user only assigned its subtasks
-  const assignedParentTasks = projectFilteredTasks.filter(task => {
-    const isDirectlyAssignedByMe = task.assignedBy === user.id;
+  const myNotStartedTasks = myAllTasks.filter(task => task.currentStatus === "not_started");
+  const myInProgressTasks = myAllTasks.filter(task => task.currentStatus === "in_progress");
+  const myCompletedTasks = myAllTasks.filter(task => task.currentStatus === "completed");
+  const myBlockedTasks = myAllTasks.filter(task => task.currentStatus === "blocked");
+
+  // Section 2: Inbox - Tasks assigned to me by others (need acceptance)
+  // These are tasks where others assigned them to me, but I didn't create them
+  const inboxTasks = projectFilteredTasks.filter(task => {
+    const assignedTo = task.assignedTo || [];
+    const isAssignedToMe = Array.isArray(assignedTo) && assignedTo.includes(user.id);
+    const isCreatedByMe = task.assignedBy === user.id;
     
-    const hasSubtasksAssignedByMe = collectSubTasksAssignedBy(task.subTasks, user.id).length > 0;
-    
-    return isDirectlyAssignedByMe && !hasSubtasksAssignedByMe;
+    // Include if assigned to me but NOT created by me
+    return isAssignedToMe && !isCreatedByMe;
   });
+
+  const inboxSubTasks = projectFilteredTasks.flatMap(task => {
+    // Only include subtasks assigned to me but NOT created by me
+    return collectSubTasksAssignedTo(task.subTasks, user.id)
+      .filter(subTask => subTask.assignedBy !== user.id)
+      .map(subTask => ({ ...subTask, isSubTask: true as const }));
+  });
+
+  const inboxAllTasks = [...inboxTasks, ...inboxSubTasks];
   
-  const assignedSubTasks = projectFilteredTasks.flatMap(task => 
-    collectSubTasksAssignedBy(task.subTasks, user.id)
-      .map(subTask => ({ ...subTask, isSubTask: true as const }))
-  );
-  const tasksIAssigned = [...assignedParentTasks, ...assignedSubTasks];
+  const inboxNotStartedTasks = inboxAllTasks.filter(task => task.currentStatus === "not_started");
+  const inboxInProgressTasks = inboxAllTasks.filter(task => task.currentStatus === "in_progress");
+  const inboxCompletedTasks = inboxAllTasks.filter(task => task.currentStatus === "completed");
+  const inboxBlockedTasks = inboxAllTasks.filter(task => task.currentStatus === "blocked");
   
-  const assignedNotStartedTasks = tasksIAssigned.filter(task => task.currentStatus === "not_started");
-  const assignedInProgressTasks = tasksIAssigned.filter(task => task.currentStatus === "in_progress");
-  const assignedCompletedTasks = tasksIAssigned.filter(task => task.currentStatus === "completed");
-  const assignedBlockedTasks = tasksIAssigned.filter(task => task.currentStatus === "blocked");
+  // Section 3: Outbox - Tasks I assigned to others
+  // These are tasks where I created them and assigned them to others (not myself)
+  const outboxTasks = projectFilteredTasks.filter(task => {
+    const assignedTo = task.assignedTo || [];
+    const isAssignedToMe = Array.isArray(assignedTo) && assignedTo.includes(user.id);
+    const isCreatedByMe = task.assignedBy === user.id;
+    
+    // Include if created by me but NOT assigned to me (assigned to others)
+    return isCreatedByMe && !isAssignedToMe;
+  });
+
+  const outboxSubTasks = projectFilteredTasks.flatMap(task => {
+    // Only include subtasks created by me but NOT assigned to me
+    return collectSubTasksAssignedBy(task.subTasks, user.id)
+      .filter(subTask => {
+        const assignedTo = subTask.assignedTo || [];
+        return !Array.isArray(assignedTo) || !assignedTo.includes(user.id);
+      })
+      .map(subTask => ({ ...subTask, isSubTask: true as const }));
+  });
+
+  const outboxAllTasks = [...outboxTasks, ...outboxSubTasks];
+  
+  const outboxNotStartedTasks = outboxAllTasks.filter(task => task.currentStatus === "not_started");
+  const outboxInProgressTasks = outboxAllTasks.filter(task => task.currentStatus === "in_progress");
+  const outboxCompletedTasks = outboxAllTasks.filter(task => task.currentStatus === "completed");
+  const outboxBlockedTasks = outboxAllTasks.filter(task => task.currentStatus === "blocked");
 
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
@@ -520,8 +513,8 @@ export default function DashboardScreen({
             {t.dashboard.quickOverview}
           </Text>
 
-          {/* Section 0: My Tasks (created by me AND assigned to me) */}
-          {mySelfAllTasks.length > 0 && (
+          {/* Section 1: My Tasks - Tasks I assigned to myself (my own to-do list) */}
+          {myAllTasks.length > 0 && (
             <View className="mb-2">
               {/* Stacked Bar Chart with title inside */}
               <View className="bg-white rounded-lg p-3 border border-gray-200">
@@ -529,67 +522,67 @@ export default function DashboardScreen({
                 <View className="flex-row items-center mb-3">
                   <Ionicons name="checkmark-circle-outline" size={18} color="#10b981" />
                   <Text className="text-sm font-semibold text-gray-900 ml-2">
-                    My Tasks ({mySelfAllTasks.length})
+                    My Tasks ({myAllTasks.length})
                   </Text>
                 </View>
                 {/* Bar */}
                 <View className="flex-row h-8 rounded-lg overflow-hidden">
-                  {mySelfAllTasks.length > 0 ? (
+                  {myAllTasks.length > 0 ? (
                     <>
                       {/* Not Started - Gray */}
-                      {mySelfNotStartedTasks.length > 0 && (
+                      {myNotStartedTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "my_self_tasks" ? "bg-gray-500" : "bg-gray-400")}
-                          style={{ width: `${(mySelfNotStartedTasks.length / mySelfAllTasks.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "my_tasks" ? "bg-gray-500" : "bg-gray-400")}
+                          style={{ width: `${(myNotStartedTasks.length / myAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("not_started");
-                            setSelectedSection("my_self_tasks");
+                            setSelectedSection("my_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{mySelfNotStartedTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{myNotStartedTasks.length}</Text>
                         </Pressable>
                       )}
                       {/* In Progress - Blue */}
-                      {mySelfInProgressTasks.length > 0 && (
+                      {myInProgressTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "my_self_tasks" ? "bg-blue-600" : "bg-blue-500")}
-                          style={{ width: `${(mySelfInProgressTasks.length / mySelfAllTasks.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "my_tasks" ? "bg-blue-600" : "bg-blue-500")}
+                          style={{ width: `${(myInProgressTasks.length / myAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("in_progress");
-                            setSelectedSection("my_self_tasks");
+                            setSelectedSection("my_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{mySelfInProgressTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{myInProgressTasks.length}</Text>
                         </Pressable>
                       )}
                       {/* Completed - Green */}
-                      {mySelfCompletedTasks.length > 0 && (
+                      {myCompletedTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "my_self_tasks" ? "bg-green-600" : "bg-green-500")}
-                          style={{ width: `${(mySelfCompletedTasks.length / mySelfAllTasks.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "my_tasks" ? "bg-green-600" : "bg-green-500")}
+                          style={{ width: `${(myCompletedTasks.length / myAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("completed");
-                            setSelectedSection("my_self_tasks");
+                            setSelectedSection("my_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{mySelfCompletedTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{myCompletedTasks.length}</Text>
                         </Pressable>
                       )}
                       {/* Blocked - Red */}
-                      {mySelfBlockedTasks.length > 0 && (
+                      {myBlockedTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "my_self_tasks" ? "bg-red-600" : "bg-red-500")}
-                          style={{ width: `${(mySelfBlockedTasks.length / mySelfAllTasks.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "my_tasks" ? "bg-red-600" : "bg-red-500")}
+                          style={{ width: `${(myBlockedTasks.length / myAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("blocked");
-                            setSelectedSection("my_self_tasks");
+                            setSelectedSection("my_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{mySelfBlockedTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{myBlockedTasks.length}</Text>
                         </Pressable>
                       )}
                     </>
@@ -601,156 +594,158 @@ export default function DashboardScreen({
             </View>
           )}
 
-          {/* Section 1: Tasks Assigned to Me (Inbox) */}
-          <View className="mb-2">
-            {/* Stacked Bar Chart with title inside */}
-            <View className="bg-white rounded-lg p-3 border border-gray-200">
-              {/* Title inside the card */}
-              <View className="flex-row items-center mb-3">
-                <Ionicons name="person-outline" size={18} color="#3b82f6" />
-                <Text className="text-sm font-semibold text-gray-900 ml-2">
-                  {t.dashboard.tasksAssignedToMe} ({myAllTasks.length})
-                </Text>
-              </View>
-              
-              {/* Bar */}
-              <View className="flex-row h-8 rounded-lg overflow-hidden">
-                {myAllTasks.length > 0 ? (
-                  <>
-                    {/* Not Started - Gray */}
-                    {myNotStartedTasks.length > 0 && (
-                      <Pressable 
-                        className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "my_tasks" ? "bg-gray-500" : "bg-gray-400")}
-                        style={{ width: `${(myNotStartedTasks.length / myAllTasks.length) * 100}%` }}
-                        onPress={() => {
-                          setSelectedStatus("not_started");
-                          setSelectedSection("my_tasks");
-                          setShowTasksModal(true);
-                        }}
-                      >
-                        <Text className="text-white text-xs font-bold">{myNotStartedTasks.length}</Text>
-                      </Pressable>
-                    )}
-                    {/* In Progress - Blue */}
-                    {myInProgressTasks.length > 0 && (
-                      <Pressable 
-                        className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "my_tasks" ? "bg-blue-600" : "bg-blue-500")}
-                        style={{ width: `${(myInProgressTasks.length / myAllTasks.length) * 100}%` }}
-                        onPress={() => {
-                          setSelectedStatus("in_progress");
-                          setSelectedSection("my_tasks");
-                          setShowTasksModal(true);
-                        }}
-                      >
-                        <Text className="text-white text-xs font-bold">{myInProgressTasks.length}</Text>
-                      </Pressable>
-                    )}
-                    {/* Completed - Green */}
-                    {myCompletedTasks.length > 0 && (
-                      <Pressable 
-                        className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "my_tasks" ? "bg-green-600" : "bg-green-500")}
-                        style={{ width: `${(myCompletedTasks.length / myAllTasks.length) * 100}%` }}
-                        onPress={() => {
-                          setSelectedStatus("completed");
-                          setSelectedSection("my_tasks");
-                          setShowTasksModal(true);
-                        }}
-                      >
-                        <Text className="text-white text-xs font-bold">{myCompletedTasks.length}</Text>
-                      </Pressable>
-                    )}
-                    {/* Blocked - Red */}
-                    {myBlockedTasks.length > 0 && (
-                      <Pressable 
-                        className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "my_tasks" ? "bg-red-600" : "bg-red-500")}
-                        style={{ width: `${(myBlockedTasks.length / myAllTasks.length) * 100}%` }}
-                        onPress={() => {
-                          setSelectedStatus("blocked");
-                          setSelectedSection("my_tasks");
-                          setShowTasksModal(true);
-                        }}
-                      >
-                        <Text className="text-white text-xs font-bold">{myBlockedTasks.length}</Text>
-                      </Pressable>
-                    )}
-                  </>
-                ) : (
-                  <View className="bg-gray-200 flex-1" />
-                )}
-              </View>
-            </View>
-          </View>
-
-          {/* Section 2: Tasks I Assigned to Others (Outbox) */}
-          {tasksIAssigned.length > 0 && (
+          {/* Section 2: Inbox - Tasks assigned to me by others (need acceptance) */}
+          {inboxAllTasks.length > 0 && (
             <View className="mb-2">
               {/* Stacked Bar Chart with title inside */}
               <View className="bg-white rounded-lg p-3 border border-gray-200">
                 {/* Title inside the card */}
                 <View className="flex-row items-center mb-3">
-                  <Ionicons name="people-outline" size={18} color="#7c3aed" />
+                  <Ionicons name="mail-outline" size={18} color="#3b82f6" />
                   <Text className="text-sm font-semibold text-gray-900 ml-2">
-                    {t.dashboard.tasksIAssigned} ({tasksIAssigned.length})
+                    Inbox ({inboxAllTasks.length})
+                  </Text>
+                </View>
+                
+                {/* Bar */}
+                <View className="flex-row h-8 rounded-lg overflow-hidden">
+                  {inboxAllTasks.length > 0 ? (
+                    <>
+                      {/* Not Started - Gray */}
+                      {inboxNotStartedTasks.length > 0 && (
+                        <Pressable 
+                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "inbox_tasks" ? "bg-gray-500" : "bg-gray-400")}
+                          style={{ width: `${(inboxNotStartedTasks.length / inboxAllTasks.length) * 100}%` }}
+                          onPress={() => {
+                            setSelectedStatus("not_started");
+                            setSelectedSection("inbox_tasks");
+                            setShowTasksModal(true);
+                          }}
+                        >
+                          <Text className="text-white text-xs font-bold">{inboxNotStartedTasks.length}</Text>
+                        </Pressable>
+                      )}
+                      {/* In Progress - Blue */}
+                      {inboxInProgressTasks.length > 0 && (
+                        <Pressable 
+                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "inbox_tasks" ? "bg-blue-600" : "bg-blue-500")}
+                          style={{ width: `${(inboxInProgressTasks.length / inboxAllTasks.length) * 100}%` }}
+                          onPress={() => {
+                            setSelectedStatus("in_progress");
+                            setSelectedSection("inbox_tasks");
+                            setShowTasksModal(true);
+                          }}
+                        >
+                          <Text className="text-white text-xs font-bold">{inboxInProgressTasks.length}</Text>
+                        </Pressable>
+                      )}
+                      {/* Completed - Green */}
+                      {inboxCompletedTasks.length > 0 && (
+                        <Pressable 
+                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "inbox_tasks" ? "bg-green-600" : "bg-green-500")}
+                          style={{ width: `${(inboxCompletedTasks.length / inboxAllTasks.length) * 100}%` }}
+                          onPress={() => {
+                            setSelectedStatus("completed");
+                            setSelectedSection("inbox_tasks");
+                            setShowTasksModal(true);
+                          }}
+                        >
+                          <Text className="text-white text-xs font-bold">{inboxCompletedTasks.length}</Text>
+                        </Pressable>
+                      )}
+                      {/* Blocked - Red */}
+                      {inboxBlockedTasks.length > 0 && (
+                        <Pressable 
+                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "inbox_tasks" ? "bg-red-600" : "bg-red-500")}
+                          style={{ width: `${(inboxBlockedTasks.length / inboxAllTasks.length) * 100}%` }}
+                          onPress={() => {
+                            setSelectedStatus("blocked");
+                            setSelectedSection("inbox_tasks");
+                            setShowTasksModal(true);
+                          }}
+                        >
+                          <Text className="text-white text-xs font-bold">{inboxBlockedTasks.length}</Text>
+                        </Pressable>
+                      )}
+                    </>
+                  ) : (
+                    <View className="bg-gray-200 flex-1" />
+                  )}
+                </View>
+              </View>
+            </View>
+          )}
+
+          {/* Section 3: Outbox - Tasks I assigned to others */}
+          {outboxAllTasks.length > 0 && (
+            <View className="mb-2">
+              {/* Stacked Bar Chart with title inside */}
+              <View className="bg-white rounded-lg p-3 border border-gray-200">
+                {/* Title inside the card */}
+                <View className="flex-row items-center mb-3">
+                  <Ionicons name="send-outline" size={18} color="#7c3aed" />
+                  <Text className="text-sm font-semibold text-gray-900 ml-2">
+                    Outbox ({outboxAllTasks.length})
                   </Text>
                 </View>
                 {/* Bar */}
                 <View className="flex-row h-8 rounded-lg overflow-hidden">
-                  {tasksIAssigned.length > 0 ? (
+                  {outboxAllTasks.length > 0 ? (
                     <>
                       {/* Not Started - Gray */}
-                      {assignedNotStartedTasks.length > 0 && (
+                      {outboxNotStartedTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "assigned_tasks" ? "bg-gray-500" : "bg-gray-400")}
-                          style={{ width: `${(assignedNotStartedTasks.length / tasksIAssigned.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "outbox_tasks" ? "bg-gray-500" : "bg-gray-400")}
+                          style={{ width: `${(outboxNotStartedTasks.length / outboxAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("not_started");
-                            setSelectedSection("assigned_tasks");
+                            setSelectedSection("outbox_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{assignedNotStartedTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{outboxNotStartedTasks.length}</Text>
                         </Pressable>
                       )}
                       {/* In Progress - Blue */}
-                      {assignedInProgressTasks.length > 0 && (
+                      {outboxInProgressTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "assigned_tasks" ? "bg-blue-600" : "bg-blue-500")}
-                          style={{ width: `${(assignedInProgressTasks.length / tasksIAssigned.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "outbox_tasks" ? "bg-blue-600" : "bg-blue-500")}
+                          style={{ width: `${(outboxInProgressTasks.length / outboxAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("in_progress");
-                            setSelectedSection("assigned_tasks");
+                            setSelectedSection("outbox_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{assignedInProgressTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{outboxInProgressTasks.length}</Text>
                         </Pressable>
                       )}
                       {/* Completed - Green */}
-                      {assignedCompletedTasks.length > 0 && (
+                      {outboxCompletedTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "assigned_tasks" ? "bg-green-600" : "bg-green-500")}
-                          style={{ width: `${(assignedCompletedTasks.length / tasksIAssigned.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "outbox_tasks" ? "bg-green-600" : "bg-green-500")}
+                          style={{ width: `${(outboxCompletedTasks.length / outboxAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("completed");
-                            setSelectedSection("assigned_tasks");
+                            setSelectedSection("outbox_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{assignedCompletedTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{outboxCompletedTasks.length}</Text>
                         </Pressable>
                       )}
                       {/* Blocked - Red */}
-                      {assignedBlockedTasks.length > 0 && (
+                      {outboxBlockedTasks.length > 0 && (
                         <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "assigned_tasks" ? "bg-red-600" : "bg-red-500")}
-                          style={{ width: `${(assignedBlockedTasks.length / tasksIAssigned.length) * 100}%` }}
+                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "outbox_tasks" ? "bg-red-600" : "bg-red-500")}
+                          style={{ width: `${(outboxBlockedTasks.length / outboxAllTasks.length) * 100}%` }}
                           onPress={() => {
                             setSelectedStatus("blocked");
-                            setSelectedSection("assigned_tasks");
+                            setSelectedSection("outbox_tasks");
                             setShowTasksModal(true);
                           }}
                         >
-                          <Text className="text-white text-xs font-bold">{assignedBlockedTasks.length}</Text>
+                          <Text className="text-white text-xs font-bold">{outboxBlockedTasks.length}</Text>
                         </Pressable>
                       )}
                     </>
@@ -808,9 +803,10 @@ export default function DashboardScreen({
                 {selectedStatus && `${selectedStatus.replace("_", " ").charAt(0).toUpperCase() + selectedStatus.replace("_", " ").slice(1)} Tasks`}
               </Text>
               <Text className="text-xs text-gray-500 mt-0.5">
-                {selectedSection === "my_tasks" ? "Tasks Assigned to Me" : 
-                 selectedSection === "my_self_tasks" ? "My Self-Assigned Tasks" : 
-                 "Assigned to Others"}
+                {selectedSection === "my_tasks" ? "My Tasks (Self-Assigned)" : 
+                 selectedSection === "inbox_tasks" ? "Inbox (Assigned to Me by Others)" : 
+                 selectedSection === "outbox_tasks" ? "Outbox (Assigned to Others)" : 
+                 "Tasks"}
               </Text>
             </View>
           </View>
@@ -819,8 +815,9 @@ export default function DashboardScreen({
             {(() => {
               // Filter from the appropriate task list based on which section was clicked
               const sourceTaskList = selectedSection === "my_tasks" ? myAllTasks : 
-                                   selectedSection === "my_self_tasks" ? mySelfAllTasks : 
-                                   tasksIAssigned;
+                                   selectedSection === "inbox_tasks" ? inboxAllTasks : 
+                                   selectedSection === "outbox_tasks" ? outboxAllTasks : 
+                                   [];
               const filteredTasks = sourceTaskList.filter(task => task.currentStatus === selectedStatus);
               
               return filteredTasks.length > 0 ? (
