@@ -19,6 +19,7 @@ import { useProjectFilterStore } from "../state/projectFilterStore";
 import { useCompanyStore } from "../state/companyStore";
 import { Task, SubTask } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 
 interface ReportsScreenProps {
   onNavigateBack: () => void;
@@ -216,51 +217,18 @@ export default function ReportsScreen({ onNavigateBack }: ReportsScreenProps) {
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 20,
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        <View className="flex-row items-center justify-between">
-          {/* Screen Title */}
-          <Text className="text-2xl font-bold text-gray-900 flex-1">
-            Reports
-          </Text>
+      {/* Standard Header */}
+      <StandardHeader 
+        title="Reports"
+        rightElement={
           <Pressable
             onPress={generateReport}
             className="px-4 py-2 bg-blue-600 rounded-lg"
           >
             <Text className="text-white font-medium">Export</Text>
           </Pressable>
-        </View>
-      </View>
+        }
+      />
 
       <ScrollView className="flex-1 px-6 py-4">
 

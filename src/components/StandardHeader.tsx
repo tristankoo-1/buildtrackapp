@@ -1,0 +1,225 @@
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Pressable,
+  Image,
+  Animated,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "../state/authStore";
+import { useCompanyStore } from "../state/companyStore";
+import { useTranslation } from "../utils/useTranslation";
+import { cn } from "../utils/cn";
+import { checkSupabaseConnection } from "../api/supabase";
+import { detectEnvironment, getEnvironmentStyles } from "../utils/environmentDetector";
+
+interface StandardHeaderProps {
+  title: string;
+  onRefresh?: () => void;
+  onLogout?: () => void;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
+  rightElement?: React.ReactNode;
+  className?: string;
+}
+
+export default function StandardHeader({
+  title,
+  onRefresh,
+  onLogout,
+  showBackButton = false,
+  onBackPress,
+  rightElement,
+  className = "",
+}: StandardHeaderProps) {
+  const { user, logout } = useAuthStore();
+  const { getCompanyBanner } = useCompanyStore();
+  const [supabaseStatus, setSupabaseStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+  const [environmentInfo] = useState(() => detectEnvironment());
+  const [isBlinking, setIsBlinking] = useState(false);
+  const blinkAnimation = useRef(new Animated.Value(1)).current;
+  const t = useTranslation();
+
+  // Blinking animation function
+  const triggerBlinkingAnimation = () => {
+    setIsBlinking(true);
+    
+    // Create blinking animation
+    const blinkSequence = Animated.loop(
+      Animated.sequence([
+        Animated.timing(blinkAnimation, {
+          toValue: 0.3,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(blinkAnimation, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: 5 } // Blink 5 times (3 seconds total)
+    );
+
+    blinkSequence.start(() => {
+      // Animation completed
+      setIsBlinking(false);
+      blinkAnimation.setValue(1);
+    });
+  };
+
+  // Manual refresh function
+  const handleRefresh = async () => {
+    if (!user) return;
+    
+    console.log('🔄 Manual refresh triggered from StandardHeader...');
+    
+    // Trigger blinking animation when starting data fetch
+    triggerBlinkingAnimation();
+    
+    try {
+      if (onRefresh) {
+        await onRefresh();
+      }
+      console.log('✅ Manual refresh completed');
+    } catch (error) {
+      console.error('❌ Manual refresh failed:', error);
+    }
+  };
+
+  // Check Supabase connection on component mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const isConnected = await checkSupabaseConnection();
+        setSupabaseStatus(isConnected ? "connected" : "disconnected");
+      } catch (error) {
+        console.error("Supabase connection check failed:", error);
+        setSupabaseStatus("disconnected");
+      }
+    };
+    
+    checkConnection();
+  }, []);
+
+  if (!user) return null;
+
+  const banner = getCompanyBanner(user.companyId);
+
+  return (
+    <View className={cn("bg-white border-b border-gray-200 px-6 py-4", className)}>
+      {/* Back Button */}
+      {showBackButton && (
+        <Pressable 
+          onPress={onBackPress}
+          className="absolute left-6 top-4 w-10 h-10 items-center justify-center z-10"
+        >
+          <Ionicons name="arrow-back" size={24} color="#374151" />
+        </Pressable>
+      )}
+
+      {/* Company Banner */}
+      {banner && banner.isVisible && (
+        <View className="mb-2">
+          {banner.imageUri ? (
+            // Display image banner
+            <Image
+              source={{ uri: banner.imageUri }}
+              style={{ width: '100%', height: 60 }}
+              resizeMode="cover"
+              className="rounded-lg"
+            />
+          ) : (
+            // Display text banner
+            <Text 
+              style={{ 
+                color: banner.textColor,
+                fontSize: 18, // Consistent with main title
+                fontWeight: '700',
+              }}
+              numberOfLines={1}
+            >
+              {banner.text}
+            </Text>
+          )}
+        </View>
+      )}
+      
+      {/* Screen Title */}
+      <View className="flex-row items-center justify-between">
+        <Text className="text-xl font-bold text-gray-900 flex-1">
+          {title}
+        </Text>
+        
+        {/* Custom right element */}
+        {rightElement}
+      </View>
+      
+      {/* Second Row: Indicators and Action Buttons */}
+      <View className="flex-row items-center justify-between mt-3">
+        {/* Left side: Status Indicators */}
+        <View className="flex-row items-center space-x-4">
+          {/* Environment Indicator */}
+          <View className="flex-row items-center">
+            <View 
+              className="w-2 h-2 rounded-full mr-2"
+              style={{ backgroundColor: getEnvironmentStyles(environmentInfo).backgroundColor }}
+            />
+            <Text className="text-xs font-medium text-gray-700">
+              {environmentInfo.displayName}
+            </Text>
+          </View>
+          
+          {/* Supabase Connection Status */}
+          <View className="flex-row items-center">
+            <Animated.View 
+              className={cn(
+                "w-2 h-2 rounded-full mr-2",
+                supabaseStatus === "connected" ? "bg-green-500" :
+                supabaseStatus === "disconnected" ? "bg-red-500" :
+                "bg-yellow-500"
+              )}
+              style={{
+                opacity: blinkAnimation,
+              }}
+            />
+            <Text className={cn(
+              "text-xs font-medium",
+              supabaseStatus === "connected" ? "text-green-700" :
+              supabaseStatus === "disconnected" ? "text-red-700" :
+              "text-yellow-700"
+            )}>
+              {supabaseStatus === "connected" ? "Cloud" :
+               supabaseStatus === "disconnected" ? "Offline" :
+               "Checking..."}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Right side: Action Buttons */}
+        <View className="flex-row items-center space-x-2">
+          {/* Refresh Button */}
+          {onRefresh && (
+            <Pressable 
+              onPress={handleRefresh}
+              className="bg-blue-500 rounded-full p-2"
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+            </Pressable>
+          )}
+          
+          {/* Logout Button */}
+          {(onLogout || logout) && (
+            <Pressable 
+              onPress={onLogout || logout}
+              className="bg-red-500 rounded-full p-2"
+            >
+              <Ionicons name="log-out-outline" size={20} color="white" />
+            </Pressable>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}

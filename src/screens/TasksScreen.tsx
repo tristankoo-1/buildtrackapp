@@ -18,6 +18,7 @@ import { useProjectFilterStore } from "../state/projectFilterStore";
 import { useCompanyStore } from "../state/companyStore";
 import { Task, Priority, TaskStatus, SubTask } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 
 interface TasksScreenProps {
   onNavigateToTaskDetail: (taskId: string, subTaskId?: string) => void;
@@ -281,58 +282,22 @@ export default function TasksScreen({
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  // Display image banner
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  // Display text banner
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 20,
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        {/* Screen Title */}
-        <Text className="text-2xl font-bold text-gray-900">
-          Tasks
-        </Text>
-        
-        <View className="flex-row items-center justify-between mt-4">
-          <View className="flex-1">
-          </View>
-          {user.role !== "admin" && (
+      {/* Standard Header */}
+      <StandardHeader 
+        title="Tasks"
+        rightElement={
+          user.role !== "admin" ? (
             <Pressable
               onPress={onNavigateToCreateTask}
               className="w-12 h-12 bg-blue-600 rounded-full items-center justify-center"
             >
               <Ionicons name="add" size={28} color="white" />
             </Pressable>
-          )}
-        </View>
+          ) : undefined
+        }
+      />
 
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
         <View className="flex-row items-center bg-gray-100 rounded-lg px-4 py-3 mb-4">
           <Ionicons name="search-outline" size={24} color="#6b7280" />
@@ -395,8 +360,7 @@ export default function TasksScreen({
             </View>
           </ScrollView>
         </View>
-      </View>
-
+      </ScrollView>
 
       {/* Task List */}
       <ScrollView className="flex-1 px-6 py-4" showsVerticalScrollIndicator={false}>

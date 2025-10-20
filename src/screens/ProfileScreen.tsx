@@ -19,7 +19,7 @@ import { useLanguageStore, Language } from "../state/languageStore";
 import { useCompanyStore } from "../state/companyStore";
 import { useTranslation } from "../utils/useTranslation";
 import { cn } from "../utils/cn";
-import { checkSupabaseConnection } from "../api/supabase";
+import StandardHeader from "../components/StandardHeader";
 
 interface ProfileScreenProps {
   onNavigateBack: () => void;
@@ -31,23 +31,7 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
   const { language, setLanguage } = useLanguageStore();
   const { getCompanyBanner } = useCompanyStore();
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
-  const [supabaseStatus, setSupabaseStatus] = useState<"checking" | "connected" | "disconnected">("checking");
   const t = useTranslation();
-
-  // Check Supabase connection on component mount
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const isConnected = await checkSupabaseConnection();
-        setSupabaseStatus(isConnected ? "connected" : "disconnected");
-      } catch (error) {
-        console.error("Supabase connection check failed:", error);
-        setSupabaseStatus("disconnected");
-      }
-    };
-    
-    checkConnection();
-  }, []);
 
   if (!user) return null;
 
@@ -185,43 +169,10 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
         text="Loading tasks..." 
       />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 20,
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        {/* Screen Title */}
-        <Text className="text-2xl font-bold text-gray-900">
-          {t.profile.profile}
-        </Text>
-      </View>
+      {/* Standard Header */}
+      <StandardHeader 
+        title={t.profile.profile}
+      />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* User Info Card */}
@@ -344,54 +295,6 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
             />
             
             {/* Supabase Connection Status */}
-            <Pressable
-              className="flex-row items-center py-4 px-6 bg-white border-b border-gray-100"
-              onPress={() => {
-                Alert.alert(
-                  "Database Status",
-                  `Connection: ${supabaseStatus === "connected" ? "✅ Connected to Supabase Cloud" : 
-                    supabaseStatus === "disconnected" ? "❌ Offline Mode (Local Data Only)" : 
-                    "🔄 Checking connection..."}\n\n${
-                    supabaseStatus === "connected" ? 
-                    "Your data is synced to the cloud and shared across devices." :
-                    supabaseStatus === "disconnected" ?
-                    "Data is stored locally. Connect to internet and configure Supabase to sync." :
-                    "Testing connection to Supabase..."
-                  }`
-                );
-              }}
-            >
-              <Ionicons 
-                name={supabaseStatus === "connected" ? "cloud-done-outline" : 
-                      supabaseStatus === "disconnected" ? "cloud-offline-outline" : 
-                      "cloud-outline"} 
-                size={20} 
-                color={supabaseStatus === "connected" ? "#10b981" : 
-                       supabaseStatus === "disconnected" ? "#ef4444" : 
-                       "#6b7280"} 
-              />
-              <Text className="flex-1 ml-3 text-base text-gray-900">
-                Database Status
-              </Text>
-              <View className="flex-row items-center">
-                <View className={cn(
-                  "w-2 h-2 rounded-full mr-2",
-                  supabaseStatus === "connected" ? "bg-green-500" :
-                  supabaseStatus === "disconnected" ? "bg-red-500" :
-                  "bg-yellow-500"
-                )} />
-                <Text className={cn(
-                  "text-sm font-medium",
-                  supabaseStatus === "connected" ? "text-green-700" :
-                  supabaseStatus === "disconnected" ? "text-red-700" :
-                  "text-yellow-700"
-                )}>
-                  {supabaseStatus === "connected" ? "Cloud" :
-                   supabaseStatus === "disconnected" ? "Offline" :
-                   "Checking..."}
-                </Text>
-              </View>
-            </Pressable>
             
             <MenuOption
               title="Terms of Service"

@@ -1,12 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
   Modal,
-  Image,
-  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -19,10 +17,8 @@ import { useCompanyStore } from "../state/companyStore";
 import { useTranslation } from "../utils/useTranslation";
 import { Task, Priority, SubTask } from "../types/buildtrack";
 import { cn } from "../utils/cn";
-import CompanyBanner from "../components/CompanyBanner";
-import { checkSupabaseConnection } from "../api/supabase";
 import { LoadingIndicator } from "../components/LoadingIndicator";
-import { detectEnvironment, getEnvironmentStyles } from "../utils/environmentDetector";
+import StandardHeader from "../components/StandardHeader";
 
 interface DashboardScreenProps {
   onNavigateToTasks: () => void;
@@ -47,48 +43,13 @@ export default function DashboardScreen({
   const [showTasksModal, setShowTasksModal] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<"my_tasks" | "inbox_tasks" | "outbox_tasks" | null>(null);
-  const [supabaseStatus, setSupabaseStatus] = useState<"checking" | "connected" | "disconnected">("checking");
-  const [environmentInfo] = useState(() => detectEnvironment());
-  const [isBlinking, setIsBlinking] = useState(false);
-  const blinkAnimation = useRef(new Animated.Value(1)).current;
   const t = useTranslation();
-
-  // Blinking animation function
-  const triggerBlinkingAnimation = () => {
-    setIsBlinking(true);
-    
-    // Create blinking animation
-    const blinkSequence = Animated.loop(
-      Animated.sequence([
-        Animated.timing(blinkAnimation, {
-          toValue: 0.3,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(blinkAnimation, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]),
-      { iterations: 5 } // Blink 5 times (3 seconds total)
-    );
-
-    blinkSequence.start(() => {
-      // Animation completed
-      setIsBlinking(false);
-      blinkAnimation.setValue(1);
-    });
-  };
 
   // Manual refresh function
   const handleRefresh = async () => {
     if (!user) return;
     
     console.log('🔄 Manual refresh triggered from Dashboard...');
-    
-    // Trigger blinking animation when starting data fetch
-    triggerBlinkingAnimation();
     
     try {
       await Promise.all([
@@ -102,26 +63,12 @@ export default function DashboardScreen({
     }
   };
 
-  // Check Supabase connection and refresh data on component mount
+  // Auto-refresh data on component mount
   useEffect(() => {
-    const checkConnectionAndRefresh = async () => {
-      try {
-        const isConnected = await checkSupabaseConnection();
-        setSupabaseStatus(isConnected ? "connected" : "disconnected");
-        
-        if (isConnected && user) {
-          console.log('🔄 Auto-refreshing data on Dashboard mount...');
-          // Trigger blinking animation for auto-refresh
-          triggerBlinkingAnimation();
-          await handleRefresh();
-        }
-      } catch (error) {
-        console.error("Supabase connection check failed:", error);
-        setSupabaseStatus("disconnected");
-      }
-    };
-    
-    checkConnectionAndRefresh();
+    if (user) {
+      console.log('🔄 Auto-refreshing data on Dashboard mount...');
+      handleRefresh();
+    }
   }, [user]);
 
   if (!user) return null;
@@ -175,20 +122,18 @@ export default function DashboardScreen({
     return result;
   };
 
-  // Section 1: My Tasks - Tasks I assigned to myself (my own to-do list)
-  // These are tasks where I am both the creator AND the assignee
+  // Section 1: My Tasks - All tasks assigned to me (my personal task list)
+  // These are tasks where I am the assignee, regardless of who created them
   const myTasks = projectFilteredTasks.filter(task => {
     const assignedTo = task.assignedTo || [];
     const isAssignedToMe = Array.isArray(assignedTo) && assignedTo.includes(user.id);
-    const isCreatedByMe = task.assignedBy === user.id;
     
-    return isCreatedByMe && isAssignedToMe;
+    return isAssignedToMe;
   });
 
   const mySubTasks = projectFilteredTasks.flatMap(task => {
-    // Only include subtasks that are created by me AND assigned to me
+    // Include all subtasks assigned to me, regardless of who created them
     return collectSubTasksAssignedTo(task.subTasks, user.id)
-      .filter(subTask => subTask.assignedBy === user.id)
       .map(subTask => ({ ...subTask, isSubTask: true as const }));
   });
 
@@ -251,6 +196,19 @@ export default function DashboardScreen({
   const outboxInProgressTasks = outboxAllTasks.filter(task => task.currentStatus === "in_progress");
   const outboxCompletedTasks = outboxAllTasks.filter(task => task.currentStatus === "completed");
   const outboxBlockedTasks = outboxAllTasks.filter(task => task.currentStatus === "blocked");
+
+  // Debug logging to understand task counts
+  console.log('🔍 Dashboard Task Analysis:', {
+    userId: user.id,
+    userName: user.name,
+    totalTasks: projectFilteredTasks.length,
+    myTasksCount: myAllTasks.length,
+    inboxTasksCount: inboxAllTasks.length,
+    outboxTasksCount: outboxAllTasks.length,
+    myTasksDetails: myAllTasks.map(t => ({ id: t.id, title: t.title, assignedBy: t.assignedBy, assignedTo: t.assignedTo })),
+    inboxTasksDetails: inboxAllTasks.map(t => ({ id: t.id, title: t.title, assignedBy: t.assignedBy, assignedTo: t.assignedTo })),
+    outboxTasksDetails: outboxAllTasks.map(t => ({ id: t.id, title: t.title, assignedBy: t.assignedBy, assignedTo: t.assignedTo }))
+  });
 
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
@@ -399,94 +357,11 @@ export default function DashboardScreen({
         text="Syncing data..." 
       />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  // Display image banner
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  // Display text banner
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 18, // Consistent with main title
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        {/* Screen Title */}
-        <View className="flex-row items-center justify-between">
-          <Text className="text-xl font-bold text-gray-900">
-            {t.nav.dashboard}
-          </Text>
-          
-          {/* Environment and Connection Status */}
-          <View className="flex-row items-center space-x-3">
-            {/* Environment Indicator */}
-            <View className="flex-row items-center">
-              <View 
-                className="w-2 h-2 rounded-full mr-2"
-                style={{ backgroundColor: getEnvironmentStyles(environmentInfo).backgroundColor }}
-              />
-              <Text className="text-xs font-medium text-gray-700">
-                {environmentInfo.displayName}
-              </Text>
-            </View>
-            
-            {/* Supabase Connection Status */}
-            <View className="flex-row items-center">
-              <Animated.View 
-                className={cn(
-                  "w-2 h-2 rounded-full mr-2",
-                  supabaseStatus === "connected" ? "bg-green-500" :
-                  supabaseStatus === "disconnected" ? "bg-red-500" :
-                  "bg-yellow-500"
-                )}
-                style={{
-                  opacity: blinkAnimation,
-                }}
-              />
-              <Text className={cn(
-                "text-xs font-medium",
-                supabaseStatus === "connected" ? "text-green-700" :
-                supabaseStatus === "disconnected" ? "text-red-700" :
-                "text-yellow-700"
-              )}>
-                {supabaseStatus === "connected" ? "Cloud" :
-                 supabaseStatus === "disconnected" ? "Offline" :
-                 "Checking..."}
-              </Text>
-            </View>
-            
-            {/* Refresh Button - Moved to rightmost position */}
-            <Pressable 
-              onPress={handleRefresh}
-              className="bg-blue-500 rounded-full p-2"
-            >
-              <Ionicons name="refresh" size={20} color="white" />
-            </Pressable>
-          </View>
-        </View>
-      </View>
+      {/* Standard Header */}
+      <StandardHeader 
+        title={t.nav.dashboard}
+        onRefresh={handleRefresh}
+      />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Project Filter Picker */}
@@ -513,9 +388,8 @@ export default function DashboardScreen({
             {t.dashboard.quickOverview}
           </Text>
 
-          {/* Section 1: My Tasks - Tasks I assigned to myself (my own to-do list) */}
-          {myAllTasks.length > 0 && (
-            <View className="mb-2">
+          {/* Section 1: My Tasks - All tasks assigned to me */}
+          <View className="mb-2">
               {/* Stacked Bar Chart with title inside */}
               <View className="bg-white rounded-lg p-3 border border-gray-200">
                 {/* Title inside the card */}
@@ -592,11 +466,9 @@ export default function DashboardScreen({
                 </View>
               </View>
             </View>
-          )}
 
-          {/* Section 2: Inbox - Tasks assigned to me by others (need acceptance) */}
-          {inboxAllTasks.length > 0 && (
-            <View className="mb-2">
+          {/* Section 2: Inbox - Tasks assigned to me by others */}
+          <View className="mb-2">
               {/* Stacked Bar Chart with title inside */}
               <View className="bg-white rounded-lg p-3 border border-gray-200">
                 {/* Title inside the card */}
@@ -674,11 +546,9 @@ export default function DashboardScreen({
                 </View>
               </View>
             </View>
-          )}
 
           {/* Section 3: Outbox - Tasks I assigned to others */}
-          {outboxAllTasks.length > 0 && (
-            <View className="mb-2">
+          <View className="mb-2">
               {/* Stacked Bar Chart with title inside */}
               <View className="bg-white rounded-lg p-3 border border-gray-200">
                 {/* Title inside the card */}
@@ -755,7 +625,6 @@ export default function DashboardScreen({
                 </View>
               </View>
             </View>
-          )}
           
           {/* Shared Legend */}
           <View className="flex-row justify-center items-center">

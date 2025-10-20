@@ -19,6 +19,7 @@ import { useUserStore } from "../state/userStore";
 import { useTaskStore } from "../state/taskStore";
 import { useCompanyStore } from "../state/companyStore";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 
 interface AdminDashboardScreenProps {
   onNavigateToProjects: () => void;
@@ -262,48 +263,10 @@ export default function AdminDashboardScreen({
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 20,
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            {/* Screen Title */}
-            <Text className="text-2xl font-bold text-gray-900">
-              Admin Dashboard {BUILD_VERSION}
-            </Text>
-            <Text className="text-sm text-gray-600">
-              {user.name} • {BUILD_TIMESTAMP}
-            </Text>
-          </View>
+      {/* Standard Header */}
+      <StandardHeader 
+        title={`Admin Dashboard ${BUILD_VERSION}`}
+        rightElement={
           <Pressable onPress={onNavigateToProfile}>
             <View className="w-10 h-10 bg-purple-600 rounded-full items-center justify-center">
               <Text className="text-white font-bold text-lg">
@@ -311,8 +274,8 @@ export default function AdminDashboardScreen({
               </Text>
             </View>
           </Pressable>
-        </View>
-      </View>
+        }
+      />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* SELF-TEST STATUS PANEL */}

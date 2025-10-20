@@ -19,6 +19,7 @@ import { useProjectFilterStore } from "../state/projectFilterStore";
 import { useCompanyStore } from "../state/companyStore";
 import { Task, Priority, TaskStatus, SubTask, Project, ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 import CompanyBanner from "../components/CompanyBanner";
 
 interface ProjectsTasksScreenProps {
@@ -372,105 +373,67 @@ export default function ProjectsTasksScreen({
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200">
-        {/* Company Name + Screen Title */}
-        <View className="px-6 py-4">
-          {(() => {
-            const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-            if (banner && banner.isVisible) {
-              return (
-                <View className="mb-2">
-                  {banner.imageUri ? (
-                    <Image
-                      source={{ uri: banner.imageUri }}
-                      style={{ width: '100%', height: 60 }}
-                      resizeMode="cover"
-                      className="rounded-lg"
-                    />
-                  ) : (
-                    <Text 
-                      style={{ 
-                        color: banner.textColor,
-                        fontSize: 20,
-                        fontWeight: '700',
-                      }}
-                      numberOfLines={1}
-                    >
-                      {banner.text}
-                    </Text>
-                  )}
-                </View>
-              );
-            }
-            return null;
-          })()}
-          
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-gray-900">Tasks</Text>
+      {/* Standard Header */}
+      <StandardHeader 
+        title="Tasks"
+        rightElement={
+          user.role !== "admin" ? (
+            <Pressable
+              onPress={onNavigateToCreateTask}
+              className="w-10 h-10 bg-blue-600 rounded-full items-center justify-center"
+            >
+              <Ionicons name="add" size={24} color="white" />
+            </Pressable>
+          ) : undefined
+        }
+      />
+
+      <View className="bg-white border-b border-gray-200 px-6 py-4">
+        {/* Search Bar */}
+        <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-3">
+          <Ionicons name="search-outline" size={18} color="#6b7280" />
+          <TextInput
+            className="flex-1 ml-2 text-gray-900 text-sm"
+            placeholder="Search tasks..."
+            value={searchQuery}
+            onChangeText={handleSearchChange}
+          />
+        </View>
+
+        {/* Status Filters */}
+        <View className="mt-4">
+          <Text className="text-sm font-semibold text-gray-700 mb-2">Filter</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row">
+              <StatusFilterButton status="all" label="All" />
+              <StatusFilterButton status="inbox" label="Inbox" />
+              <StatusFilterButton status="outbox" label="Outbox" />
+              <StatusFilterButton status="not_started" label="Not Started" />
+              <StatusFilterButton status="in_progress" label="In Progress" />
+              <StatusFilterButton status="blocked" label="Blocked" />
+              <StatusFilterButton status="completed" label="Completed" />
             </View>
-            {user.role !== "admin" && (
-              <Pressable
-                onPress={onNavigateToCreateTask}
-                className="w-10 h-10 bg-blue-600 rounded-full items-center justify-center"
-              >
-                <Ionicons name="add" size={24} color="white" />
-              </Pressable>
-            )}
-          </View>
-
-          {/* Search Bar */}
-          <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-3">
-            <Ionicons name="search-outline" size={18} color="#6b7280" />
-            <TextInput
-              className="flex-1 ml-2 text-gray-900 text-sm"
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChangeText={handleSearchChange}
-            />
-          </View>
-
-          {/* Status Filters */}
-          <View className="mt-4">
-            <Text className="text-sm font-semibold text-gray-700 mb-2">Filter</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row">
-                <StatusFilterButton status="all" label="All" />
-                <StatusFilterButton status="inbox" label="Inbox" />
-                <StatusFilterButton status="outbox" label="Outbox" />
-                <StatusFilterButton status="not_started" label="Not Started" />
-                <StatusFilterButton status="in_progress" label="In Progress" />
-                <StatusFilterButton status="blocked" label="Blocked" />
-                <StatusFilterButton status="completed" label="Completed" />
-              </View>
-            </ScrollView>
-          </View>
+          </ScrollView>
         </View>
       </View>
 
-      {/* Filters */}
-      <View className="bg-white border-b border-gray-200 px-6 py-2">
-        <Text className="text-sm font-bold text-gray-700 mb-2">Task Status</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="flex-row">
-            <StatusFilterButton status="all" label="All" />
-            <StatusFilterButton status="not_started" label="Not Started" />
-            <StatusFilterButton status="in_progress" label="In Progress" />
-            <StatusFilterButton status="blocked" label="Blocked" />
-            <StatusFilterButton status="completed" label="Completed" />
-          </View>
-        </ScrollView>
-      </View>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Filters */}
+        <View className="bg-white border-b border-gray-200 px-6 py-2">
+          <Text className="text-sm font-bold text-gray-700 mb-2">Task Status</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row">
+              <StatusFilterButton status="all" label="All" />
+              <StatusFilterButton status="not_started" label="Not Started" />
+              <StatusFilterButton status="in_progress" label="In Progress" />
+              <StatusFilterButton status="blocked" label="Blocked" />
+              <StatusFilterButton status="completed" label="Completed" />
+            </View>
+          </ScrollView>
+        </View>
 
-      {/* Flat Tasks List */}
-      <ScrollView 
-        className="flex-1 px-6 py-4" 
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
+        {/* Flat Tasks List */}
+        <View className="px-6 py-4">
         {allTasks.length > 0 ? (
           <>
             <Text className="text-sm text-gray-600 font-semibold mb-3">
@@ -494,6 +457,7 @@ export default function ProjectsTasksScreen({
             </Text>
           </View>
         )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

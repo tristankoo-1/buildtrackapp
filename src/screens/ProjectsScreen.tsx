@@ -22,6 +22,7 @@ import { useUserStoreWithInit } from "../state/userStore";
 import { useCompanyStore } from "../state/companyStore";
 import { Project, ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 
 interface ProjectsScreenProps {
   onNavigateToProjectDetail: (projectId: string) => void;
@@ -224,46 +225,11 @@ export default function ProjectsScreen({
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(user.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 20,
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        {/* Screen Title */}
-        <Text className="text-2xl font-bold text-gray-900">
-          Projects
-        </Text>
-        
-        <View className="flex-row items-center justify-between mt-4">
-          <View className="flex-1" />
-          {user.role === "admin" && (
+      {/* Standard Header */}
+      <StandardHeader 
+        title="Projects"
+        rightElement={
+          user.role === "admin" ? (
             <View className="flex-row space-x-2">
               {onNavigateToUserManagement && (
                 <Pressable
@@ -280,43 +246,46 @@ export default function ProjectsScreen({
                 <Ionicons name="add" size={24} color="white" />
               </Pressable>
             </View>
-          )}
-        </View>
+          ) : undefined
+        }
+      />
 
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Search Bar */}
-        <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-4">
-          <Ionicons name="search-outline" size={20} color="#6b7280" />
-          <TextInput
-            className="flex-1 ml-2 text-gray-900"
-            placeholder="Search projects..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+        <View className="px-6 pt-4">
+          <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2 mb-4">
+            <Ionicons name="search-outline" size={20} color="#6b7280" />
+            <TextInput
+              className="flex-1 ml-2 text-gray-900"
+              placeholder="Search projects..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+
+          {/* Project Count */}
+          <Text className="text-sm text-gray-600 mb-4">
+            {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
+            {user.role !== "admin" && " assigned to you"}
+          </Text>
         </View>
 
-        {/* Project Count */}
-        <Text className="text-sm text-gray-600">
-          {filteredProjects.length} project{filteredProjects.length !== 1 ? "s" : ""}
-          {user.role !== "admin" && " assigned to you"}
-        </Text>
-      </View>
+        {/* Status Filters */}
+        <View className="bg-white border-b border-gray-200 px-6 py-3">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row">
+              <StatusFilterButton status="all" label="All" />
+              <StatusFilterButton status="active" label="Active" />
+              <StatusFilterButton status="planning" label="Planning" />
+              <StatusFilterButton status="on_hold" label="On Hold" />
+              <StatusFilterButton status="completed" label="Completed" />
+              <StatusFilterButton status="cancelled" label="Cancelled" />
+            </View>
+          </ScrollView>
+        </View>
 
-      {/* Status Filters */}
-      <View className="bg-white border-b border-gray-200 px-6 py-3">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View className="flex-row">
-            <StatusFilterButton status="all" label="All" />
-            <StatusFilterButton status="active" label="Active" />
-            <StatusFilterButton status="planning" label="Planning" />
-            <StatusFilterButton status="on_hold" label="On Hold" />
-            <StatusFilterButton status="completed" label="Completed" />
-            <StatusFilterButton status="cancelled" label="Cancelled" />
-          </View>
-        </ScrollView>
-      </View>
-
-      {/* Project List */}
-      <ScrollView className="flex-1 px-6 py-4" showsVerticalScrollIndicator={false}>
+        {/* Project List */}
+        <View className="px-6 py-4">
         {filteredProjects.length > 0 ? (
           filteredProjects.map((project) => (
             <ProjectCard key={project.id} project={project} />
@@ -345,6 +314,7 @@ export default function ProjectsScreen({
             )}
           </View>
         )}
+        </View>
       </ScrollView>
 
       {/* Edit Project Modal */}

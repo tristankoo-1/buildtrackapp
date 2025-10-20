@@ -20,6 +20,7 @@ import { useUserStore } from "../state/userStore";
 import { useCompanyStore } from "../state/companyStore";
 import { TaskStatus, Priority, Task } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 
 interface TaskDetailScreenProps {
   taskId: string;
@@ -347,64 +348,41 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Unified Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {/* Company Banner - Image or Text */}
-        {(() => {
-          const banner = getCompanyBanner(user.companyId);
-          return banner?.imageUri ? (
-            <Image
-              source={{ uri: banner.imageUri }}
-              style={{ width: '100%', height: 50 }}
-              resizeMode="cover"
-              className="rounded-lg mb-2"
-            />
-          ) : (
-            <Text style={{ fontSize: 20, fontWeight: '700' }} className="text-gray-900">
-              {banner?.text || "BuildTrack"}
-            </Text>
-          );
-        })()}
-        
-        <View className="flex-row items-center justify-between mt-1">
-          {/* Screen Title - smaller font */}
-          <Text className="text-lg font-semibold text-gray-700 flex-1" numberOfLines={1}>
-            {isViewingSubTask ? "Sub-Task Details" : "Task Details"}
-          </Text>
-          <View className="flex-row gap-2">
-            {canUpdateProgress && (
-              <>
-                <Pressable
-                  onPress={() => {
-                    setDelegatingSubTaskId(null);
-                    setDelegateToUserId("");
-                    setDelegateReason("");
-                    setShowDelegateModal(true);
-                  }}
-                  className="px-3 py-2 bg-purple-600 rounded-lg"
-                >
-                  <Ionicons name="people" size={18} color="white" />
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setUpdateForm({
-                      description: "",
-                      photos: [],
-                      completionPercentage: task.completionPercentage,
-                      status: task.currentStatus,
-                    });
-                    setShowUpdateModal(true);
-                  }}
-                  className="px-4 py-2 bg-blue-600 rounded-lg"
-                >
-                  <Text className="text-white font-medium">Update</Text>
-                </Pressable>
-              </>
-            )}
-          </View>
-        </View>
-        
-      </View>
+      {/* Standard Header */}
+      <StandardHeader 
+        title={isViewingSubTask ? "Sub-Task Details" : "Task Details"}
+        rightElement={
+          canUpdateProgress ? (
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => {
+                  setDelegatingSubTaskId(null);
+                  setDelegateToUserId("");
+                  setDelegateReason("");
+                  setShowDelegateModal(true);
+                }}
+                className="px-3 py-2 bg-purple-600 rounded-lg"
+              >
+                <Ionicons name="people" size={18} color="white" />
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setUpdateForm({
+                    description: "",
+                    photos: [],
+                    completionPercentage: task.completionPercentage,
+                    status: task.currentStatus,
+                  });
+                  setShowUpdateModal(true);
+                }}
+                className="px-4 py-2 bg-blue-600 rounded-lg"
+              >
+                <Text className="text-white font-medium">Update</Text>
+              </Pressable>
+            </View>
+          ) : undefined
+        }
+      />
 
       <ScrollView className="flex-1">
         {/* Task Cards List */}

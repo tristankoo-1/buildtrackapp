@@ -20,6 +20,7 @@ import { useProjectStore } from "../state/projectStore";
 import { useCompanyStore } from "../state/companyStore";
 import { ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 import { notifyDataMutation } from "../utils/DataRefreshManager";
 
 interface CreateProjectScreenProps {
@@ -210,30 +211,10 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Unified Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {/* Company Banner - Image or Text */}
-        {(() => {
-          const banner = getCompanyBanner(user.companyId);
-          return banner?.imageUri ? (
-            <Image
-              source={{ uri: banner.imageUri }}
-              style={{ width: '100%', height: 50 }}
-              resizeMode="cover"
-              className="rounded-lg mb-2"
-            />
-          ) : (
-            <Text style={{ fontSize: 20, fontWeight: '700' }} className="text-gray-900">
-              {banner?.text || "BuildTrack"}
-            </Text>
-          );
-        })()}
-        
-        <View className="flex-row items-center justify-between mt-1">
-          {/* Screen Title - smaller font */}
-          <Text className="text-lg font-semibold text-gray-700 flex-1">
-            Create New Project
-          </Text>
+      {/* Standard Header */}
+      <StandardHeader 
+        title="Create New Project"
+        rightElement={
           <Pressable
             onPress={handleSubmit}
             disabled={isSubmitting}
@@ -248,16 +229,8 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
               {isSubmitting ? "Creating..." : "Create"}
             </Text>
           </Pressable>
-        </View>
-        
-        {/* Back button */}
-        <Pressable 
-          onPress={onNavigateBack}
-          className="absolute left-6 top-4 w-10 h-10 items-center justify-center"
-        >
-          <Ionicons name="arrow-back" size={24} color="#374151" />
-        </Pressable>
-      </View>
+        }
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

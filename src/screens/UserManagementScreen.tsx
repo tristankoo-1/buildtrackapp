@@ -17,6 +17,7 @@ import { useUserStore } from "../state/userStore";
 import { useCompanyStore } from "../state/companyStore";
 import { User, Project, UserCategory } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import StandardHeader from "../components/StandardHeader";
 import { notifyDataMutation } from "../utils/DataRefreshManager";
 
 interface UserManagementScreenProps {
@@ -223,51 +224,10 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Combined Company Banner + Header */}
-      <View className="bg-white border-b border-gray-200 px-6 py-4">
-        {/* Back button */}
-        <Pressable 
-          onPress={onNavigateBack}
-          className="absolute left-6 top-4 w-10 h-10 items-center justify-center z-10"
-        >
-          <Ionicons name="arrow-back" size={24} color="#374151" />
-        </Pressable>
-
-        {(() => {
-          const banner = useCompanyStore.getState().getCompanyBanner(currentUser.companyId);
-          if (banner && banner.isVisible) {
-            return (
-              <View className="mb-2">
-                {banner.imageUri ? (
-                  <Image
-                    source={{ uri: banner.imageUri }}
-                    style={{ width: '100%', height: 60 }}
-                    resizeMode="cover"
-                    className="rounded-lg"
-                  />
-                ) : (
-                  <Text 
-                    style={{ 
-                      color: banner.textColor,
-                      fontSize: 20,
-                      fontWeight: '700',
-                    }}
-                    numberOfLines={1}
-                  >
-                    {banner.text}
-                  </Text>
-                )}
-              </View>
-            );
-          }
-          return null;
-        })()}
-        
-        {/* Screen Title */}
-        <Text className="text-2xl font-bold text-gray-900">
-          User Management
-        </Text>
-      </View>
+      {/* Standard Header */}
+      <StandardHeader 
+        title="User Management"
+      />
 
       <View className="bg-white border-b border-gray-200 px-6 py-4">
         {/* Company Info Banner */}
