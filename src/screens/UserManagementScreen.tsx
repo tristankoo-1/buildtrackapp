@@ -18,6 +18,7 @@ import { useCompanyStore } from "../state/companyStore";
 import { User, Project, UserCategory } from "../types/buildtrack";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
+import ModalHandle from "../components/ModalHandle";
 import { notifyDataMutation } from "../utils/DataRefreshManager";
 
 interface UserManagementScreenProps {
@@ -322,6 +323,8 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
         presentationStyle="pageSheet"
       >
         <SafeAreaView className="flex-1 bg-gray-50">
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => setActiveModal(null)}
@@ -418,6 +421,8 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
         presentationStyle="formSheet"
       >
         <SafeAreaView className="flex-1 bg-gray-50">
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => setActiveModal('assign')}
@@ -471,6 +476,8 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
         presentationStyle="formSheet"
       >
         <SafeAreaView className="flex-1 bg-gray-50">
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => setActiveModal('assign')}

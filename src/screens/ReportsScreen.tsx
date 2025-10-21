@@ -220,6 +220,8 @@ export default function ReportsScreen({ onNavigateBack }: ReportsScreenProps) {
       {/* Standard Header */}
       <StandardHeader 
         title="Reports"
+        showBackButton={true}
+        onBackPress={onNavigateBack}
         rightElement={
           <Pressable
             onPress={generateReport}

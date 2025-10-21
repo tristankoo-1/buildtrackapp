@@ -31,11 +31,6 @@ interface TaskStore {
   acceptTask: (taskId: string, userId: string) => Promise<void>;
   declineTask: (taskId: string, userId: string, reason: string) => Promise<void>;
   
-  // Task delegation
-  delegateTask: (taskId: string, fromUserId: string, toUserId: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
-  delegateSubTask: (taskId: string, subTaskId: string, fromUserId: string, toUserId: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
-  checkDelegationLoop: (taskId: string, fromUserId: string, toUserId: string) => boolean;
-  
   // Progress tracking
   addTaskUpdate: (taskId: string, update: Omit<TaskUpdate, "id" | "timestamp">) => Promise<void>;
   addSubTaskUpdate: (taskId: string, subTaskId: string, update: Omit<TaskUpdate, "id" | "timestamp">) => Promise<void>;
@@ -443,40 +438,6 @@ export const useTaskStore = create<TaskStore>()(
 
       declineTask: async (taskId, userId, reason) => {
         await get().updateTask(taskId, { accepted: false, declineReason: reason });
-      },
-
-      // Task delegation methods
-      delegateTask: async (taskId, fromUserId, toUserId, reason) => {
-        try {
-          // Check for delegation loop
-          if (get().checkDelegationLoop(taskId, fromUserId, toUserId)) {
-            return { success: false, error: 'Delegation would create a loop' };
-          }
-
-          // Update task assignment
-          await get().updateTask(taskId, { assignedTo: [toUserId] });
-
-          // Add to delegation history (if we had a delegation history table)
-          // For now, we'll just return success
-          return { success: true };
-        } catch (error: any) {
-          return { success: false, error: error.message };
-        }
-      },
-
-      delegateSubTask: async (taskId, subTaskId, fromUserId, toUserId, reason) => {
-        try {
-          // Similar to delegateTask but for subtasks
-          // This would require subtask management in Supabase
-          return { success: true };
-        } catch (error: any) {
-          return { success: false, error: error.message };
-        }
-      },
-
-      checkDelegationLoop: (taskId, fromUserId, toUserId) => {
-        // Simple loop detection - in a real implementation, you'd check delegation history
-        return fromUserId === toUserId;
       },
 
       // Progress tracking methods

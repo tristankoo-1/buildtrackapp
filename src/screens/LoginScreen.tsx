@@ -116,79 +116,94 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
               </Text>
             </View>
 
-            {/* Current User Credentials */}
-            <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <Text className="text-sm font-semibold text-blue-800 mb-3">
-                ✅ Working Supabase Test Credentials:
+            {/* Quick Login User List */}
+            <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+              <Text className="text-sm font-semibold text-blue-800 mb-2">
+                👥 Quick Login - Tap any user (6 total):
               </Text>
               
-              <View className="space-y-2">
+              <View className="space-y-1.5">
+                {/* John Manager */}
                 <Pressable 
                   className="bg-purple-50 border border-purple-200 rounded p-2 active:bg-purple-100"
-                  onPress={() => handleQuickLogin('john.managera@test.com', 'password123')}
+                  onPress={() => handleQuickLogin('manager@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-xs font-semibold text-purple-800">
-                    📋 Manager Account (Company A) - Tap to Login
+                  <Text className="text-sm font-semibold text-purple-900">
+                    📋 John Manager - Manager
                   </Text>
-                  <Text className="text-xs text-purple-700">
-                    Email: john.managera@test.com
-                  </Text>
-                  <Text className="text-xs text-purple-700">
-                    Password: password123
+                  <Text className="text-xs text-purple-600">
+                    manager@buildtrack.com
                   </Text>
                 </Pressable>
                 
+                {/* Sarah Worker */}
                 <Pressable 
                   className="bg-green-50 border border-green-200 rounded p-2 active:bg-green-100"
-                  onPress={() => handleQuickLogin('alice.workera1@test.com', 'password123')}
+                  onPress={() => handleQuickLogin('worker@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-xs font-semibold text-green-800">
-                    👷 Worker Account (Company A) - Tap to Login
+                  <Text className="text-sm font-semibold text-green-900">
+                    👷 Sarah Worker - Worker
                   </Text>
-                  <Text className="text-xs text-green-700">
-                    Email: alice.workera1@test.com • Password: password123
+                  <Text className="text-xs text-green-600">
+                    worker@buildtrack.com
                   </Text>
                 </Pressable>
                 
+                {/* Alex Administrator */}
+                <Pressable 
+                  className="bg-red-50 border border-red-200 rounded p-2 active:bg-red-100"
+                  onPress={() => handleQuickLogin('admin@buildtrack.com', 'password123')}
+                >
+                  <Text className="text-sm font-semibold text-red-900">
+                    ⚙️ Alex Administrator - Admin
+                  </Text>
+                  <Text className="text-xs text-red-600">
+                    admin@buildtrack.com
+                  </Text>
+                </Pressable>
+                
+                {/* Dennis */}
                 <Pressable 
                   className="bg-blue-50 border border-blue-200 rounded p-2 active:bg-blue-100"
-                  onPress={() => handleQuickLogin('bob.workera2@test.com', 'password123')}
+                  onPress={() => handleQuickLogin('dennis@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-xs font-semibold text-blue-800">
-                    👷 Worker Account (Company A) - Tap to Login
+                  <Text className="text-sm font-semibold text-blue-900">
+                    👷 Dennis - Site Supervisor
                   </Text>
-                  <Text className="text-xs text-blue-700">
-                    Email: bob.workera2@test.com • Password: password123
+                  <Text className="text-xs text-blue-600">
+                    dennis@buildtrack.com
                   </Text>
                 </Pressable>
                 
+                {/* Lisa Martinez - Elite Electric */}
                 <Pressable 
                   className="bg-orange-50 border border-orange-200 rounded p-2 active:bg-orange-100"
-                  onPress={() => handleQuickLogin('sarah.managerb@test.com', 'password123')}
+                  onPress={() => handleQuickLogin('lisa@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-xs font-semibold text-orange-800">
-                    📋 Manager Account (Company B) - Tap to Login
+                  <Text className="text-sm font-semibold text-orange-900">
+                    👷 Lisa Martinez - Electrician
                   </Text>
-                  <Text className="text-xs text-orange-700">
-                    Email: sarah.managerb@test.com • Password: password123
+                  <Text className="text-xs text-orange-600">
+                    lisa@eliteelectric.com (Elite Electric)
                   </Text>
                 </Pressable>
                 
+                {/* Mike Johnson - Elite Electric */}
                 <Pressable 
                   className="bg-teal-50 border border-teal-200 rounded p-2 active:bg-teal-100"
-                  onPress={() => handleQuickLogin('tom.workerb@test.com', 'password123')}
+                  onPress={() => handleQuickLogin('admin@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-xs font-semibold text-teal-800">
-                    👷 Worker Account (Company B) - Tap to Login
+                  <Text className="text-sm font-semibold text-teal-900">
+                    ⚙️ Mike Johnson - Admin
                   </Text>
-                  <Text className="text-xs text-teal-700">
-                    Email: tom.workerb@test.com • Password: password123
+                  <Text className="text-xs text-teal-600">
+                    admin@eliteelectric.com (Elite Electric)
                   </Text>
                 </Pressable>
               </View>
               
-              <Text className="text-xs text-gray-600 mt-3 italic">
-                💡 All accounts use password: "password123" • Tap any card above to login instantly!
+              <Text className="text-xs text-gray-600 mt-2 italic">
+                💡 Password: "password123" • Scroll if needed
               </Text>
             </View>
 

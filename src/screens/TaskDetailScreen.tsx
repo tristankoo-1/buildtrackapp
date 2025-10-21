@@ -21,6 +21,7 @@ import { useCompanyStore } from "../state/companyStore";
 import { TaskStatus, Priority, Task } from "../types/buildtrack";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
+import ModalHandle from "../components/ModalHandle";
 
 interface TaskDetailScreenProps {
   taskId: string;
@@ -42,17 +43,11 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
   const addSubTaskUpdate = useTaskStore(state => state.addSubTaskUpdate);
   const acceptTask = useTaskStore(state => state.acceptTask);
   const declineTask = useTaskStore(state => state.declineTask);
-  const delegateTask = useTaskStore(state => state.delegateTask);
-  const delegateSubTask = useTaskStore(state => state.delegateSubTask);
   const { getUserById, getAllUsers } = useUserStore();
   const { getCompanyBanner } = useCompanyStore();
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showSubTaskModal, setShowSubTaskModal] = useState(false);
-  const [showDelegateModal, setShowDelegateModal] = useState(false);
-  const [delegateToUserId, setDelegateToUserId] = useState<string>("");
-  const [delegateReason, setDelegateReason] = useState("");
-  const [delegatingSubTaskId, setDelegatingSubTaskId] = useState<string | null>(null);
   const [updateForm, setUpdateForm] = useState({
     description: "",
     photos: [] as string[],
@@ -314,33 +309,6 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
     }
   };
 
-  const handleDelegateTask = () => {
-    if (!delegateToUserId) {
-      Alert.alert("Error", "Please select a user to delegate to");
-      return;
-    }
-
-    // If we're viewing a subtask, delegate that subtask
-    // Otherwise use the delegatingSubTaskId if set, or delegate the main task
-    const result = isViewingSubTask && subTaskId
-      ? delegateSubTask(taskId, subTaskId, user.id, delegateToUserId, delegateReason.trim() || undefined)
-      : delegatingSubTaskId 
-        ? delegateSubTask(taskId, delegatingSubTaskId, user.id, delegateToUserId, delegateReason.trim() || undefined)
-        : delegateTask(taskId, user.id, delegateToUserId, delegateReason.trim() || undefined);
-
-    if (result.success) {
-      Alert.alert(
-        "Success", 
-        `${isViewingSubTask ? "Sub-task" : "Task"} delegated successfully! The new assignee will need to accept it.`
-      );
-      setShowDelegateModal(false);
-      setDelegateToUserId("");
-      setDelegateReason("");
-      setDelegatingSubTaskId(null);
-    } else {
-      Alert.alert("Delegation Failed", result.error || "An error occurred");
-    }
-  };
 
   const isOverdue = new Date(task.dueDate) < new Date() && task.currentStatus !== "completed";
 
@@ -353,33 +321,20 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
         title={isViewingSubTask ? "Sub-Task Details" : "Task Details"}
         rightElement={
           canUpdateProgress ? (
-            <View className="flex-row gap-2">
-              <Pressable
-                onPress={() => {
-                  setDelegatingSubTaskId(null);
-                  setDelegateToUserId("");
-                  setDelegateReason("");
-                  setShowDelegateModal(true);
-                }}
-                className="px-3 py-2 bg-purple-600 rounded-lg"
-              >
-                <Ionicons name="people" size={18} color="white" />
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setUpdateForm({
-                    description: "",
-                    photos: [],
-                    completionPercentage: task.completionPercentage,
-                    status: task.currentStatus,
-                  });
-                  setShowUpdateModal(true);
-                }}
-                className="px-4 py-2 bg-blue-600 rounded-lg"
-              >
-                <Text className="text-white font-medium">Update</Text>
-              </Pressable>
-            </View>
+            <Pressable
+              onPress={() => {
+                setUpdateForm({
+                  description: "",
+                  photos: [],
+                  completionPercentage: task.completionPercentage,
+                  status: task.currentStatus,
+                });
+                setShowUpdateModal(true);
+              }}
+              className="px-4 py-2 bg-blue-600 rounded-lg"
+            >
+              <Text className="text-white font-medium">Update</Text>
+            </Pressable>
           ) : undefined
         }
       />
@@ -420,13 +375,13 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
               </View>
               <View className="flex-1">
                 <Text className="text-base font-semibold text-gray-900">
-                  {assignedBy?.id === user.id ? "Me" : (assignedBy?.name || "Unknown User")}
+                  {assignedBy?.id === user.id ? `${assignedBy?.name || "Unknown User"} (me)` : (assignedBy?.name || "Unknown User")}
                 </Text>
                 <Text className="text-sm text-gray-500 capitalize">
-                  {assignedBy?.id === user.id ? "You" : (assignedBy?.role || "Unknown Role")}
+                  {assignedBy?.role || "Unknown Role"}
                 </Text>
                 <Text className="text-xs text-gray-400">
-                  {assignedBy?.id === user.id ? "" : (assignedBy?.email || "")}
+                  {assignedBy?.email || ""}
                 </Text>
               </View>
             </View>
@@ -453,7 +408,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
                       <View className="flex-1">
                         <View className="flex-row items-center justify-between mb-1">
                           <Text className="text-base font-semibold text-gray-900">
-                            {assignedUser.id === user.id ? "Me" : assignedUser.name}
+                            {assignedUser.id === user.id ? `${assignedUser.name} (me)` : assignedUser.name}
                           </Text>
                           <View className="flex-row items-center">
                             <View className="w-20 bg-gray-200 rounded-full h-2 mr-2">
@@ -475,10 +430,10 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
                           </View>
                         </View>
                         <Text className="text-sm text-gray-500 capitalize">
-                          {assignedUser.id === user.id ? "You" : assignedUser.role}
+                          {assignedUser.role}
                         </Text>
                         <Text className="text-xs text-gray-400">
-                          {assignedUser.id === user.id ? "" : assignedUser.email}
+                          {assignedUser.email}
                         </Text>
                       </View>
                     </View>
@@ -499,47 +454,6 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
             )}
           </View>
         </View>
-
-
-        {/* Delegation History */}
-        {task.delegationHistory && task.delegationHistory.length > 0 && (
-          <View className="bg-white mx-6 mt-4 rounded-xl border border-gray-200 p-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">Delegation History</Text>
-            <View className="space-y-3">
-              {task.delegationHistory.map((delegation, index) => {
-                const fromUser = getUserById(delegation.fromUserId);
-                const toUser = getUserById(delegation.toUserId);
-                return (
-                  <View key={delegation.id} className="border-l-4 border-purple-200 pl-4 py-2">
-                    <View className="flex-row items-center mb-1">
-                      <Ionicons name="arrow-forward" size={14} color="#7c3aed" />
-                      <Text className="text-sm text-gray-900 ml-2">
-                        <Text className="font-medium">{fromUser?.name || "Unknown"}</Text>
-                        {" → "}
-                        <Text className="font-medium">{toUser?.name || "Unknown"}</Text>
-                      </Text>
-                    </View>
-                    <Text className="text-xs text-gray-500">
-                      {new Date(delegation.timestamp).toLocaleString()}
-                    </Text>
-                    {delegation.reason && (
-                      <Text className="text-sm text-gray-600 mt-1 italic">
-                        "{delegation.reason}"
-                      </Text>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-            {task.originalAssignedBy && (
-              <View className="mt-3 pt-3 border-t border-gray-200">
-                <Text className="text-xs text-gray-500">
-                  Original Creator: <Text className="font-medium text-gray-700">{getUserById(task.originalAssignedBy)?.name || "Unknown"}</Text>
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
 
         {/* Task Acceptance */}
         {isAssignedToMe && task.accepted === undefined && (
@@ -664,6 +578,8 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
         presentationStyle="pageSheet"
       >
         <SafeAreaView className="flex-1 bg-gray-50">
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => setShowUpdateModal(false)}
@@ -783,6 +699,8 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
         presentationStyle="pageSheet"
       >
         <SafeAreaView className="flex-1 bg-gray-50">
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => setShowSubTaskModal(false)}
@@ -961,111 +879,6 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
           </ScrollView>
         </SafeAreaView>
       </Modal>
-
-      {/* Delegation Modal */}
-      <Modal
-        visible={showDelegateModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <SafeAreaView className="flex-1 bg-gray-50">
-          <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
-            <Pressable 
-              onPress={() => {
-                setShowDelegateModal(false);
-                setDelegateToUserId("");
-                setDelegateReason("");
-                setDelegatingSubTaskId(null);
-              }}
-              className="mr-4"
-            >
-              <Text className="text-blue-600 font-medium">Cancel</Text>
-            </Pressable>
-            <Text className="text-lg font-semibold text-gray-900 flex-1">
-              Delegate {delegatingSubTaskId ? "Sub-Task" : "Task"}
-            </Text>
-            <Pressable
-              onPress={handleDelegateTask}
-              className="px-4 py-2 bg-purple-600 rounded-lg"
-            >
-              <Text className="text-white font-medium">Delegate</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView className="flex-1 px-6 py-4">
-            <View className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-              <View className="flex-row items-start">
-                <Ionicons name="information-circle" size={20} color="#7c3aed" />
-                <View className="ml-2 flex-1">
-                  <Text className="text-purple-900 font-medium mb-1">
-                    About Delegation
-                  </Text>
-                  <Text className="text-purple-800 text-sm">
-                    Delegating transfers this task to another user. They will need to accept it before they can start working.
-                  </Text>
-                  <Text className="text-purple-800 text-sm mt-2 font-medium">
-                    Loop Prevention: You cannot delegate to someone who has previously delegated this task.
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Select User */}
-            <View className="mb-6">
-              <Text className="text-base font-semibold text-gray-900 mb-3">
-                Delegate To
-              </Text>
-              <View className="bg-white rounded-lg border border-gray-300">
-                {getAllUsers()
-                  .filter(u => u.role !== "admin" && u.id !== user.id)
-                  .map(delegateUser => (
-                    <Pressable
-                      key={delegateUser.id}
-                      onPress={() => setDelegateToUserId(delegateUser.id)}
-                      className="flex-row items-center p-4 border-b border-gray-100"
-                    >
-                      <View className={cn(
-                        "w-5 h-5 rounded-full border-2 mr-3 items-center justify-center",
-                        delegateToUserId === delegateUser.id
-                          ? "bg-purple-600 border-purple-600"
-                          : "border-gray-300"
-                      )}>
-                        {delegateToUserId === delegateUser.id && (
-                          <View className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-gray-900 font-medium">{delegateUser.name}</Text>
-                        <Text className="text-sm text-gray-500 capitalize">{delegateUser.role}</Text>
-                      </View>
-                    </Pressable>
-                  ))}
-              </View>
-            </View>
-
-            {/* Reason (Optional) */}
-            <View className="mb-6">
-              <Text className="text-base font-semibold text-gray-900 mb-2">
-                Reason (Optional)
-              </Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-white"
-                placeholder="Why are you delegating this task?"
-                value={delegateReason}
-                onChangeText={setDelegateReason}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                maxLength={200}
-              />
-              <Text className="text-xs text-gray-500 mt-1">
-                {delegateReason.length}/200
-              </Text>
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
-
       {/* Task Detail Slider Modal */}
       <Modal
         visible={showTaskDetailModal}
@@ -1073,6 +886,8 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
         presentationStyle="pageSheet"
       >
         <SafeAreaView className="flex-1 bg-gray-50">
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => {

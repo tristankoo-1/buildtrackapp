@@ -23,6 +23,7 @@ import { useCompanyStore } from "../state/companyStore";
 import { Project, ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
+import ModalHandle from "../components/ModalHandle";
 
 interface ProjectsScreenProps {
   onNavigateToProjectDetail: (projectId: string) => void;
@@ -449,6 +450,8 @@ function EditProjectModal({
     >
       <SafeAreaView className="flex-1 bg-gray-50">
         <StatusBar style="dark" />
+        
+        <ModalHandle />
 
         {/* Header */}
         <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">

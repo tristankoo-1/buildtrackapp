@@ -109,16 +109,6 @@ export default function StandardHeader({
 
   return (
     <View className={cn("bg-white border-b border-gray-200 px-6 py-4", className)}>
-      {/* Back Button */}
-      {showBackButton && (
-        <Pressable 
-          onPress={onBackPress}
-          className="absolute left-6 top-4 w-10 h-10 items-center justify-center z-10"
-        >
-          <Ionicons name="arrow-back" size={24} color="#374151" />
-        </Pressable>
-      )}
-
       {/* Company Banner */}
       {banner && banner.isVisible && (
         <View className="mb-2">
@@ -146,8 +136,19 @@ export default function StandardHeader({
         </View>
       )}
       
-      {/* Screen Title */}
+      {/* Screen Title with Back Button */}
       <View className="flex-row items-center justify-between">
+        {/* Back Button */}
+        {showBackButton && (
+          <Pressable 
+            onPress={onBackPress}
+            className="w-10 h-10 items-center justify-center mr-2"
+          >
+            <Ionicons name="arrow-back" size={24} color="#374151" />
+          </Pressable>
+        )}
+        
+        {/* Title */}
         <Text className="text-xl font-bold text-gray-900 flex-1">
           {title}
         </Text>

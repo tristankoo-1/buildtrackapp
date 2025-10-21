@@ -19,6 +19,7 @@ import { Task, Priority, SubTask } from "../types/buildtrack";
 import { cn } from "../utils/cn";
 import { LoadingIndicator } from "../components/LoadingIndicator";
 import StandardHeader from "../components/StandardHeader";
+import ModalHandle from "../components/ModalHandle";
 
 interface DashboardScreenProps {
   onNavigateToTasks: () => void;
@@ -38,12 +39,19 @@ export default function DashboardScreen({
   const tasks = taskStore.tasks;
   const projectStore = useProjectStoreWithInit();
   const { getProjectsByUser, getProjectById, fetchProjects, fetchUserProjectAssignments } = projectStore;
-  const { selectedProjectId, setSelectedProject } = useProjectFilterStore();
+  const { selectedProjectId, setSelectedProject, setSectionFilter, setStatusFilter } = useProjectFilterStore();
   const [showProjectPicker, setShowProjectPicker] = useState(false);
-  const [showTasksModal, setShowTasksModal] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const [selectedSection, setSelectedSection] = useState<"my_tasks" | "inbox_tasks" | "outbox_tasks" | null>(null);
   const t = useTranslation();
+
+  // Get projects user is participating in
+  const userProjects = getProjectsByUser(user.id);
+
+  // Auto-select first project if none is selected
+  useEffect(() => {
+    if (!selectedProjectId && userProjects.length > 0) {
+      setSelectedProject(userProjects[0].id);
+    }
+  }, [selectedProjectId, userProjects, setSelectedProject]);
 
   // Manual refresh function
   const handleRefresh = async () => {
@@ -73,9 +81,6 @@ export default function DashboardScreen({
 
   if (!user) return null;
 
-
-  // Get projects user is participating in
-  const userProjects = getProjectsByUser(user.id);
   const activeProjects = userProjects.filter(p => p.status === "active");
   const planningProjects = userProjects.filter(p => p.status === "planning");
   
@@ -122,18 +127,21 @@ export default function DashboardScreen({
     return result;
   };
 
-  // Section 1: My Tasks - All tasks assigned to me (my personal task list)
-  // These are tasks where I am the assignee, regardless of who created them
+  // Section 1: My Tasks - Tasks I assigned to MYSELF (self-assigned only)
+  // These are tasks where I am both the creator AND the assignee
   const myTasks = projectFilteredTasks.filter(task => {
     const assignedTo = task.assignedTo || [];
     const isAssignedToMe = Array.isArray(assignedTo) && assignedTo.includes(user.id);
+    const isCreatedByMe = task.assignedBy === user.id;
     
-    return isAssignedToMe;
+    // Include if assigned to me AND created by me (self-assigned)
+    return isAssignedToMe && isCreatedByMe;
   });
 
   const mySubTasks = projectFilteredTasks.flatMap(task => {
-    // Include all subtasks assigned to me, regardless of who created them
+    // Only include subtasks I created and assigned to myself
     return collectSubTasksAssignedTo(task.subTasks, user.id)
+      .filter(subTask => subTask.assignedBy === user.id)
       .map(subTask => ({ ...subTask, isSubTask: true as const }));
   });
 
@@ -309,46 +317,6 @@ export default function DashboardScreen({
     </Pressable>
   );
 
-  const CompactTaskCard = ({ task }: { task: Task }) => (
-    <Pressable className="bg-white border border-gray-200 rounded-lg p-4 mb-2">
-      {/* Line 1: Title and Priority */}
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className="font-semibold text-gray-900 text-sm flex-1 mr-2" numberOfLines={1}>
-          {task.title}
-        </Text>
-        <View className={cn("px-2 py-1 rounded", getPriorityColor(task.priority))}>
-          <Text className="text-xs font-bold capitalize">
-            {task.priority}
-          </Text>
-        </View>
-      </View>
-      
-      {/* Line 2: Due Date and Status */}
-      <View className="flex-row items-center justify-between mb-1">
-        <View className="flex-row items-center">
-          <Ionicons name="calendar-outline" size={14} color="#6b7280" />
-          <Text className="text-xs text-gray-600 ml-1">
-            {new Date(task.dueDate).toLocaleDateString()}
-          </Text>
-        </View>
-        <Text className={cn("text-xs font-medium capitalize", getStatusColor(task.currentStatus))}>
-          {task.currentStatus.replace("_", " ")}
-        </Text>
-      </View>
-      
-      {/* Line 3: Progress Bar */}
-      <View className="flex-row items-center">
-        <View className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
-          <View 
-            className="bg-blue-600 h-2 rounded-full" 
-            style={{ width: `${task.completionPercentage}%` }}
-          />
-        </View>
-        <Text className="text-xs text-gray-600 font-semibold w-10 text-right">{task.completionPercentage}%</Text>
-      </View>
-    </Pressable>
-  );
-
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
@@ -361,6 +329,14 @@ export default function DashboardScreen({
       <StandardHeader 
         title={t.nav.dashboard}
         onRefresh={handleRefresh}
+        rightElement={
+          <Pressable 
+            onPress={onNavigateToProfile}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="person-circle-outline" size={32} color="#3b82f6" />
+          </Pressable>
+        }
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -374,7 +350,7 @@ export default function DashboardScreen({
               <Ionicons name="business-outline" size={28} color="#3b82f6" />
               <View className="ml-3 flex-1">
                 <Text className="text-base font-semibold text-gray-900" numberOfLines={1}>
-                  {selectedProject ? selectedProject.name : `${t.dashboard.allProjects} (${userProjects.length})`}
+                  {selectedProject ? selectedProject.name : t.dashboard.selectProject}
                 </Text>
               </View>
             </View>
@@ -384,330 +360,225 @@ export default function DashboardScreen({
         
         {/* Quick Overview */}
         <View className="px-6 py-4">
-          <Text className="text-lg font-bold text-gray-900 mb-4">
-            {t.dashboard.quickOverview}
-          </Text>
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-lg font-bold text-gray-900">
+              {t.dashboard.quickOverview}
+            </Text>
+            <Pressable
+              onPress={onNavigateToReports}
+              className="px-4 py-2 bg-blue-600 rounded-lg flex-row items-center"
+            >
+              <Ionicons name="bar-chart-outline" size={18} color="white" />
+              <Text className="text-white font-medium ml-2">Reports</Text>
+            </Pressable>
+          </View>
 
-          {/* Section 1: My Tasks - All tasks assigned to me */}
-          <View className="mb-2">
-              {/* Stacked Bar Chart with title inside */}
-              <View className="bg-white rounded-lg p-3 border border-gray-200">
-                {/* Title inside the card */}
+          {/* Section 1: My Tasks - Self-assigned tasks */}
+          <View className="mb-4">
+              <View className="bg-white rounded-lg p-4 border border-gray-200">
+                {/* Title */}
                 <View className="flex-row items-center mb-3">
-                  <Ionicons name="checkmark-circle-outline" size={18} color="#10b981" />
-                  <Text className="text-sm font-semibold text-gray-900 ml-2">
+                  <Ionicons name="checkmark-circle-outline" size={20} color="#10b981" />
+                  <Text className="text-base font-semibold text-gray-900 ml-2">
                     My Tasks ({myAllTasks.length})
                   </Text>
                 </View>
-                {/* Bar */}
-                <View className="flex-row h-8 rounded-lg overflow-hidden">
-                  {myAllTasks.length > 0 ? (
-                    <>
-                      {/* Not Started - Gray */}
-                      {myNotStartedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "my_tasks" ? "bg-gray-500" : "bg-gray-400")}
-                          style={{ width: `${(myNotStartedTasks.length / myAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("not_started");
-                            setSelectedSection("my_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{myNotStartedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* In Progress - Blue */}
-                      {myInProgressTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "my_tasks" ? "bg-blue-600" : "bg-blue-500")}
-                          style={{ width: `${(myInProgressTasks.length / myAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("in_progress");
-                            setSelectedSection("my_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{myInProgressTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* Completed - Green */}
-                      {myCompletedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "my_tasks" ? "bg-green-600" : "bg-green-500")}
-                          style={{ width: `${(myCompletedTasks.length / myAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("completed");
-                            setSelectedSection("my_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{myCompletedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* Blocked - Red */}
-                      {myBlockedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "my_tasks" ? "bg-red-600" : "bg-red-500")}
-                          style={{ width: `${(myBlockedTasks.length / myAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("blocked");
-                            setSelectedSection("my_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{myBlockedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                    </>
-                  ) : (
-                    <View className="bg-gray-200 flex-1" />
-                  )}
+                
+                {/* 4 Equal Status Buttons */}
+                <View className="flex-row gap-2">
+                  {/* Not Started */}
+                  <Pressable 
+                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("my_tasks");
+                      setStatusFilter("not_started");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-gray-700 mb-1">{myNotStartedTasks.length}</Text>
+                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                  </Pressable>
+                  
+                  {/* In Progress */}
+                  <Pressable 
+                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("my_tasks");
+                      setStatusFilter("in_progress");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-blue-700 mb-1">{myInProgressTasks.length}</Text>
+                    <Text className="text-xs text-blue-600 text-center">In Progress</Text>
+                  </Pressable>
+                  
+                  {/* Completed */}
+                  <Pressable 
+                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("my_tasks");
+                      setStatusFilter("completed");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-green-700 mb-1">{myCompletedTasks.length}</Text>
+                    <Text className="text-xs text-green-600 text-center">Completed</Text>
+                  </Pressable>
+                  
+                  {/* Blocked */}
+                  <Pressable 
+                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("my_tasks");
+                      setStatusFilter("blocked");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-red-700 mb-1">{myBlockedTasks.length}</Text>
+                    <Text className="text-xs text-red-600 text-center">Blocked</Text>
+                  </Pressable>
                 </View>
               </View>
             </View>
 
           {/* Section 2: Inbox - Tasks assigned to me by others */}
-          <View className="mb-2">
-              {/* Stacked Bar Chart with title inside */}
-              <View className="bg-white rounded-lg p-3 border border-gray-200">
-                {/* Title inside the card */}
+          <View className="mb-4">
+              <View className="bg-white rounded-lg p-4 border border-gray-200">
+                {/* Title */}
                 <View className="flex-row items-center mb-3">
-                  <Ionicons name="mail-outline" size={18} color="#3b82f6" />
-                  <Text className="text-sm font-semibold text-gray-900 ml-2">
+                  <Ionicons name="mail-outline" size={20} color="#3b82f6" />
+                  <Text className="text-base font-semibold text-gray-900 ml-2">
                     Inbox ({inboxAllTasks.length})
                   </Text>
                 </View>
                 
-                {/* Bar */}
-                <View className="flex-row h-8 rounded-lg overflow-hidden">
-                  {inboxAllTasks.length > 0 ? (
-                    <>
-                      {/* Not Started - Gray */}
-                      {inboxNotStartedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "inbox_tasks" ? "bg-gray-500" : "bg-gray-400")}
-                          style={{ width: `${(inboxNotStartedTasks.length / inboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("not_started");
-                            setSelectedSection("inbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{inboxNotStartedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* In Progress - Blue */}
-                      {inboxInProgressTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "inbox_tasks" ? "bg-blue-600" : "bg-blue-500")}
-                          style={{ width: `${(inboxInProgressTasks.length / inboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("in_progress");
-                            setSelectedSection("inbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{inboxInProgressTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* Completed - Green */}
-                      {inboxCompletedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "inbox_tasks" ? "bg-green-600" : "bg-green-500")}
-                          style={{ width: `${(inboxCompletedTasks.length / inboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("completed");
-                            setSelectedSection("inbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{inboxCompletedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* Blocked - Red */}
-                      {inboxBlockedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "inbox_tasks" ? "bg-red-600" : "bg-red-500")}
-                          style={{ width: `${(inboxBlockedTasks.length / inboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("blocked");
-                            setSelectedSection("inbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{inboxBlockedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                    </>
-                  ) : (
-                    <View className="bg-gray-200 flex-1" />
-                  )}
+                {/* 4 Equal Status Buttons */}
+                <View className="flex-row gap-2">
+                  {/* Not Started */}
+                  <Pressable 
+                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("inbox");
+                      setStatusFilter("not_started");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-gray-700 mb-1">{inboxNotStartedTasks.length}</Text>
+                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                  </Pressable>
+                  
+                  {/* In Progress */}
+                  <Pressable 
+                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("inbox");
+                      setStatusFilter("in_progress");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-blue-700 mb-1">{inboxInProgressTasks.length}</Text>
+                    <Text className="text-xs text-blue-600 text-center">In Progress</Text>
+                  </Pressable>
+                  
+                  {/* Completed */}
+                  <Pressable 
+                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("inbox");
+                      setStatusFilter("completed");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-green-700 mb-1">{inboxCompletedTasks.length}</Text>
+                    <Text className="text-xs text-green-600 text-center">Completed</Text>
+                  </Pressable>
+                  
+                  {/* Blocked */}
+                  <Pressable 
+                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("inbox");
+                      setStatusFilter("blocked");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-red-700 mb-1">{inboxBlockedTasks.length}</Text>
+                    <Text className="text-xs text-red-600 text-center">Blocked</Text>
+                  </Pressable>
                 </View>
               </View>
             </View>
 
           {/* Section 3: Outbox - Tasks I assigned to others */}
-          <View className="mb-2">
-              {/* Stacked Bar Chart with title inside */}
-              <View className="bg-white rounded-lg p-3 border border-gray-200">
-                {/* Title inside the card */}
+          <View className="mb-4">
+              <View className="bg-white rounded-lg p-4 border border-gray-200">
+                {/* Title */}
                 <View className="flex-row items-center mb-3">
-                  <Ionicons name="send-outline" size={18} color="#7c3aed" />
-                  <Text className="text-sm font-semibold text-gray-900 ml-2">
+                  <Ionicons name="send-outline" size={20} color="#7c3aed" />
+                  <Text className="text-base font-semibold text-gray-900 ml-2">
                     Outbox ({outboxAllTasks.length})
                   </Text>
                 </View>
-                {/* Bar */}
-                <View className="flex-row h-8 rounded-lg overflow-hidden">
-                  {outboxAllTasks.length > 0 ? (
-                    <>
-                      {/* Not Started - Gray */}
-                      {outboxNotStartedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "not_started" && selectedSection === "outbox_tasks" ? "bg-gray-500" : "bg-gray-400")}
-                          style={{ width: `${(outboxNotStartedTasks.length / outboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("not_started");
-                            setSelectedSection("outbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{outboxNotStartedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* In Progress - Blue */}
-                      {outboxInProgressTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "in_progress" && selectedSection === "outbox_tasks" ? "bg-blue-600" : "bg-blue-500")}
-                          style={{ width: `${(outboxInProgressTasks.length / outboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("in_progress");
-                            setSelectedSection("outbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{outboxInProgressTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* Completed - Green */}
-                      {outboxCompletedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "completed" && selectedSection === "outbox_tasks" ? "bg-green-600" : "bg-green-500")}
-                          style={{ width: `${(outboxCompletedTasks.length / outboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("completed");
-                            setSelectedSection("outbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{outboxCompletedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                      {/* Blocked - Red */}
-                      {outboxBlockedTasks.length > 0 && (
-                        <Pressable 
-                          className={cn("items-center justify-center", selectedStatus === "blocked" && selectedSection === "outbox_tasks" ? "bg-red-600" : "bg-red-500")}
-                          style={{ width: `${(outboxBlockedTasks.length / outboxAllTasks.length) * 100}%` }}
-                          onPress={() => {
-                            setSelectedStatus("blocked");
-                            setSelectedSection("outbox_tasks");
-                            setShowTasksModal(true);
-                          }}
-                        >
-                          <Text className="text-white text-xs font-bold">{outboxBlockedTasks.length}</Text>
-                        </Pressable>
-                      )}
-                    </>
-                  ) : (
-                    <View className="bg-gray-200 flex-1" />
-                  )}
+                
+                {/* 4 Equal Status Buttons */}
+                <View className="flex-row gap-2">
+                  {/* Not Started */}
+                  <Pressable 
+                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("outbox");
+                      setStatusFilter("not_started");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-gray-700 mb-1">{outboxNotStartedTasks.length}</Text>
+                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                  </Pressable>
+                  
+                  {/* In Progress */}
+                  <Pressable 
+                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("outbox");
+                      setStatusFilter("in_progress");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-blue-700 mb-1">{outboxInProgressTasks.length}</Text>
+                    <Text className="text-xs text-blue-600 text-center">In Progress</Text>
+                  </Pressable>
+                  
+                  {/* Completed */}
+                  <Pressable 
+                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("outbox");
+                      setStatusFilter("completed");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-green-700 mb-1">{outboxCompletedTasks.length}</Text>
+                    <Text className="text-xs text-green-600 text-center">Completed</Text>
+                  </Pressable>
+                  
+                  {/* Blocked */}
+                  <Pressable 
+                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                    onPress={() => {
+                      setSectionFilter("outbox");
+                      setStatusFilter("blocked");
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-red-700 mb-1">{outboxBlockedTasks.length}</Text>
+                    <Text className="text-xs text-red-600 text-center">Blocked</Text>
+                  </Pressable>
                 </View>
               </View>
             </View>
-          
-          {/* Shared Legend */}
-          <View className="flex-row justify-center items-center">
-            <View className="flex-row items-center mr-4">
-              <View className="w-3 h-3 bg-gray-400 rounded mr-2" />
-              <Text className="text-sm text-gray-700">{t.dashboard.notStarted}</Text>
-            </View>
-            <View className="flex-row items-center mr-4">
-              <View className="w-3 h-3 bg-blue-500 rounded mr-2" />
-              <Text className="text-sm text-gray-700">{t.dashboard.inProgress}</Text>
-            </View>
-            <View className="flex-row items-center mr-4">
-              <View className="w-3 h-3 bg-green-500 rounded mr-2" />
-              <Text className="text-sm text-gray-700">{t.dashboard.completed}</Text>
-            </View>
-            <View className="flex-row items-center">
-              <View className="w-3 h-3 bg-red-500 rounded mr-2" />
-              <Text className="text-sm text-gray-700">Blocked</Text>
-        </View>
-          </View>
         </View>
 
       </ScrollView>
-
-      {/* Tasks Filter Modal */}
-      <Modal
-        visible={showTasksModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setShowTasksModal(false)}
-      >
-        <SafeAreaView className="flex-1 bg-gray-50">
-          <StatusBar style="dark" />
-          
-          {/* Modal Header */}
-          <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
-            <Pressable 
-              onPress={() => setShowTasksModal(false)}
-              className="mr-4 w-10 h-10 items-center justify-center"
-            >
-              <Ionicons name="close" size={24} color="#374151" />
-            </Pressable>
-            <View className="flex-1">
-              <Text className="text-lg font-semibold text-gray-900">
-                {selectedStatus && `${selectedStatus.replace("_", " ").charAt(0).toUpperCase() + selectedStatus.replace("_", " ").slice(1)} Tasks`}
-              </Text>
-              <Text className="text-xs text-gray-500 mt-0.5">
-                {selectedSection === "my_tasks" ? "My Tasks (Self-Assigned)" : 
-                 selectedSection === "inbox_tasks" ? "Inbox (Assigned to Me by Others)" : 
-                 selectedSection === "outbox_tasks" ? "Outbox (Assigned to Others)" : 
-                 "Tasks"}
-              </Text>
-            </View>
-          </View>
-
-          <ScrollView className="flex-1 px-6 py-4">
-            {(() => {
-              // Filter from the appropriate task list based on which section was clicked
-              const sourceTaskList = selectedSection === "my_tasks" ? myAllTasks : 
-                                   selectedSection === "inbox_tasks" ? inboxAllTasks : 
-                                   selectedSection === "outbox_tasks" ? outboxAllTasks : 
-                                   [];
-              const filteredTasks = sourceTaskList.filter(task => task.currentStatus === selectedStatus);
-              
-              return filteredTasks.length > 0 ? (
-                filteredTasks.map((task) => (
-                  <CompactTaskCard key={task.id} task={task} />
-                ))
-              ) : (
-                <View className="bg-white border border-gray-200 rounded-lg p-8 items-center mt-8">
-                  <Ionicons name="clipboard-outline" size={48} color="#9ca3af" />
-                  <Text className="text-gray-500 text-center mt-2">
-                    No {selectedStatus?.replace("_", " ")} tasks
-                  </Text>
-                  <Text className="text-gray-400 text-sm text-center mt-1">
-                    Try selecting a different status
-                  </Text>
-                </View>
-              );
-            })()}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
 
       {/* Project Picker Modal */}
       <Modal
@@ -718,6 +589,8 @@ export default function DashboardScreen({
       >
         <SafeAreaView className="flex-1 bg-gray-50">
           <StatusBar style="dark" />
+          
+          <ModalHandle />
           
           {/* Modal Header */}
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
@@ -733,39 +606,6 @@ export default function DashboardScreen({
           </View>
 
           <ScrollView className="flex-1 px-6 py-4">
-            {/* All Projects Option */}
-            <Pressable
-              onPress={() => {
-                setSelectedProject(null);
-                setShowProjectPicker(false);
-              }}
-              className={cn(
-                "bg-white border rounded-lg px-4 py-4 mb-3 flex-row items-center",
-                selectedProjectId === null ? "border-blue-500 bg-blue-50" : "border-gray-300"
-              )}
-            >
-              <View className={cn(
-                "w-5 h-5 rounded-full border-2 items-center justify-center mr-3",
-                selectedProjectId === null ? "border-blue-500" : "border-gray-300"
-              )}>
-                {selectedProjectId === null && (
-                  <View className="w-3 h-3 rounded-full bg-blue-500" />
-                )}
-              </View>
-              <View className="flex-1">
-                <Text className={cn(
-                  "text-sm font-semibold",
-                  selectedProjectId === null ? "text-blue-900" : "text-gray-900"
-                )}>
-                  {t.dashboard.allProjects} ({userProjects.length})
-                </Text>
-                <Text className="text-xs text-gray-600 mt-0.5">
-                  {t.dashboard.viewTasks}
-                </Text>
-              </View>
-              <Ionicons name="apps-outline" size={24} color={selectedProjectId === null ? "#3b82f6" : "#6b7280"} />
-            </Pressable>
-
             {/* Individual Projects */}
             <Text className="text-xs font-semibold text-gray-500 uppercase mb-2 mt-2">
               {t.dashboard.yourProjects} ({userProjects.length})
@@ -823,3 +663,4 @@ export default function DashboardScreen({
 // Force reload 1759505832
 // Force reload: 1759506479
 // Force reload: 1759506549
+// Force reload: 1759507000 - Fixed 4-button layout

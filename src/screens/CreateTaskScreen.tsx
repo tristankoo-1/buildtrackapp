@@ -23,6 +23,7 @@ import { useProjectStore } from "../state/projectStore";
 import { useCompanyStore } from "../state/companyStore";
 import { Priority, TaskCategory } from "../types/buildtrack";
 import { cn } from "../utils/cn";
+import ModalHandle from "../components/ModalHandle";
 import { notifyDataMutation } from "../utils/DataRefreshManager";
 import StandardHeader from "../components/StandardHeader";
 
@@ -605,6 +606,8 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
         <SafeAreaView className="flex-1 bg-gray-50">
           <StatusBar style="dark" />
           
+          <ModalHandle />
+          
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
               onPress={() => setShowPriorityPicker(false)}
@@ -664,6 +667,8 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
       >
         <SafeAreaView className="flex-1 bg-gray-50">
           <StatusBar style="dark" />
+          
+          <ModalHandle />
           
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 
@@ -731,6 +736,8 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
       >
         <SafeAreaView className="flex-1 bg-gray-50">
           <StatusBar style="dark" />
+          
+          <ModalHandle />
           
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
             <Pressable 

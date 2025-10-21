@@ -98,6 +98,7 @@ function ProjectsTasksListScreen({ navigation }: { navigation: any }) {
         navigation.navigate("TaskDetail", { taskId, subTaskId });
       }}
       onNavigateToCreateTask={() => navigation.getParent()?.navigate("CreateTask")}
+      onNavigateBack={() => navigation.getParent()?.navigate("Dashboard")}
     />
   );
 }
@@ -251,15 +252,16 @@ function MainTabs() {
         tabBarActiveTintColor: "#3b82f6",
         tabBarInactiveTintColor: "#6b7280",
         tabBarStyle: {
-          backgroundColor: "white",
-          borderTopColor: "#e5e7eb",
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 84,
+          display: 'none',
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "500",
+          textAlign: "center",
+        },
+        tabBarIconStyle: {
+          justifyContent: "center",
+          alignItems: "center",
         },
       }}
     >
@@ -270,8 +272,14 @@ function MainTabs() {
           options={{
             tabBarLabel: "Home",
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="home-outline" size={size} color={color} />
+              <Ionicons name="hammer-outline" size={size} color={color} />
             ),
+            tabBarBadge: badgeCount,
+            tabBarBadgeStyle: { backgroundColor: '#ef4444', color: 'white', fontSize: 10 },
+            tabBarItemStyle: {
+              maxWidth: 100,
+              marginRight: 'auto',
+            },
           }}
         />
       )}
@@ -286,20 +294,7 @@ function MainTabs() {
             ),
           }}
         />
-      ) : (
-        <Tab.Screen
-          name="Tasks"
-          component={TasksStack}
-          options={{
-            tabBarLabel: "Works",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="hammer-outline" size={size} color={color} />
-            ),
-            tabBarBadge: badgeCount,
-            tabBarBadgeStyle: { backgroundColor: '#ef4444', color: 'white', fontSize: 10 },
-          }}
-        />
-      )}
+      ) : null}
       {user?.role !== "admin" && (
         <Tab.Screen
           name="CreateTask"
@@ -315,6 +310,9 @@ function MainTabs() {
                 />
               </View>
             ),
+            tabBarItemStyle: {
+              maxWidth: 100,
+            },
           }}
         />
       )}
@@ -327,19 +325,31 @@ function MainTabs() {
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="bar-chart-outline" size={size} color={color} />
             ),
+            tabBarItemStyle: {
+              maxWidth: 100,
+              marginLeft: 'auto',
+            },
           }}
         />
       )}
+      {/* Profile Screen - Hidden from tab bar but accessible via navigation */}
       <Tab.Screen
         name="Profile"
         component={ProfileStack}
         options={{
-          tabBarLabel: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
+          tabBarButton: () => null, // Hide from tab bar
         }}
       />
+      {/* Tasks Screen - Hidden from tab bar but accessible via navigation */}
+      {user?.role !== "admin" && (
+        <Tab.Screen
+          name="Tasks"
+          component={TasksStack}
+          options={{
+            tabBarButton: () => null, // Hide from tab bar
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 }

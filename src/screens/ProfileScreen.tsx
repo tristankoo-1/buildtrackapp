@@ -13,13 +13,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../state/authStore";
-import { useTaskStore } from "../state/taskStore";
-import { LoadingIndicator } from "../components/LoadingIndicator";
 import { useLanguageStore, Language } from "../state/languageStore";
 import { useCompanyStore } from "../state/companyStore";
 import { useTranslation } from "../utils/useTranslation";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
+import ModalHandle from "../components/ModalHandle";
 
 interface ProfileScreenProps {
   onNavigateBack: () => void;
@@ -27,7 +26,6 @@ interface ProfileScreenProps {
 
 export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
   const { user, logout } = useAuthStore();
-  const { getTasksByUser, getTasksAssignedBy, isLoading } = useTaskStore();
   const { language, setLanguage } = useLanguageStore();
   const { getCompanyBanner } = useCompanyStore();
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
@@ -36,11 +34,6 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
   if (!user) return null;
 
   const banner = getCompanyBanner(user.companyId);
-
-  const myTasks = getTasksByUser(user.id);
-  const assignedTasks = getTasksAssignedBy(user.id);
-  const completedTasks = myTasks.filter(task => task.currentStatus === "completed");
-  const inProgressTasks = myTasks.filter(task => task.currentStatus === "in_progress");
 
   const handleLogout = () => {
     Alert.alert(
@@ -105,28 +98,6 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
     }, 300);
   };
 
-  const StatItem = ({ 
-    label, 
-    value, 
-    icon, 
-    color = "text-blue-600" 
-  }: {
-    label: string;
-    value: number | string;
-    icon: string;
-    color?: string;
-  }) => (
-    <View className="flex-1 items-center py-4">
-      <Ionicons name={icon as any} size={24} color="#3b82f6" />
-      <Text className={cn("text-2xl font-bold mt-1", color)}>
-        {value}
-      </Text>
-      <Text className="text-sm text-gray-600 text-center">
-        {label}
-      </Text>
-    </View>
-  );
-
   const MenuOption = ({
     title,
     icon,
@@ -164,14 +135,12 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
-      <LoadingIndicator 
-        isLoading={isLoading} 
-        text="Loading tasks..." 
-      />
       
       {/* Standard Header */}
       <StandardHeader 
         title={t.profile.profile}
+        showBackButton={true}
+        onBackPress={onNavigateBack}
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -199,51 +168,6 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
               </Text>
             )}
           </View>
-
-          {/* Stats */}
-          <View className="border-t border-gray-100">
-            <View className="flex-row">
-              <StatItem
-                label="My Tasks"
-                value={myTasks.length}
-                icon="list-outline"
-              />
-              <View className="w-px bg-gray-200" />
-              <StatItem
-                label="Completed"
-                value={completedTasks.length}
-                icon="checkmark-circle-outline"
-                color="text-green-600"
-              />
-              <View className="w-px bg-gray-200" />
-              <StatItem
-                label="In Progress"
-                value={inProgressTasks.length}
-                icon="timer-outline"
-                color="text-orange-600"
-              />
-            </View>
-          </View>
-
-          {assignedTasks.length > 0 && (
-            <View className="border-t border-gray-100">
-              <View className="flex-row">
-                <StatItem
-                  label="Tasks Assigned"
-                  value={assignedTasks.length}
-                  icon="people-outline"
-                  color="text-purple-600"
-                />
-                <View className="w-px bg-gray-200" />
-                <StatItem
-                  label="Member Since"
-                  value={new Date(user.createdAt).getFullYear()}
-                  icon="calendar-outline"
-                  color="text-gray-600"
-                />
-              </View>
-            </View>
-          )}
         </View>
 
         {/* Menu Options */}
@@ -334,6 +258,8 @@ export default function ProfileScreen({ onNavigateBack }: ProfileScreenProps) {
       >
         <SafeAreaView className="flex-1 bg-gray-50">
           <StatusBar style="dark" />
+          
+          <ModalHandle />
           
           {/* Modal Header */}
           <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">

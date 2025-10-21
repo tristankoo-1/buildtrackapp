@@ -115,8 +115,7 @@ export default function TasksScreen({
   });
   const myTasks: TaskListItem[] = [...myParentTasks, ...mySubTasks];
 
-  // For "Assigned Tasks": Show parent tasks assigned/delegated by me + subtasks assigned/delegated by me
-  // Workers can now see tasks they've delegated to others
+  // For "Assigned Tasks": Show parent tasks assigned by me + subtasks assigned by me
   // Same logic: Don't show parent if user only assigned its subtasks
   const assignedParentTasks = projectFilteredTasks.filter(task => {
     const isDirectlyAssignedByMe = task.assignedBy === user.id;

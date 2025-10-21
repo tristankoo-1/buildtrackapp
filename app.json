@@ -10,7 +10,8 @@
     "sdkVersion": "54.0.0",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.buildtrack.app",
+      "bundleIdentifier": "com.buildtrack.app.local",
+      "displayName": "BuildTrack-local",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

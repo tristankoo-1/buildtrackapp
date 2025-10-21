@@ -14,6 +14,21 @@ export type ProjectStatus = "planning" | "active" | "on_hold" | "completed" | "c
 
 export type UserCategory = "lead_project_manager" | "contractor" | "subcontractor" | "inspector" | "architect" | "engineer" | "worker" | "foreman";
 
+// Role-related types (NEW)
+export type RoleName = "admin" | "manager" | "worker" | "lead_project_manager" | "contractor" | "subcontractor" | "inspector" | "architect" | "engineer" | "foreman";
+
+export interface Role {
+  id: string;
+  name: RoleName;
+  displayName: string;
+  description?: string;
+  level: number; // 1=Admin, 2=Manager, 3=Worker
+  permissions?: Record<string, boolean>;
+  isSystemRole: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -85,6 +100,7 @@ export interface Project {
   updatedAt: string;
 }
 
+// DEPRECATED: Use UserProjectRole instead
 export interface UserProjectAssignment {
   userId: string;
   projectId: string;
@@ -94,16 +110,31 @@ export interface UserProjectAssignment {
   isActive: boolean;
 }
 
+// NEW: User Project Role Assignment (replaces UserProjectAssignment)
+export interface UserProjectRole {
+  id: string;
+  userId: string;
+  projectId: string;
+  roleId: string;
+  category?: UserCategory; // Optional category within the project
+  assignedAt: string;
+  assignedBy: string;
+  isActive: boolean;
+}
+
 export interface User {
   id: string;
   email?: string; // Optional - can use phone as username
   name: string;
-  role: UserRole;
+  role: UserRole; // DEPRECATED: For backward compatibility, use defaultRole instead
+  defaultRole?: Role; // NEW: Default role reference
+  defaultRoleId?: string; // NEW: Default role ID
   companyId: string; // Required - must belong to a company
   position: string; // Job position/title (required)
   phone: string; // Required - primary identifier
   createdAt: string;
-  // Project assignments will be handled separately in UserProjectAssignment
+  updatedAt?: string; // NEW: Track updates
+  // Project assignments will be handled separately in UserProjectRole
 }
 
 export interface TaskUpdate {
@@ -114,14 +145,6 @@ export interface TaskUpdate {
   status: TaskStatus;
   timestamp: string;
   userId: string;
-}
-
-export interface DelegationHistory {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
-  timestamp: string;
-  reason?: string;
 }
 
 export interface SubTask {
@@ -148,8 +171,6 @@ export interface SubTask {
   accepted?: boolean;
   declineReason?: string;
   subTasks?: SubTask[]; // Recursive nesting
-  delegationHistory?: DelegationHistory[]; // Track delegation chain
-  originalAssignedBy?: string; // Original task creator (before any delegations)
 }
 
 export interface Task {
@@ -175,8 +196,6 @@ export interface Task {
   accepted?: boolean;
   declineReason?: string;
   subTasks?: SubTask[]; // Add subtasks array
-  delegationHistory?: DelegationHistory[]; // Track delegation chain
-  originalAssignedBy?: string; // Original task creator (before any delegations)
 }
 
 export interface AuthState {

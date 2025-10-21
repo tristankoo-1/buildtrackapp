@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import CompanyBanner from "../components/CompanyBanner";
 interface ProjectsTasksScreenProps {
   onNavigateToTaskDetail: (taskId: string, subTaskId?: string) => void;
   onNavigateToCreateTask: () => void;
+  onNavigateBack?: () => void;
 }
 
 // Type for task list items (can be Task or SubTask)
@@ -32,7 +33,8 @@ type TaskListItem = Task | (SubTask & { isSubTask: true });
 
 export default function ProjectsTasksScreen({ 
   onNavigateToTaskDetail, 
-  onNavigateToCreateTask 
+  onNavigateToCreateTask,
+  onNavigateBack 
 }: ProjectsTasksScreenProps) {
   const { user } = useAuthStore();
   const taskStore = useTaskStoreWithInit();
@@ -41,11 +43,24 @@ export default function ProjectsTasksScreen({
   const { getUserById } = userStore;
   const projectStore = useProjectStoreWithInit();
   const { getProjectById, getProjectsByUser } = projectStore;
-  const { selectedProjectId } = useProjectFilterStore();
+  const { selectedProjectId, sectionFilter, statusFilter, clearSectionFilter, clearStatusFilter } = useProjectFilterStore();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all" | "inbox" | "outbox">("all");
+  const [localSectionFilter, setLocalSectionFilter] = useState<"my_tasks" | "inbox" | "outbox" | "all">("all");
+  const [localStatusFilter, setLocalStatusFilter] = useState<TaskStatus | "all">("all");
   const [refreshing, setRefreshing] = useState(false);
+
+  // Apply filters from store on mount
+  useEffect(() => {
+    if (sectionFilter) {
+      setLocalSectionFilter(sectionFilter);
+      clearSectionFilter(); // Clear it after applying so it doesn't persist
+    }
+    if (statusFilter) {
+      setLocalStatusFilter(statusFilter);
+      clearStatusFilter(); // Clear it after applying so it doesn't persist
+    }
+  }, [sectionFilter, statusFilter, clearSectionFilter, clearStatusFilter]);
 
   const handleSearchChange = useCallback((text: string) => {
     setSearchQuery(text);
@@ -125,47 +140,82 @@ export default function ProjectsTasksScreen({
     const allProjectTasks = userProjects.flatMap(project => {
       const projectTasks = tasks.filter(task => task.projectId === project.id);
 
-      // Get inbox tasks (tasks assigned to me)
-      const myParentTasks = projectTasks.filter(task => {
+      // Get MY_TASKS (Tasks I assigned to MYSELF - self-assigned only)
+      const myTasksParent = projectTasks.filter(task => {
         const assignedTo = task.assignedTo || [];
         const isDirectlyAssigned = Array.isArray(assignedTo) && assignedTo.includes(user.id);
+        const isCreatedByMe = task.assignedBy === user.id;
         const hasAssignedSubtasks = collectSubTasksAssignedTo(task.subTasks, user.id).length > 0;
-        return isDirectlyAssigned && !hasAssignedSubtasks;
+        // Include if assigned to me AND created by me (self-assigned)
+        return isDirectlyAssigned && isCreatedByMe && !hasAssignedSubtasks;
       });
       
-      const mySubTasks = projectTasks.flatMap(task => {
+      const myTasksSubTasks = projectTasks.flatMap(task => {
+        // Only include subtasks I created and assigned to myself
         return collectSubTasksAssignedTo(task.subTasks, user.id)
+          .filter(subTask => subTask.assignedBy === user.id)
           .map(subTask => ({ ...subTask, isSubTask: true as const }));
       });
       
-      const inboxTasks = [...myParentTasks, ...mySubTasks];
+      const myTasksAll = [...myTasksParent, ...myTasksSubTasks];
       
-      // Get outbox tasks (tasks assigned by me)
+      // Get INBOX tasks (tasks assigned to me by OTHERS only, not self-assigned)
+      const inboxParentTasks = projectTasks.filter(task => {
+        const assignedTo = task.assignedTo || [];
+        const isDirectlyAssigned = Array.isArray(assignedTo) && assignedTo.includes(user.id);
+        const isCreatedByMe = task.assignedBy === user.id;
+        const hasAssignedSubtasks = collectSubTasksAssignedTo(task.subTasks, user.id).length > 0;
+        // Include if assigned to me but NOT created by me
+        return isDirectlyAssigned && !isCreatedByMe && !hasAssignedSubtasks;
+      });
+      
+      const inboxSubTasks = projectTasks.flatMap(task => {
+        // Only include subtasks assigned to me but NOT created by me
+        return collectSubTasksAssignedTo(task.subTasks, user.id)
+          .filter(subTask => subTask.assignedBy !== user.id)
+          .map(subTask => ({ ...subTask, isSubTask: true as const }));
+      });
+      
+      const inboxTasks = [...inboxParentTasks, ...inboxSubTasks];
+      
+      // Get outbox tasks (tasks assigned by me to OTHERS, not to myself)
       const assignedParentTasks = projectTasks.filter(task => {
+        const assignedTo = task.assignedTo || [];
+        const isAssignedToMe = Array.isArray(assignedTo) && assignedTo.includes(user.id);
         const isDirectlyAssignedByMe = task.assignedBy === user.id;
         const hasSubtasksAssignedByMe = collectSubTasksAssignedBy(task.subTasks, user.id).length > 0;
-        return isDirectlyAssignedByMe && !hasSubtasksAssignedByMe;
+        // Include if created by me, not assigned to me, and has no subtasks assigned by me
+        return isDirectlyAssignedByMe && !isAssignedToMe && !hasSubtasksAssignedByMe;
       });
       
       const assignedSubTasks = projectTasks.flatMap(task => 
         collectSubTasksAssignedBy(task.subTasks, user.id)
+          .filter(subTask => {
+            const assignedTo = subTask.assignedTo || [];
+            // Only include subtasks NOT assigned to me
+            return !Array.isArray(assignedTo) || !assignedTo.includes(user.id);
+          })
           .map(subTask => ({ ...subTask, isSubTask: true as const }))
       );
       
       const outboxTasks = [...assignedParentTasks, ...assignedSubTasks];
       
-      // Return tasks based on status filter
-      if (statusFilter === "inbox") {
+      // Return tasks based on section filter
+      if (localSectionFilter === "my_tasks") {
+        // "my_tasks" shows ALL tasks assigned to me (including self-assigned)
+        return myTasksAll;
+      } else if (localSectionFilter === "inbox") {
+        // "inbox" shows only tasks assigned to me by others
         return inboxTasks;
-      } else if (statusFilter === "outbox") {
+      } else if (localSectionFilter === "outbox") {
         return outboxTasks;
       } else {
-        // For "all" or other status filters, return both inbox and outbox tasks
+        // For "all", return all my tasks (including self-assigned) and outbox tasks
         // Use a Map to ensure unique tasks by ID
         const uniqueTasks = new Map();
         
-        // Add inbox tasks
-        inboxTasks.forEach(task => {
+        // Add all my tasks (including self-assigned)
+        myTasksAll.forEach(task => {
           uniqueTasks.set(task.id, task);
         });
         
@@ -183,13 +233,8 @@ export default function ProjectsTasksScreen({
       const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            task.description.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Handle inbox/outbox filters (already handled in task collection)
-      if (statusFilter === "inbox" || statusFilter === "outbox") {
-        return matchesSearch;
-      }
-      
-      // Handle regular status filters
-      const matchesStatus = statusFilter === "all" || task.currentStatus === statusFilter;
+      // Handle status filters
+      const matchesStatus = localStatusFilter === "all" || task.currentStatus === localStatusFilter;
       return matchesSearch && matchesStatus;
     });
 
@@ -340,18 +385,18 @@ export default function ProjectsTasksScreen({
   };
 
 
-  const StatusFilterButton = ({ 
-    status, 
+  const SectionFilterButton = ({ 
+    section, 
     label 
   }: { 
-    status: TaskStatus | "all" | "inbox" | "outbox"; 
+    section: "my_tasks" | "inbox" | "outbox" | "all"; 
     label: string 
   }) => (
     <Pressable
-      onPress={() => setStatusFilter(status)}
+      onPress={() => setLocalSectionFilter(section)}
       className={cn(
         "px-3 py-1 rounded-full border mr-2",
-        statusFilter === status
+        localSectionFilter === section
           ? "bg-blue-600 border-blue-600"
           : "bg-white border-gray-300"
       )}
@@ -359,7 +404,36 @@ export default function ProjectsTasksScreen({
       <Text
         className={cn(
           "text-sm font-semibold",
-          statusFilter === status
+          localSectionFilter === section
+            ? "text-white"
+            : "text-gray-600"
+        )}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+
+  const StatusFilterButton = ({ 
+    status, 
+    label 
+  }: { 
+    status: TaskStatus | "all"; 
+    label: string 
+  }) => (
+    <Pressable
+      onPress={() => setLocalStatusFilter(status)}
+      className={cn(
+        "px-3 py-1 rounded-full border mr-2",
+        localStatusFilter === status
+          ? "bg-green-600 border-green-600"
+          : "bg-white border-gray-300"
+      )}
+    >
+      <Text
+        className={cn(
+          "text-sm font-semibold",
+          localStatusFilter === status
             ? "text-white"
             : "text-gray-600"
         )}
@@ -376,6 +450,8 @@ export default function ProjectsTasksScreen({
       {/* Standard Header */}
       <StandardHeader 
         title="Tasks"
+        showBackButton={!!onNavigateBack}
+        onBackPress={onNavigateBack}
         rightElement={
           user.role !== "admin" ? (
             <Pressable
@@ -400,38 +476,35 @@ export default function ProjectsTasksScreen({
           />
         </View>
 
-        {/* Status Filters */}
+        {/* Section Filters */}
         <View className="mt-4">
-          <Text className="text-sm font-semibold text-gray-700 mb-2">Filter</Text>
+          <Text className="text-sm font-semibold text-gray-700 mb-2">Task Categories</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View className="flex-row">
+              <SectionFilterButton section="all" label="All" />
+              <SectionFilterButton section="my_tasks" label="My Tasks" />
+              <SectionFilterButton section="inbox" label="Inbox" />
+              <SectionFilterButton section="outbox" label="Outbox" />
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Status Filters */}
+        <View className="mt-3">
+          <Text className="text-sm font-semibold text-gray-700 mb-2">Task Status</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row">
               <StatusFilterButton status="all" label="All" />
-              <StatusFilterButton status="inbox" label="Inbox" />
-              <StatusFilterButton status="outbox" label="Outbox" />
               <StatusFilterButton status="not_started" label="Not Started" />
               <StatusFilterButton status="in_progress" label="In Progress" />
-              <StatusFilterButton status="blocked" label="Blocked" />
               <StatusFilterButton status="completed" label="Completed" />
+              <StatusFilterButton status="blocked" label="Blocked" />
             </View>
           </ScrollView>
         </View>
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Filters */}
-        <View className="bg-white border-b border-gray-200 px-6 py-2">
-          <Text className="text-sm font-bold text-gray-700 mb-2">Task Status</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row">
-              <StatusFilterButton status="all" label="All" />
-              <StatusFilterButton status="not_started" label="Not Started" />
-              <StatusFilterButton status="in_progress" label="In Progress" />
-              <StatusFilterButton status="blocked" label="Blocked" />
-              <StatusFilterButton status="completed" label="Completed" />
-            </View>
-          </ScrollView>
-        </View>
-
         {/* Flat Tasks List */}
         <View className="px-6 py-4">
         {allTasks.length > 0 ? (
