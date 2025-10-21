@@ -17,9 +17,9 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "../state/authStore";
-import { useTaskStore } from "../state/taskStore";
-import { useUserStore } from "../state/userStore";
-import { useProjectStore } from "../state/projectStore";
+import { useTaskStore } from "../state/taskStore.supabase";
+import { useUserStoreWithInit } from "../state/userStore.supabase";
+import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { Priority, TaskCategory } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -29,6 +29,8 @@ import StandardHeader from "../components/StandardHeader";
 
 interface CreateTaskScreenProps {
   onNavigateBack: () => void;
+  parentTaskId?: string;
+  parentSubTaskId?: string;
 }
 
 // InputField component defined outside to prevent re-creation
@@ -44,7 +46,7 @@ const InputField = ({
   children: React.ReactNode;
 }) => (
   <View className="mb-4">
-    <Text className="text-sm font-medium text-gray-700 mb-2">
+    <Text className="text-base font-medium text-gray-700 mb-2">
       {label} {required && <Text className="text-red-500">*</Text>}
     </Text>
     {children}
@@ -54,12 +56,19 @@ const InputField = ({
   </View>
 );
 
-export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenProps) {
+export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentSubTaskId }: CreateTaskScreenProps) {
   const { user } = useAuthStore();
-  const { createTask } = useTaskStore();
-  const { getUsersByRole, getUserById } = useUserStore();
-  const { getProjectsByUser, getProjectUserAssignments } = useProjectStore();
+  const { createTask, createSubTask, createNestedSubTask, tasks } = useTaskStore();
+  const { getUsersByRole, getUserById } = useUserStoreWithInit();
+  const projectStore = useProjectStoreWithCompanyInit(user?.companyId || "");
+  const { getProjectsByUser, getProjectUserAssignments, fetchProjectUserAssignments } = projectStore;
   const { getCompanyBanner } = useCompanyStore();
+
+  // Get parent task information if creating a sub-task
+  const parentTask = parentTaskId ? tasks.find(t => t.id === parentTaskId) : null;
+  const parentSubTask = parentTask && parentSubTaskId 
+    ? parentTask.subTasks?.find(st => st.id === parentSubTaskId) 
+    : null;
 
   const [formData, setFormData] = useState({
     title: "",
@@ -89,6 +98,13 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
   const managers = getUsersByRole("manager");
   const { companies } = useCompanyStore();
   
+  // Debug logging for user roles
+  console.log('=== USER ROLES DEBUG ===');
+  console.log('- Workers:', workers.map(u => ({ id: u.id, name: u.name, companyId: u.companyId })));
+  console.log('- Managers:', managers.map(u => ({ id: u.id, name: u.name, companyId: u.companyId })));
+  console.log('- Current User:', user ? { id: user.id, name: user.name, companyId: user.companyId } : 'No user');
+  console.log('========================');
+  
   // Filter users based on selected project
   // Only show users who are assigned to the selected project
   const allAssignableUsers = React.useMemo(() => {
@@ -101,8 +117,19 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
     const projectAssignments = getProjectUserAssignments(formData.projectId);
     const assignedUserIds = new Set(projectAssignments.map(a => a.userId));
     
+    // Debug logging
+    console.log('=== CREATE TASK USER ASSIGNMENT DEBUG ===');
+    console.log('- Selected Project ID:', formData.projectId);
+    console.log('- Project Assignments:', projectAssignments);
+    console.log('- Assigned User IDs:', Array.from(assignedUserIds));
+    console.log('- All Workers:', workers.map(u => ({ id: u.id, name: u.name })));
+    console.log('- All Managers:', managers.map(u => ({ id: u.id, name: u.name })));
+    
     // Filter to only show users assigned to this project
     const eligibleUsers = [...workers, ...managers].filter(u => assignedUserIds.has(u.id));
+    
+    console.log('- Eligible Users:', eligibleUsers.map(u => ({ id: u.id, name: u.name })));
+    console.log('=========================================');
     
     return eligibleUsers;
   }, [formData.projectId, workers, managers, getProjectUserAssignments]);
@@ -113,6 +140,15 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
       setFormData(prev => ({ ...prev, projectId: userProjects[0].id }));
     }
   }, [userProjects, formData.projectId]);
+
+  // Fetch project user assignments when project changes
+  React.useEffect(() => {
+    if (formData.projectId) {
+      console.log('Fetching project user assignments for project:', formData.projectId);
+      // Force fetch project assignments
+      fetchProjectUserAssignments(formData.projectId);
+    }
+  }, [formData.projectId, fetchProjectUserAssignments]);
 
   // Clear selected users when project changes (since eligible users change)
   React.useEffect(() => {
@@ -238,24 +274,64 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
     setIsSubmitting(true);
 
     try {
-      createTask({
-        title: formData.title,
-        description: formData.description,
-        priority: formData.priority,
-        category: formData.category,
-        dueDate: formData.dueDate.toISOString(),
-        assignedTo: selectedUsers,
-        assignedBy: user.id,
-        attachments: formData.attachments,
-        projectId: formData.projectId,
-      });
+      let taskId: string;
+      let successMessage: string;
+
+      if (parentTaskId) {
+        // Creating a sub-task
+        const subTaskPayload = {
+          title: formData.title,
+          description: formData.description,
+          priority: formData.priority,
+          category: formData.category,
+          dueDate: formData.dueDate.toISOString(),
+          assignedTo: selectedUsers,
+          assignedBy: user.id,
+          attachments: formData.attachments,
+          projectId: formData.projectId,
+          updates: [],
+        };
+
+        if (parentSubTaskId) {
+          // Creating a nested sub-task
+          taskId = await createNestedSubTask(parentTaskId, parentSubTaskId, subTaskPayload);
+          successMessage = "Nested sub-task created successfully and assigned to the selected users.";
+        } else {
+          // Creating a direct sub-task
+          taskId = await createSubTask(parentTaskId, subTaskPayload);
+          successMessage = "Sub-task created successfully and assigned to the selected users.";
+        }
+      } else {
+        // Creating a regular task
+        taskId = await createTask({
+          title: formData.title,
+          description: formData.description,
+          priority: formData.priority,
+          category: formData.category,
+          dueDate: formData.dueDate.toISOString(),
+          assignedTo: selectedUsers,
+          assignedBy: user.id,
+          attachments: formData.attachments,
+          projectId: formData.projectId,
+        });
+        successMessage = "Task created successfully and assigned to the selected users.";
+      }
+
+      console.log('=== TASK CREATION DEBUG ===');
+      console.log('- Task created with ID:', taskId);
+      console.log('- Assigned to users:', selectedUsers);
+      console.log('- Project ID:', formData.projectId);
+      console.log('- Assigned by:', user.id);
+      console.log('- Parent Task ID:', parentTaskId);
+      console.log('- Parent Sub-Task ID:', parentSubTaskId);
+      console.log('===========================');
 
       // Notify all users about the new task
       notifyDataMutation('task');
 
       Alert.alert(
-        "Task Created",
-        "Task has been created successfully and assigned to the selected users.",
+        parentTaskId ? "Sub-Task Created" : "Task Created",
+        successMessage,
         [
           {
             text: "OK",
@@ -307,7 +383,17 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
       
       {/* Standard Header */}
       <StandardHeader 
-        title="Create New Task"
+        title={
+          parentTaskId 
+            ? parentSubTaskId && parentSubTask
+              ? `Nested Sub-Task`
+              : parentTask
+                ? `Sub-Task`
+                : "Create Sub-Task"
+            : "Create New Task"
+        }
+        showBackButton={true}
+        onBackPress={onNavigateBack}
         rightElement={
           <Pressable
             onPress={handleSubmit}
@@ -325,6 +411,21 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
           </Pressable>
         }
       />
+
+      {/* Parent Task Info Banner */}
+      {parentTask && (
+        <View className="bg-blue-50 border-b border-blue-100 px-6 py-3">
+          <View className="flex-row items-center">
+            <Ionicons name="link-outline" size={18} color="#3b82f6" />
+            <Text className="text-sm text-gray-600 ml-2">
+              {parentSubTask ? 'Nested under: ' : 'Sub-task of: '}
+            </Text>
+            <Text className="text-sm font-semibold text-gray-900 flex-1" numberOfLines={1}>
+              {parentSubTask?.title || parentTask.title}
+            </Text>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -391,34 +492,31 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
             </Pressable>
           </InputField>
 
-          {/* Priority and Category Row */}
-          <View className="mb-4">
-            <View className="mb-4">
-              <InputField label="Priority">
-                <Pressable
-                  onPress={() => setShowPriorityPicker(true)}
-                  className="border rounded-lg px-3 py-3 bg-white flex-row items-center justify-between"
-                >
-                  <Text className="text-gray-900 capitalize flex-1">
-                    {formData.priority}
-                  </Text>
-                  <Ionicons name="chevron-down" size={20} color="#6b7280" />
-                </Pressable>
-              </InputField>
-            </View>
+          {/* Priority */}
+          <InputField label="Priority">
+            <Pressable
+              onPress={() => setShowPriorityPicker(true)}
+              className="border rounded-lg px-3 py-3 bg-white flex-row items-center justify-between"
+            >
+              <Text className="text-gray-900 capitalize flex-1">
+                {formData.priority}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            </Pressable>
+          </InputField>
 
-            <InputField label="Category">
-              <Pressable
-                onPress={() => setShowCategoryPicker(true)}
-                className="border rounded-lg px-3 py-3 bg-white flex-row items-center justify-between"
-              >
-                <Text className="text-gray-900 capitalize flex-1">
-                  {formData.category}
-                </Text>
-                <Ionicons name="chevron-down" size={20} color="#6b7280" />
-              </Pressable>
-            </InputField>
-          </View>
+          {/* Category */}
+          <InputField label="Category">
+            <Pressable
+              onPress={() => setShowCategoryPicker(true)}
+              className="border rounded-lg px-3 py-3 bg-white flex-row items-center justify-between"
+            >
+              <Text className="text-gray-900 capitalize flex-1">
+                {formData.category}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#6b7280" />
+            </Pressable>
+          </InputField>
 
           {/* Due Date */}
           <InputField label="Due Date" error={errors.dueDate}>
@@ -498,55 +596,40 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
             </Pressable>
           </InputField>
 
-          {/* User Selection List */}
+          {/* User Selection List - Compact */}
           {showUserPicker && (
-            <View className="bg-white border border-gray-300 rounded-lg mb-4">
-              {/* Info message about project filtering */}
-              {formData.projectId && (
-                <View className="bg-blue-50 border-b border-blue-200 px-4 py-3 flex-row items-start">
-                  <Ionicons name="information-circle" size={20} color="#3b82f6" />
-                  <Text className="text-sm text-blue-700 ml-2 flex-1">
-                    Only showing users assigned to the selected project
-                  </Text>
-                </View>
-              )}
-              
-              <ScrollView className="max-h-48">
+            <View className="bg-white border border-gray-300 rounded-lg -mt-6 mb-4">
+              <ScrollView className="max-h-64">
                 {allAssignableUsers.length > 0 ? (
                   allAssignableUsers.map((assignableUser) => (
                     <Pressable
                       key={assignableUser.id}
                       onPress={() => toggleUserSelection(assignableUser.id)}
-                      className="flex-row items-center p-3 border-b border-gray-100"
+                      className="flex-row items-center px-3 py-2 border-b border-gray-100"
                     >
                       <View className={cn(
-                        "w-5 h-5 border-2 rounded mr-3 items-center justify-center",
+                        "w-4 h-4 border-2 rounded mr-2 items-center justify-center",
                         selectedUsers.includes(assignableUser.id) 
                           ? "border-blue-600 bg-blue-600" 
                           : "border-gray-300"
                       )}>
                         {selectedUsers.includes(assignableUser.id) && (
-                          <Ionicons name="checkmark" size={12} color="white" />
+                          <Ionicons name="checkmark" size={10} color="white" />
                         )}
                       </View>
-                      <View className="flex-1">
-                        <Text className="font-medium text-gray-900">
-                          {assignableUser.name}
-                        </Text>
-                        <Text className="text-sm text-gray-600 capitalize">
-                          {assignableUser.role}
-                        </Text>
-                      </View>
+                      <Text className="text-sm font-medium text-gray-900 flex-1">
+                        {assignableUser.name}
+                      </Text>
+                      <Text className="text-xs text-gray-500 capitalize ml-2">
+                        {assignableUser.role}
+                      </Text>
                     </Pressable>
                   ))
                 ) : (
-                  <View className="p-6 items-center">
-                    <Ionicons name="people-outline" size={48} color="#d1d5db" />
-                    <Text className="text-gray-500 mt-3 text-center">
-                      No users assigned to this project yet
-                    </Text>
-                    <Text className="text-gray-400 text-sm text-center mt-1">
-                      Assign users to the project first before creating tasks
+                  <View className="p-4 items-center">
+                    <Ionicons name="people-outline" size={32} color="#d1d5db" />
+                    <Text className="text-gray-500 mt-2 text-sm text-center">
+                      No users assigned to this project
                     </Text>
                   </View>
                 )}
@@ -569,7 +652,7 @@ export default function CreateTaskScreen({ onNavigateBack }: CreateTaskScreenPro
 
           {/* Attachment Preview */}
           {formData.attachments.length > 0 && (
-            <View className="mb-6">
+            <View className="mb-4">
               <Text className="text-sm font-medium text-gray-700 mb-2">
                 Selected Files ({formData.attachments.length})
               </Text>

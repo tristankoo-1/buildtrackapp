@@ -117,93 +117,75 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
             </View>
 
             {/* Quick Login User List */}
-            <View className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-              <Text className="text-sm font-semibold text-blue-800 mb-2">
+            <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <Text className="text-sm font-semibold text-blue-800 mb-3">
                 👥 Quick Login - Tap any user (6 total):
               </Text>
               
-              <View className="space-y-1.5">
+              <View className="space-y-3">
                 {/* John Manager */}
                 <Pressable 
-                  className="bg-purple-50 border border-purple-200 rounded p-2 active:bg-purple-100"
+                  className="bg-purple-50 border border-purple-200 rounded-lg py-4 px-4 active:bg-purple-100"
                   onPress={() => handleQuickLogin('manager@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-sm font-semibold text-purple-900">
-                    📋 John Manager - Manager
-                  </Text>
-                  <Text className="text-xs text-purple-600">
-                    manager@buildtrack.com
+                  <Text className="text-base font-semibold text-purple-900">
+                    BuildTrack: Manager: John Manager
                   </Text>
                 </Pressable>
                 
                 {/* Sarah Worker */}
                 <Pressable 
-                  className="bg-green-50 border border-green-200 rounded p-2 active:bg-green-100"
+                  className="bg-green-50 border border-green-200 rounded-lg py-4 px-4 active:bg-green-100"
                   onPress={() => handleQuickLogin('worker@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-sm font-semibold text-green-900">
-                    👷 Sarah Worker - Worker
-                  </Text>
-                  <Text className="text-xs text-green-600">
-                    worker@buildtrack.com
+                  <Text className="text-base font-semibold text-green-900">
+                    BuildTrack: Worker: Sarah Worker
                   </Text>
                 </Pressable>
                 
                 {/* Alex Administrator */}
                 <Pressable 
-                  className="bg-red-50 border border-red-200 rounded p-2 active:bg-red-100"
+                  className="bg-red-50 border border-red-200 rounded-lg py-4 px-4 active:bg-red-100"
                   onPress={() => handleQuickLogin('admin@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-sm font-semibold text-red-900">
-                    ⚙️ Alex Administrator - Admin
-                  </Text>
-                  <Text className="text-xs text-red-600">
-                    admin@buildtrack.com
+                  <Text className="text-base font-semibold text-red-900">
+                    BuildTrack: Admin: Alex Administrator
                   </Text>
                 </Pressable>
                 
                 {/* Dennis */}
                 <Pressable 
-                  className="bg-blue-50 border border-blue-200 rounded p-2 active:bg-blue-100"
+                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
                   onPress={() => handleQuickLogin('dennis@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-sm font-semibold text-blue-900">
-                    👷 Dennis - Site Supervisor
-                  </Text>
-                  <Text className="text-xs text-blue-600">
-                    dennis@buildtrack.com
+                  <Text className="text-base font-semibold text-blue-900">
+                    BuildTrack: Worker: Dennis
                   </Text>
                 </Pressable>
                 
                 {/* Lisa Martinez - Elite Electric */}
                 <Pressable 
-                  className="bg-orange-50 border border-orange-200 rounded p-2 active:bg-orange-100"
+                  className="bg-orange-50 border border-orange-200 rounded-lg py-4 px-4 active:bg-orange-100"
                   onPress={() => handleQuickLogin('lisa@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-sm font-semibold text-orange-900">
-                    👷 Lisa Martinez - Electrician
-                  </Text>
-                  <Text className="text-xs text-orange-600">
-                    lisa@eliteelectric.com (Elite Electric)
+                  <Text className="text-base font-semibold text-orange-900">
+                    Elite Electric: Worker: Lisa Martinez
                   </Text>
                 </Pressable>
                 
                 {/* Mike Johnson - Elite Electric */}
                 <Pressable 
-                  className="bg-teal-50 border border-teal-200 rounded p-2 active:bg-teal-100"
+                  className="bg-teal-50 border border-teal-200 rounded-lg py-4 px-4 active:bg-teal-100"
                   onPress={() => handleQuickLogin('admin@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-sm font-semibold text-teal-900">
-                    ⚙️ Mike Johnson - Admin
-                  </Text>
-                  <Text className="text-xs text-teal-600">
-                    admin@eliteelectric.com (Elite Electric)
+                  <Text className="text-base font-semibold text-teal-900">
+                    Elite Electric: Admin: Mike Johnson
                   </Text>
                 </Pressable>
               </View>
               
               <Text className="text-xs text-gray-600 mt-2 italic">
-                💡 Password: "password123" • Scroll if needed
+                💡 Tap any name to login instantly
               </Text>
             </View>
 

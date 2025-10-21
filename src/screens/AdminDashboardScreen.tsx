@@ -14,9 +14,9 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "../state/authStore";
-import { useProjectStore } from "../state/projectStore";
-import { useUserStore } from "../state/userStore";
-import { useTaskStore } from "../state/taskStore";
+import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
+import { useUserStoreWithInit } from "../state/userStore.supabase";
+import { useTaskStore } from "../state/taskStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
@@ -34,8 +34,8 @@ export default function AdminDashboardScreen({
   onNavigateToProfile
 }: AdminDashboardScreenProps) {
   const { user } = useAuthStore();
-  const { getAllProjects, userAssignments } = useProjectStore();
-  const { getUsersByCompany } = useUserStore();
+  const { getProjectsByCompany, userAssignments } = useProjectStoreWithCompanyInit(user.companyId);
+  const { getUsersByCompany } = useUserStoreWithInit();
   const tasks = useTaskStore(state => state.tasks);
   const { getCompanyById, getCompanyBanner, updateCompanyBanner } = useCompanyStore();
 
@@ -60,9 +60,25 @@ export default function AdminDashboardScreen({
     );
   }
 
-  const allProjects = getAllProjects();
+  const allProjects = getProjectsByCompany(user.companyId);
   // Get only users from the admin's company
+  const allUsers = useUserStoreWithInit().getAllUsers();
   const companyUsers = getUsersByCompany(user.companyId);
+  
+  // Debug: Check company filtering
+  console.log('=== COMPANY FILTERING DEBUG ===');
+  console.log('Current user:', user.name, user.email);
+  console.log('Current user company ID:', user.companyId);
+  console.log('Current user company_id:', user.company_id);
+  console.log('Total users in store:', allUsers.length);
+  console.log('Company users after filtering:', companyUsers.length);
+  console.log('Sample user company IDs:', allUsers.slice(0, 5).map(u => ({ 
+    name: u.name, 
+    companyId: u.companyId, 
+    company_id: u.company_id,
+    matches: u.companyId === user.companyId || u.company_id === user.companyId
+  })));
+  console.log('===============================');
   const currentCompany = getCompanyById(user.companyId);
   
   // Get company user IDs for filtering
@@ -75,42 +91,33 @@ export default function AdminDashboardScreen({
   const companyProjectIds = new Set(companyProjects.map(p => p.id));
   const companyTasks = tasks.filter(task => companyProjectIds.has(task.projectId));
   
+  // Debug logging
+  console.log('Admin Dashboard Debug:');
+  console.log('- Current user company ID:', user.companyId);
+  console.log('- All projects:', allProjects.length);
+  console.log('- Company projects:', companyProjects.length);
+  console.log('- All tasks:', tasks.length);
+  console.log('- Company tasks:', companyTasks.length);
+  console.log('- Company users:', companyUsers.length);
+  console.log('- Company user IDs:', Array.from(companyUserIds));
+  console.log('- Project creators:', allProjects.map(p => p.createdBy));
+  const userStore = useUserStoreWithInit();
+  console.log('- All users count:', userStore.getAllUsers().length);
+  console.log('- Company users details:', companyUsers.map(u => ({ id: u.id, name: u.name, companyId: u.companyId, company_id: u.company_id })));
+  console.log('- Current user company ID:', user.companyId);
+  console.log('- Sample user company IDs:', userStore.getAllUsers().slice(0, 3).map(u => ({ name: u.name, companyId: u.companyId, company_id: u.company_id })));
+  
   // Filter user assignments for company users
   const companyAssignments = userAssignments.filter(a => companyUserIds.has(a.userId));
   
-  // ===== SELF-TEST SYSTEM =====
-  const BUILD_VERSION = "v4.0-FINAL";
-  const BUILD_TIMESTAMP = "2025-10-02-16:30";
-  
-  const selfTest = {
-    codeLoaded: true, // If this renders, code loaded
-    expectedTotalProjects: 4, // Should have 4 projects in system (2 per company)
-    actualTotalProjects: allProjects.length,
-    projectsMatch: allProjects.length === 4,
-    
-    expectedCompanyUsers: user.companyId === "comp-1" ? 4 : 2,
-    actualCompanyUsers: companyUsers.length,
-    usersMatch: companyUsers.length === (user.companyId === "comp-1" ? 4 : 2),
-    
-    filteringWorks: companyProjects.length < allProjects.length || allProjects.length === 4,
-    companyBannerExists: !!currentCompany,
-    
-    allTestsPassed: false,
-  };
-  
-  selfTest.allTestsPassed = 
-    selfTest.projectsMatch && 
-    selfTest.usersMatch && 
-    selfTest.filteringWorks && 
-    selfTest.companyBannerExists;
   
   // Calculate statistics
   const stats = {
-    totalProjects: companyProjects.length,
+    totalProjects: companyProjects.length, // Should be 0 since projects are created by different company users
     activeProjects: companyProjects.filter(p => p.status === "active").length,
-    totalUsers: companyUsers.length,
+    totalUsers: companyUsers.length, // Should be 4 for BuildTrack, 2 for Elite Electric
     assignedUsers: new Set(companyAssignments.filter(a => a.isActive).map(a => a.userId)).size,
-    totalTasks: companyTasks.length,
+    totalTasks: companyTasks.length, // Should be 0 since no projects from this company
     completedTasks: companyTasks.filter(t => t.currentStatus === "completed").length,
   };
 
@@ -168,6 +175,7 @@ export default function AdminDashboardScreen({
     icon,
     color = "bg-white",
     iconColor = "#6b7280",
+    borderColor = "border-gray-200",
     onPress
   }: {
     title: string;
@@ -175,11 +183,12 @@ export default function AdminDashboardScreen({
     icon: string;
     color?: string;
     iconColor?: string;
+    borderColor?: string;
     onPress: () => void;
   }) => (
     <Pressable
       onPress={onPress}
-      className={cn("rounded-xl border border-gray-200 p-4 mb-3", color)}
+      className={cn("rounded-xl border p-4 mb-3", color, borderColor)}
     >
       <View className="flex-row items-start">
         <View className="w-12 h-12 rounded-lg bg-gray-100 items-center justify-center mr-4">
@@ -266,7 +275,7 @@ export default function AdminDashboardScreen({
       
       {/* Standard Header */}
       <StandardHeader 
-        title={`Admin Dashboard ${BUILD_VERSION}`}
+        title="Admin Dashboard"
         rightElement={
           <Pressable onPress={onNavigateToProfile}>
             <View className="w-10 h-10 bg-purple-600 rounded-full items-center justify-center">
@@ -279,125 +288,6 @@ export default function AdminDashboardScreen({
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* SELF-TEST STATUS PANEL */}
-        <View className="px-6 pt-4">
-          <View className={cn(
-            "border-2 rounded-xl p-4 mb-3",
-            selfTest.allTestsPassed 
-              ? "bg-green-50 border-green-500" 
-              : "bg-red-50 border-red-500"
-          )}>
-            <View className="flex-row items-center mb-3">
-              <Ionicons 
-                name={selfTest.allTestsPassed ? "checkmark-circle" : "alert-circle"} 
-                size={24} 
-                color={selfTest.allTestsPassed ? "#10b981" : "#ef4444"} 
-              />
-              <Text className={cn(
-                "text-lg font-bold ml-2",
-                selfTest.allTestsPassed ? "text-green-900" : "text-red-900"
-              )}>
-                {selfTest.allTestsPassed ? "✅ ALL SYSTEMS OPERATIONAL" : "❌ ISSUES DETECTED"}
-              </Text>
-            </View>
-
-            <View className="space-y-2">
-              {/* Test 1: Code Loaded */}
-              <View className="flex-row items-center justify-between py-2 border-b border-gray-200">
-                <Text className="text-sm font-medium text-gray-700">Code Loaded:</Text>
-                <View className="flex-row items-center">
-                  <Text className="text-xs text-gray-600 mr-2">{BUILD_VERSION}</Text>
-                  <Ionicons name="checkmark-circle" size={18} color="#10b981" />
-                </View>
-              </View>
-
-              {/* Test 2: Total Projects */}
-              <View className="flex-row items-center justify-between py-2 border-b border-gray-200">
-                <Text className="text-sm font-medium text-gray-700">Total Projects in System:</Text>
-                <View className="flex-row items-center">
-                  <Text className={cn(
-                    "text-sm font-bold mr-2",
-                    selfTest.projectsMatch ? "text-green-600" : "text-red-600"
-                  )}>
-                    {selfTest.actualTotalProjects} / {selfTest.expectedTotalProjects}
-                  </Text>
-                  <Ionicons 
-                    name={selfTest.projectsMatch ? "checkmark-circle" : "close-circle"} 
-                    size={18} 
-                    color={selfTest.projectsMatch ? "#10b981" : "#ef4444"} 
-                  />
-                </View>
-              </View>
-
-              {/* Test 3: Company Users */}
-              <View className="flex-row items-center justify-between py-2 border-b border-gray-200">
-                <Text className="text-sm font-medium text-gray-700">Company Users Count:</Text>
-                <View className="flex-row items-center">
-                  <Text className={cn(
-                    "text-sm font-bold mr-2",
-                    selfTest.usersMatch ? "text-green-600" : "text-red-600"
-                  )}>
-                    {selfTest.actualCompanyUsers} / {selfTest.expectedCompanyUsers}
-                  </Text>
-                  <Ionicons 
-                    name={selfTest.usersMatch ? "checkmark-circle" : "close-circle"} 
-                    size={18} 
-                    color={selfTest.usersMatch ? "#10b981" : "#ef4444"} 
-                  />
-                </View>
-              </View>
-
-              {/* Test 4: Company Filtering */}
-              <View className="flex-row items-center justify-between py-2 border-b border-gray-200">
-                <Text className="text-sm font-medium text-gray-700">Company Filtering:</Text>
-                <View className="flex-row items-center">
-                  <Text className={cn(
-                    "text-sm font-bold mr-2",
-                    selfTest.filteringWorks ? "text-green-600" : "text-red-600"
-                  )}>
-                    {companyProjects.length} filtered
-                  </Text>
-                  <Ionicons 
-                    name={selfTest.filteringWorks ? "checkmark-circle" : "close-circle"} 
-                    size={18} 
-                    color={selfTest.filteringWorks ? "#10b981" : "#ef4444"} 
-                  />
-                </View>
-              </View>
-
-              {/* Test 5: Company Banner */}
-              <View className="flex-row items-center justify-between py-2">
-                <Text className="text-sm font-medium text-gray-700">Company Banner:</Text>
-                <View className="flex-row items-center">
-                  <Text className={cn(
-                    "text-sm font-bold mr-2",
-                    selfTest.companyBannerExists ? "text-green-600" : "text-red-600"
-                  )}>
-                    {selfTest.companyBannerExists ? "Present" : "Missing"}
-                  </Text>
-                  <Ionicons 
-                    name={selfTest.companyBannerExists ? "checkmark-circle" : "close-circle"} 
-                    size={18} 
-                    color={selfTest.companyBannerExists ? "#10b981" : "#ef4444"} 
-                  />
-                </View>
-              </View>
-            </View>
-
-            {/* Action Required Message */}
-            {!selfTest.allTestsPassed && (
-              <View className="mt-4 p-3 bg-red-100 rounded-lg">
-                <Text className="text-sm font-bold text-red-900 mb-1">⚠️ ACTION REQUIRED:</Text>
-                <Text className="text-xs text-red-800">
-                  {!selfTest.projectsMatch && "• Code not loaded. Restart dev server.\n"}
-                  {!selfTest.usersMatch && "• User filtering failed. Check company data.\n"}
-                  {!selfTest.filteringWorks && "• Project filtering not working.\n"}
-                  {!selfTest.companyBannerExists && "• Company banner missing.\n"}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
 
         {/* Company Info Banner */}
         {currentCompany && (
@@ -421,46 +311,44 @@ export default function AdminDashboardScreen({
           <Text className="text-lg font-semibold text-gray-900 mb-4">
             Company Overview
           </Text>
-          <View className="flex-row flex-wrap -mr-3">
-            <StatCard
-              title="Total Projects"
-              count={stats.totalProjects}
-              subtitle={`${stats.activeProjects} active`}
-              icon="folder-outline"
+          {/* Action Buttons */}
+          <View className="mt-4">
+            <QuickActionCard
+              title="Manage Projects"
+              description="Create, edit, and oversee all construction projects"
+              icon="folder-open-outline"
               color="bg-blue-50"
               iconColor="#3b82f6"
-              textColor="text-blue-600"
+              borderColor="border-blue-300"
               onPress={onNavigateToProjects}
             />
-            <StatCard
-              title="Company Users"
-              count={stats.totalUsers}
-              subtitle={`${stats.assignedUsers} assigned`}
+
+            <QuickActionCard
+              title="User Management"
+              description="Assign users to projects and manage team categories"
               icon="people-outline"
               color="bg-purple-50"
               iconColor="#7c3aed"
-              textColor="text-purple-600"
+              borderColor="border-purple-300"
               onPress={onNavigateToUserManagement}
             />
-          </View>
-          <View className="flex-row flex-wrap -mr-3">
-            <StatCard
+
+            <QuickActionCard
               title="Total Tasks"
-              count={stats.totalTasks}
-              subtitle={`${stats.completedTasks} completed`}
+              description={`${stats.totalTasks} tasks • ${stats.completedTasks} completed`}
               icon="list-outline"
               color="bg-green-50"
               iconColor="#10b981"
-              textColor="text-green-600"
+              borderColor="border-green-300"
             />
-            <StatCard
+
+            <QuickActionCard
               title="Task Completion"
-              count={stats.totalTasks > 0 ? `${Math.round((stats.completedTasks / stats.totalTasks) * 100)}%` : "0%"}
-              subtitle="Company average"
+              description={`${stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0}% completion rate`}
               icon="checkmark-circle-outline"
               color="bg-orange-50"
               iconColor="#f59e0b"
-              textColor="text-orange-600"
+              borderColor="border-orange-300"
             />
           </View>
         </View>
@@ -534,22 +422,6 @@ export default function AdminDashboardScreen({
           <Text className="text-lg font-semibold text-gray-900 mb-4">
             Administrative Actions
           </Text>
-
-          <QuickActionCard
-            title="Manage Projects"
-            description="Create, edit, and oversee all construction projects"
-            icon="folder-open-outline"
-            iconColor="#3b82f6"
-            onPress={onNavigateToProjects}
-          />
-
-          <QuickActionCard
-            title="User Management"
-            description="Assign users to projects and manage team categories"
-            icon="people-outline"
-            iconColor="#7c3aed"
-            onPress={onNavigateToUserManagement}
-          />
 
           <QuickActionCard
             title="Company Banner"

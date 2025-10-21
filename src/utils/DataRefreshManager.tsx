@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { useTaskStore } from '../state/taskStore';
+import { useTaskStore } from '../state/taskStore.supabase';
 import { useProjectStore } from '../state/projectStore';
-import { useUserStore } from '../state/userStore';
+import { useUserStore } from '../state/userStore.supabase';
 import { useAuthStore } from '../state/authStore';
 
 /**

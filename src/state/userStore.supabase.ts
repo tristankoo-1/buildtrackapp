@@ -1,9 +1,9 @@
+import React from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../api/supabase";
 import { User, UserRole } from "../types/buildtrack";
-import { MOCK_USERS } from "./mockData";
 
 interface UserStore {
   users: User[];
@@ -37,14 +37,15 @@ interface UserStore {
 export const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
-      users: MOCK_USERS, // Fallback to mock data if Supabase not configured
+      users: [], // Supabase only - no mock data fallback
       isLoading: false,
       error: null,
 
       // FETCH from Supabase
       fetchUsers: async () => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ users: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -64,8 +65,14 @@ export const useUserStore = create<UserStore>()(
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedUsers = (data || []).map(user => ({
+            ...user,
+            companyId: user.company_id || user.companyId, // Handle both field names
+          }));
+
           set({ 
-            users: data || [], 
+            users: transformedUsers, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -79,7 +86,8 @@ export const useUserStore = create<UserStore>()(
 
       fetchUsersByCompany: async (companyId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ users: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -100,8 +108,14 @@ export const useUserStore = create<UserStore>()(
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedUsers = (data || []).map(user => ({
+            ...user,
+            companyId: user.company_id || user.companyId, // Handle both field names
+          }));
+
           set({ 
-            users: data || [], 
+            users: transformedUsers, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -154,7 +168,26 @@ export const useUserStore = create<UserStore>()(
       },
 
       getUsersByCompany: (companyId) => {
-        return get().users.filter(user => user.companyId === companyId);
+        const users = get().users;
+        const filteredUsers = users.filter(user => 
+          (user.companyId === companyId) || 
+          (user.company_id === companyId)
+        );
+        
+        // Debug logging
+        console.log('=== getUsersByCompany Debug ===');
+        console.log('- Company ID to filter by:', companyId);
+        console.log('- Total users in store:', users.length);
+        console.log('- Filtered users count:', filteredUsers.length);
+        console.log('- All users data:', users.map(u => ({ 
+          name: u.name, 
+          companyId: u.companyId, 
+          company_id: u.company_id,
+          matches: (u.companyId === companyId) || (u.company_id === companyId)
+        })));
+        console.log('===============================');
+        
+        return filteredUsers;
       },
 
       searchUsers: (query) => {
@@ -360,4 +393,18 @@ export const useUserStore = create<UserStore>()(
     }
   )
 );
+
+// Custom hook that automatically initializes data when accessed
+export const useUserStoreWithInit = () => {
+  const store = useUserStore();
+  
+  React.useEffect(() => {
+    // Initialize data on first mount if not already loaded
+    if (store.users.length === 0 && !store.isLoading && supabase) {
+      store.fetchUsers();
+    }
+  }, []);
+  
+  return store;
+};
 

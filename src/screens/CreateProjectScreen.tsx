@@ -16,7 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useAuthStore } from "../state/authStore";
-import { useProjectStore } from "../state/projectStore";
+import { useProjectStore } from "../state/projectStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -133,6 +133,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
           phone: formData.clientInfo.phone || undefined,
         },
         createdBy: user.id,
+        companyId: user.companyId,
       });
 
       // Notify all users about the new project
@@ -214,6 +215,8 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
       {/* Standard Header */}
       <StandardHeader 
         title="Create New Project"
+        showBackButton={true}
+        onBackPress={onNavigateBack}
         rightElement={
           <Pressable
             onPress={handleSubmit}

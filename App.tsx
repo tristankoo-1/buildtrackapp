@@ -44,7 +44,7 @@ export default function App() {
           await AsyncStorage.clear();
           await AsyncStorage.setItem(VERSION_KEY, APP_VERSION);
           
-          console.log("Data cleared. App will now use fresh mock data.");
+          console.log("Data cleared. App will now use fresh Supabase data.");
           
           // Force a re-render by reloading the app
           if (typeof window !== "undefined" && window.location) {

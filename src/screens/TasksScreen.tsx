@@ -11,9 +11,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../state/authStore";
-import { useTaskStoreWithInit } from "../state/taskStore";
-import { useUserStoreWithInit } from "../state/userStore";
-import { useProjectStoreWithInit } from "../state/projectStore";
+import { useTaskStore } from "../state/taskStore.supabase";
+import { useUserStoreWithInit } from "../state/userStore.supabase";
+import { useProjectStoreWithInit } from "../state/projectStore.supabase";
 import { useProjectFilterStore } from "../state/projectFilterStore";
 import { useCompanyStore } from "../state/companyStore";
 import { Task, Priority, TaskStatus, SubTask } from "../types/buildtrack";
@@ -33,7 +33,7 @@ export default function TasksScreen({
   onNavigateToCreateTask 
 }: TasksScreenProps) {
   const { user } = useAuthStore();
-  const taskStore = useTaskStoreWithInit();
+  const taskStore = useTaskStore();
   const tasks = taskStore.tasks;
   const userStore = useUserStoreWithInit();
   const { getUserById } = userStore;

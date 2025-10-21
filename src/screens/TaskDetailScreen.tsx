@@ -15,8 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "../state/authStore";
-import { useTaskStore } from "../state/taskStore";
-import { useUserStore } from "../state/userStore";
+import { useTaskStore } from "../state/taskStore.supabase";
+import { useUserStore } from "../state/userStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { TaskStatus, Priority, Task } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -27,14 +27,13 @@ interface TaskDetailScreenProps {
   taskId: string;
   subTaskId?: string; // Optional: if provided, show only this subtask
   onNavigateBack: () => void;
+  onNavigateToCreateTask?: (parentTaskId?: string, parentSubTaskId?: string) => void;
 }
 
-export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: TaskDetailScreenProps) {
+export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, onNavigateToCreateTask }: TaskDetailScreenProps) {
   const { user } = useAuthStore();
   const tasks = useTaskStore(state => state.tasks);
   const markTaskAsRead = useTaskStore(state => state.markTaskAsRead);
-  const createSubTask = useTaskStore(state => state.createSubTask);
-  const createNestedSubTask = useTaskStore(state => state.createNestedSubTask);
   const updateSubTaskStatus = useTaskStore(state => state.updateSubTaskStatus);
   const acceptSubTask = useTaskStore(state => state.acceptSubTask);
   const declineSubTask = useTaskStore(state => state.declineSubTask);
@@ -47,19 +46,11 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
   const { getCompanyBanner } = useCompanyStore();
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showSubTaskModal, setShowSubTaskModal] = useState(false);
   const [updateForm, setUpdateForm] = useState({
     description: "",
     photos: [] as string[],
     completionPercentage: 0,
     status: "in_progress" as TaskStatus,
-  });
-  const [subTaskForm, setSubTaskForm] = useState({
-    title: "",
-    description: "",
-    priority: "medium" as Priority,
-    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    assignedTo: [] as string[],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showUserPicker, setShowUserPicker] = useState(false);
@@ -102,53 +93,6 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
     }
   };
 
-  // Compact Task Card Component
-  const CompactTaskCard = ({ task }: { task: Task }) => (
-    <Pressable 
-      className="bg-white border border-gray-200 rounded-lg p-4 mb-2"
-      onPress={() => {
-        setSelectedTaskForDetail(task);
-        setShowTaskDetailModal(true);
-      }}
-    >
-      {/* Line 1: Title and Priority */}
-      <View className="flex-row items-center justify-between mb-2">
-        <Text className="font-semibold text-gray-900 text-base flex-1 mr-2" numberOfLines={1}>
-          {task.title}
-        </Text>
-        <View className={cn("px-2 py-1 rounded", getPriorityColor(task.priority))}>
-          <Text className="text-xs font-bold capitalize">
-            {task.priority}
-          </Text>
-        </View>
-      </View>
-      
-      {/* Line 2: Due Date and Status */}
-      <View className="flex-row items-center justify-between mb-1">
-        <View className="flex-row items-center">
-          <Ionicons name="calendar-outline" size={14} color="#6b7280" />
-          <Text className="text-sm text-gray-600 ml-1">
-            {new Date(task.dueDate).toLocaleDateString()}
-          </Text>
-        </View>
-        <Text className={cn("text-sm font-medium capitalize", getStatusColor(task.currentStatus))}>
-          {task.currentStatus.replace("_", " ")}
-        </Text>
-      </View>
-      
-      {/* Line 3: Progress Bar */}
-      <View className="flex-row items-center">
-        <View className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
-          <View 
-            className="bg-blue-600 h-2 rounded-full" 
-            style={{ width: `${task.completionPercentage}%` }}
-          />
-        </View>
-        <Text className="text-xs text-gray-600 font-semibold w-10 text-right">{task.completionPercentage}%</Text>
-      </View>
-    </Pressable>
-  );
-
   // Mark task as read when viewing
   useEffect(() => {
     if (user && taskId) {
@@ -167,7 +111,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
         {/* Header */}
         <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
           <Text className="text-xl font-semibold text-gray-900 flex-1">
-            {isViewingSubTask ? "Sub-Task Details" : "Task Details"}
+            {task?.title || (isViewingSubTask ? "Sub-Task Details" : "Task Details")}
           </Text>
         </View>
 
@@ -318,7 +262,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
       
       {/* Standard Header */}
       <StandardHeader 
-        title={isViewingSubTask ? "Sub-Task Details" : "Task Details"}
+        title={task?.title || (isViewingSubTask ? "Sub-Task Details" : "Task Details")}
         rightElement={
           canUpdateProgress ? (
             <Pressable
@@ -339,36 +283,98 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
         }
       />
 
-      <ScrollView className="flex-1">
-        {/* Task Cards List */}
-        <View className="px-6 mt-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
-            {isViewingSubTask ? "Sub-Task Details" : "Task Details"}
-          </Text>
-          
-          {/* Main Task Card */}
-          <CompactTaskCard task={task} />
-          
-          {/* Sub-tasks Cards */}
-          {(task.subTasks || []).length > 0 && (
-            <View className="mt-4">
-              <Text className="text-base font-semibold text-gray-700 mb-3">
-                {isViewingSubTask ? "Nested Sub-Tasks" : "Sub-Tasks"} ({(task.subTasks || []).length})
-              </Text>
-              {(task.subTasks || []).map((subTask) => (
-                <CompactTaskCard key={subTask.id} task={subTask} />
-              ))}
+      {/* Accept/Reject Banner - Shown at top when task is pending acceptance */}
+      {isAssignedToMe && (task.accepted === undefined || task.accepted === null) && (
+        <View className="bg-amber-50 border-b-2 border-amber-200 px-6 py-4">
+          <View className="flex-row items-center mb-3">
+            <View className="w-10 h-10 bg-amber-100 rounded-full items-center justify-center mr-3">
+              <Ionicons name="alert-circle" size={24} color="#f59e0b" />
             </View>
-          )}
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-amber-900">
+                Action Required
+              </Text>
+              <Text className="text-sm text-amber-700">
+                You have been assigned to this {isViewingSubTask ? "sub-task" : "task"}
+              </Text>
+            </View>
+          </View>
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={() => {
+                if (isViewingSubTask && subTaskId) {
+                  acceptSubTask(taskId, subTaskId, user.id);
+                  Alert.alert("Success", "Sub-task accepted successfully! You can now start working on it.");
+                } else {
+                  handleAcceptTask();
+                }
+              }}
+              className="flex-1 bg-green-600 py-3.5 rounded-lg items-center flex-row justify-center"
+            >
+              <Ionicons name="checkmark-circle" size={20} color="white" />
+              <Text className="text-white font-semibold text-base ml-2">Accept</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                if (isViewingSubTask && subTaskId) {
+                  Alert.prompt(
+                    "Decline Sub-Task",
+                    "Please provide a reason for declining this sub-task:",
+                    (reason) => {
+                      if (reason && reason.trim()) {
+                        declineSubTask(taskId, subTaskId, user.id, reason.trim());
+                        Alert.alert("Sub-Task Declined", "The sub-task has been declined.");
+                      }
+                    },
+                    "plain-text"
+                  );
+                } else {
+                  handleDeclineTask();
+                }
+              }}
+              className="flex-1 bg-red-600 py-3.5 rounded-lg items-center flex-row justify-center"
+            >
+              <Ionicons name="close-circle" size={20} color="white" />
+              <Text className="text-white font-semibold text-base ml-2">Decline</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      <ScrollView className="flex-1">
+        {/* Task Status, Priority, and Due Date */}
+        <View className="bg-white mx-4 mt-3 rounded-xl border border-gray-200 p-4">
+          {/* Status and Priority Row */}
+          <View className="flex-row items-center mb-3">
+            <View className={cn("px-3 py-1.5 rounded-full mr-3", getStatusColor(task.currentStatus))}>
+              <Text className="text-sm font-medium capitalize">
+                {task.currentStatus.replace("_", " ")}
+              </Text>
+            </View>
+            <View className={cn("px-3 py-1.5 rounded-full border", getPriorityColor(task.priority))}>
+              <Text className="text-sm font-medium capitalize">
+                {task.priority} Priority
+              </Text>
+            </View>
+          </View>
+          
+          {/* Due Date Row */}
+          <View className="flex-row items-center">
+            <Ionicons name="calendar-outline" size={16} color="#6b7280" />
+            <Text className="text-sm text-gray-600 ml-2 mr-2">Due Date:</Text>
+            <Text className={cn("text-sm font-medium", isOverdue ? "text-red-600" : "text-gray-900")}>
+              {new Date(task.dueDate).toLocaleDateString()}
+              {isOverdue && " (Overdue)"}
+            </Text>
+          </View>
         </View>
 
-        {/* Assignment Information Card */}
-        <View className="bg-white mx-6 mt-4 rounded-xl border border-gray-200 p-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">Assignment Details</Text>
+        {/* Assignment Information Card - Moved to top */}
+        <View className="bg-white mx-4 mt-3 rounded-xl border border-gray-200 p-4">
           
           {/* Assigned By */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-600 mb-2">Assigned By</Text>
+          <View className="mb-3">
+            <Text className="text-sm font-medium text-gray-600 mb-1">Assigned By</Text>
             <View className="flex-row items-center">
               <View className="w-10 h-10 bg-blue-100 rounded-full items-center justify-center mr-3">
                 <Ionicons name="person" size={20} color="#3b82f6" />
@@ -389,9 +395,9 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
 
           {/* Assigned To */}
           <View>
-            <Text className="text-sm font-medium text-gray-600 mb-2">Assigned To</Text>
+            <Text className="text-sm font-medium text-gray-600 mb-1">Assigned To</Text>
             {assignedUsers.length > 0 ? (
-              <View className="space-y-3">
+              <View className="space-y-2">
                 {assignedUsers.map((assignedUser) => {
                   if (!assignedUser) return null;
                   
@@ -455,86 +461,51 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
           </View>
         </View>
 
-        {/* Task Acceptance */}
-        {isAssignedToMe && task.accepted === undefined && (
-          <View className="bg-white mx-6 mt-4 rounded-xl border border-gray-200 p-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-2">{isViewingSubTask ? "Sub-Task" : "Task"} Assignment</Text>
-            <Text className="text-gray-600 mb-4">
-              You have been assigned to this {isViewingSubTask ? "sub-task" : "task"}. Please accept or decline.
-            </Text>
-            <View className="flex-row space-x-3">
-              <Pressable
-                onPress={() => {
-                  if (isViewingSubTask && subTaskId) {
-                    acceptSubTask(taskId, subTaskId, user.id);
-                    Alert.alert("Success", "Sub-task accepted successfully! You can now start working on it.");
-                  } else {
-                    handleAcceptTask();
-                  }
-                }}
-                className="flex-1 bg-green-600 py-3 rounded-lg items-center"
-              >
-                <Text className="text-white font-semibold">Accept {isViewingSubTask ? "Sub-Task" : "Task"}</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  if (isViewingSubTask && subTaskId) {
-                    Alert.prompt(
-                      "Decline Sub-Task",
-                      "Please provide a reason for declining this sub-task:",
-                      (reason) => {
-                        if (reason && reason.trim()) {
-                          declineSubTask(taskId, subTaskId, user.id, reason.trim());
-                          Alert.alert("Sub-Task Declined", "The sub-task has been declined.");
-                        }
-                      },
-                      "plain-text"
-                    );
-                  } else {
-                    handleDeclineTask();
-                  }
-                }}
-                className="flex-1 bg-red-600 py-3 rounded-lg items-center"
-              >
-                <Text className="text-white font-semibold">Decline</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
-
-        {/* Add Sub-Task Button */}
-        {(isAssignedToMe || isTaskCreator) && (
-          <View className="bg-white mx-6 mt-4 rounded-xl border border-gray-200 p-6">
-            <Pressable
-              onPress={() => {
-                setSubTaskForm({
-                  title: "",
-                  description: "",
-                  priority: "medium",
-                  dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                  assignedTo: [],
-                });
-                setShowSubTaskModal(true);
-              }}
-              className="flex-row items-center justify-center bg-blue-50 px-4 py-3 rounded-lg"
-            >
-              <Ionicons name="add-circle-outline" size={20} color="#3b82f6" />
-              <Text className="text-blue-600 font-medium ml-2">
-                Add {isViewingSubTask ? "Nested Sub-Task" : "Sub-Task"}
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        {/* Task Updates */}
-        <View className="bg-white mx-6 mt-4 rounded-xl border border-gray-200 p-6 mb-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg font-semibold text-gray-900">Updates</Text>
-            <Text className="text-sm text-gray-500">{task.updates.length} updates</Text>
+        {/* Progress & Updates Combined Section */}
+        <View className="bg-white mx-4 mt-3 rounded-xl border border-gray-200 p-3 mb-4">
+          {/* Header with Progress */}
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-lg font-semibold text-gray-900">Comp. %</Text>
+            <Text className="text-xl font-bold text-blue-600">{task.completionPercentage}%</Text>
           </View>
           
+          {/* Progress Bar */}
+          <View className="w-full bg-gray-200 rounded-full h-3 mb-1">
+            <View 
+              className={cn(
+                "h-3 rounded-full",
+                task.completionPercentage === 100 ? "bg-green-500" :
+                task.completionPercentage >= 75 ? "bg-blue-500" :
+                task.completionPercentage >= 50 ? "bg-yellow-500" :
+                task.completionPercentage >= 25 ? "bg-orange-500" :
+                "bg-gray-400"
+              )}
+              style={{ width: `${task.completionPercentage}%` }}
+            />
+          </View>
+          
+          {/* Completion Message */}
+          {task.completionPercentage === 100 && (
+            <View className="flex-row items-center mt-2 mb-3 p-2 bg-green-50 rounded-lg">
+              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+              <Text className="text-green-700 text-sm font-medium ml-2">
+                Completed! 🎉
+              </Text>
+            </View>
+          )}
+
+          {/* Divider */}
+          <View className="border-t border-gray-200 my-3" />
+
+          {/* Updates Header */}
+          <View className="flex-row items-center justify-between mb-2">
+            <Text className="text-base font-semibold text-gray-900">Progress</Text>
+            <Text className="text-xs text-gray-500">{task.updates.length} updates</Text>
+          </View>
+          
+          {/* Updates List */}
           {task.updates.length > 0 ? (
-            <View className="space-y-4">
+            <View className="space-y-3">
               {task.updates.map((update) => {
                 const updateUser = getUserById(update.userId);
                 return (
@@ -563,12 +534,37 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
               })}
             </View>
           ) : (
-            <View className="py-8 items-center">
-              <Ionicons name="chatbubble-outline" size={48} color="#d1d5db" />
-              <Text className="text-gray-500 mt-2">No updates yet</Text>
+            <View className="py-6 items-center">
+              <Ionicons name="chatbubble-outline" size={40} color="#d1d5db" />
+              <Text className="text-gray-500 mt-2 text-sm">No updates yet</Text>
             </View>
           )}
         </View>
+
+        {/* Add Sub-Task Button */}
+        {(isAssignedToMe || isTaskCreator) && (
+          <View className="bg-white mx-4 mb-3 rounded-xl border border-gray-200 p-4">
+            <Pressable
+              onPress={() => {
+                if (onNavigateToCreateTask) {
+                  if (isViewingSubTask && subTaskId) {
+                    onNavigateToCreateTask(taskId, subTaskId);
+                  } else {
+                    onNavigateToCreateTask(taskId);
+                  }
+                } else {
+                  Alert.alert('Error', 'Navigation function is not available. Please try again.');
+                }
+              }}
+              className="flex-row items-center justify-center bg-blue-50 px-4 py-3 rounded-lg"
+            >
+              <Ionicons name="add-circle-outline" size={20} color="#3b82f6" />
+              <Text className="text-blue-600 font-medium ml-2">
+                Add {isViewingSubTask ? "Nested Sub-Task" : "Sub-Task"}
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
 
       {/* Update Modal */}
@@ -605,61 +601,6 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
           </View>
 
           <ScrollView className="flex-1 px-6 py-4">
-            {/* Description */}
-            <View className="mb-6">
-              <Text className="text-lg font-semibold text-gray-900 mb-2">
-                Update Description
-              </Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-white"
-                placeholder="Describe what you've accomplished..."
-                value={updateForm.description}
-                onChangeText={(text) => setUpdateForm(prev => ({ ...prev, description: text }))}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-                maxLength={500}
-              />
-            </View>
-
-            {/* Progress Slider */}
-            <View className="mb-6">
-              <Text className="text-lg font-semibold text-gray-900 mb-2">
-                Completion Percentage
-              </Text>
-              <Text className="text-3xl font-bold text-blue-600 text-center mb-4">
-                {updateForm.completionPercentage}%
-              </Text>
-              <Slider
-                style={{ height: 40 }}
-                minimumValue={0}
-                maximumValue={100}
-                step={10}
-                value={updateForm.completionPercentage}
-                onValueChange={(value: number) => setUpdateForm(prev => ({ ...prev, completionPercentage: value }))}
-                minimumTrackTintColor="#3b82f6"
-                maximumTrackTintColor="#d1d5db"
-              />
-            </View>
-
-            {/* Automatic Status Info */}
-            <View className="mb-6">
-              <Text className="text-lg font-semibold text-gray-900 mb-2">Status</Text>
-              <View className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <View className="flex-row items-start mb-2">
-                  <Ionicons name="information-circle" size={20} color="#3b82f6" />
-                  <Text className="text-blue-900 font-medium ml-2 flex-1">
-                    Status is automatically set based on completion:
-                  </Text>
-                </View>
-                <View className="ml-7 space-y-1">
-                  <Text className="text-blue-800 text-sm">• 0% = Not Started</Text>
-                  <Text className="text-blue-800 text-sm">• 1-99% = In Progress</Text>
-                  <Text className="text-blue-800 text-sm">• 100% = Completed</Text>
-                </View>
-              </View>
-            </View>
-
             {/* Photos */}
             <View className="mb-6">
               <Text className="text-lg font-semibold text-gray-900 mb-2">Photos</Text>
@@ -688,197 +629,65 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
                 </View>
               )}
             </View>
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
-
-      {/* Sub-Task Creation Modal */}
-      <Modal
-        visible={showSubTaskModal}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <SafeAreaView className="flex-1 bg-gray-50">
-          <ModalHandle />
-          
-          <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
-            <Pressable 
-              onPress={() => setShowSubTaskModal(false)}
-              className="mr-4"
-            >
-              <Text className="text-blue-600 font-medium">Cancel</Text>
-            </Pressable>
-            <Text className="text-lg font-semibold text-gray-900 flex-1">
-              Create Sub-Task
-            </Text>
-            <Pressable
-              onPress={() => {
-                if (!subTaskForm.title.trim()) {
-                  Alert.alert("Error", "Please enter a title");
-                  return;
-                }
-                if (!subTaskForm.description.trim()) {
-                  Alert.alert("Error", "Please enter a description");
-                  return;
-                }
-                if (subTaskForm.assignedTo.length === 0) {
-                  Alert.alert("Error", "Please assign to at least one user");
-                  return;
-                }
-
-                const subTaskPayload = {
-                  ...subTaskForm,
-                  dueDate: subTaskForm.dueDate.toISOString(),
-                  assignedBy: user.id,
-                  updates: [],
-                  projectId: task.projectId,
-                  category: task.category,
-                  attachments: [],
-                };
-
-                // If viewing a subtask, create nested subtask
-                // Otherwise create direct subtask under parent task
-                if (isViewingSubTask && subTaskId) {
-                  createNestedSubTask(taskId, subTaskId, subTaskPayload);
-                } else {
-                  createSubTask(taskId, subTaskPayload);
-                }
-
-                Alert.alert("Success", `${isViewingSubTask ? "Nested sub-task" : "Sub-task"} created successfully!`);
-                setShowSubTaskModal(false);
-              }}
-              className="px-4 py-2 bg-blue-600 rounded-lg"
-            >
-              <Text className="text-white font-medium">Create</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView className="flex-1 px-6 py-4">
-            {/* Title */}
-            <View className="mb-4">
-              <Text className="text-base font-semibold text-gray-900 mb-2">Title</Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-white"
-                placeholder="Enter sub-task title..."
-                value={subTaskForm.title}
-                onChangeText={(text) => setSubTaskForm(prev => ({ ...prev, title: text }))}
-                maxLength={100}
-              />
-            </View>
 
             {/* Description */}
-            <View className="mb-4">
-              <Text className="text-base font-semibold text-gray-900 mb-2">Description</Text>
+            <View className="mb-6">
+              <Text className="text-lg font-semibold text-gray-900 mb-2">
+                Update Description
+              </Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-white"
-                placeholder="Describe the sub-task..."
-                value={subTaskForm.description}
-                onChangeText={(text) => setSubTaskForm(prev => ({ ...prev, description: text }))}
+                placeholder="Describe what you've accomplished..."
+                value={updateForm.description}
+                onChangeText={(text) => setUpdateForm(prev => ({ ...prev, description: text }))}
                 multiline
-                numberOfLines={4}
+                numberOfLines={5}
                 textAlignVertical="top"
                 maxLength={500}
+                style={{ height: 120 }}
               />
             </View>
 
-            {/* Priority */}
-            <View className="mb-4">
-              <Text className="text-base font-semibold text-gray-900 mb-2">Priority</Text>
-              <View className="flex-row flex-wrap gap-2">
-                {(["low", "medium", "high", "critical"] as Priority[]).map((priority) => (
-                  <Pressable
-                    key={priority}
-                    onPress={() => setSubTaskForm(prev => ({ ...prev, priority }))}
-                    className={cn(
-                      "px-4 py-3 rounded-lg border-2 flex-1 min-w-[40%]",
-                      subTaskForm.priority === priority
-                        ? "border-blue-600 bg-blue-50"
-                        : "border-gray-300 bg-white"
-                    )}
-                  >
-                    <Text className={cn(
-                      "text-center font-medium capitalize",
-                      subTaskForm.priority === priority
-                        ? "text-blue-600"
-                        : "text-gray-700"
-                    )}>
-                      {priority}
-                    </Text>
-                  </Pressable>
-                ))}
+            {/* Progress Slider - Compact */}
+            <View className="mb-6">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-lg font-semibold text-gray-900">
+                  Completion Percentage
+                </Text>
+                <Text className="text-2xl font-bold text-blue-600">
+                  {updateForm.completionPercentage}%
+                </Text>
               </View>
-            </View>
-
-            {/* Due Date */}
-            <View className="mb-4">
-              <Text className="text-base font-semibold text-gray-900 mb-2">Due Date</Text>
-              <Pressable
-                onPress={() => setShowUserPicker(true)}
-                className="border border-gray-300 rounded-lg px-3 py-3 bg-white"
-              >
-                <Text className="text-gray-900">
-                  {subTaskForm.dueDate.toLocaleDateString()}
-                </Text>
-              </Pressable>
-            </View>
-
-            {/* Assign To */}
-            <View className="mb-4">
-              <Text className="text-base font-semibold text-gray-900 mb-2">Assign To</Text>
-              <View className="border border-gray-300 rounded-lg bg-white p-4">
-                {getAllUsers()
-                  .filter(u => u.role !== "admin" && u.id !== user.id)
-                  .map(assignUser => (
-                    <Pressable
-                      key={assignUser.id}
-                      onPress={() => {
-                        setSubTaskForm(prev => ({
-                          ...prev,
-                          assignedTo: (prev.assignedTo || []).includes(assignUser.id)
-                            ? (prev.assignedTo || []).filter(id => id !== assignUser.id)
-                            : [...prev.assignedTo, assignUser.id]
-                        }));
-                      }}
-                      className="flex-row items-center py-2 border-b border-gray-100"
-                    >
-                      <View className={cn(
-                        "w-5 h-5 rounded border-2 mr-3 items-center justify-center",
-                        (subTaskForm.assignedTo || []).includes(assignUser.id)
-                          ? "bg-blue-600 border-blue-600"
-                          : "border-gray-300"
-                      )}>
-                        {(subTaskForm.assignedTo || []).includes(assignUser.id) && (
-                          <Ionicons name="checkmark" size={14} color="white" />
-                        )}
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-gray-900 font-medium">{assignUser.name}</Text>
-                        <Text className="text-sm text-gray-500 capitalize">{assignUser.role}</Text>
-                      </View>
-                    </Pressable>
-                  ))}
+              
+              {/* Current Progress Indicator */}
+              <View className="mb-2">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm text-gray-600">Current: {task.completionPercentage}%</Text>
+                  <View className="flex-row items-center">
+                    <View className="w-3 h-3 bg-red-500 rounded-full mr-2"></View>
+                    <Text className="text-sm text-red-600 font-medium">Previous</Text>
+                  </View>
+                </View>
               </View>
-              {subTaskForm.assignedTo.length > 0 && (
-                <Text className="text-sm text-gray-500 mt-2">
-                  {subTaskForm.assignedTo.length} user{subTaskForm.assignedTo.length > 1 ? "s" : ""} selected
-                </Text>
-              )}
-            </View>
-
-            <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <View className="flex-row items-start">
-                <Ionicons name="information-circle-outline" size={20} color="#3b82f6" />
-                <Text className="text-blue-700 text-sm ml-2 flex-1">
-                  {isViewingSubTask 
-                    ? "Nested sub-tasks allow you to further break down this sub-task into even smaller pieces. This creates a hierarchy of tasks for complex workflows."
-                    : "Sub-tasks help break down complex tasks into manageable pieces that can be assigned to different team members."
-                  }
-                </Text>
+              
+              <View className="py-4">
+                <Slider
+                  style={{ width: '100%', height: 300 }}
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={5}
+                  value={updateForm.completionPercentage}
+                  onValueChange={(value: number) => setUpdateForm(prev => ({ ...prev, completionPercentage: value }))}
+                  minimumTrackTintColor="#3b82f6"
+                  maximumTrackTintColor="#d1d5db"
+                  vertical={true}
+                />
               </View>
             </View>
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
       {/* Task Detail Slider Modal */}
       <Modal
         visible={showTaskDetailModal}
@@ -899,7 +708,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack }: 
               <Text className="text-blue-600 font-medium">Close</Text>
             </Pressable>
             <Text className="text-lg font-semibold text-gray-900 flex-1">
-              Task Details
+              {selectedTaskForDetail?.title || "Task Details"}
             </Text>
           </View>
 

@@ -6,7 +6,7 @@ interface ProjectFilterState {
   selectedProjectId: string | null; // Now persists the last selected project
   sectionFilter: "my_tasks" | "inbox" | "outbox" | null;
   statusFilter: "not_started" | "in_progress" | "completed" | "blocked" | null;
-  setSelectedProject: (projectId: string) => void;
+  setSelectedProject: (projectId: string | null) => void;
   setSectionFilter: (section: "my_tasks" | "inbox" | "outbox") => void;
   setStatusFilter: (status: "not_started" | "in_progress" | "completed" | "blocked") => void;
   clearSectionFilter: () => void;
@@ -20,7 +20,7 @@ export const useProjectFilterStore = create<ProjectFilterState>()(
       sectionFilter: null,
       statusFilter: null,
       
-      setSelectedProject: (projectId: string) => {
+      setSelectedProject: (projectId: string | null) => {
         set({ selectedProjectId: projectId });
       },
       

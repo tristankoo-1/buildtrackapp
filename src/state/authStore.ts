@@ -56,8 +56,14 @@ export const useAuthStore = create<AuthStore>()(
                   .single();
 
                 if (!userError && userData) {
+                  // Transform Supabase data to match local interface
+                  const transformedUser = {
+                    ...userData,
+                    companyId: userData.company_id || userData.companyId, // Handle both field names
+                  };
+                  
                   set({ 
-                    user: userData, 
+                    user: transformedUser, 
                     isAuthenticated: true, 
                     isLoading: false 
                   });
@@ -86,26 +92,12 @@ export const useAuthStore = create<AuthStore>()(
                 }
               }
             } catch (supabaseError) {
-              console.log('Supabase Auth failed, falling back to mock auth:', supabaseError);
+              console.error('Supabase Auth failed:', supabaseError);
             }
           }
 
-          // Fallback to mock authentication
-          const allUsers = useUserStore.getState().getAllUsers();
-          const user = allUsers.find((u: User) => 
-            (u.email && u.email.toLowerCase() === username.toLowerCase()) ||
-            u.phone === username
-          );
-          
-          if (user && password.length >= 6) {
-            set({ 
-              user, 
-              isAuthenticated: true, 
-              isLoading: false 
-            });
-            return true;
-          }
-          
+          // Supabase authentication failed
+          console.error('Authentication failed: Supabase not available');
           set({ isLoading: false });
           return false;
         } catch (error) {
@@ -236,8 +228,14 @@ export const useAuthStore = create<AuthStore>()(
               return { success: false, error: 'Failed to fetch user data' };
             }
 
+            // Transform Supabase data to match local interface
+            const transformedUser = {
+              ...userData,
+              companyId: userData.company_id || userData.companyId, // Handle both field names
+            };
+            
             set({ 
-              user: userData, 
+              user: transformedUser, 
               isAuthenticated: true, 
               isLoading: false 
             });
@@ -329,7 +327,12 @@ export const useAuthStore = create<AuthStore>()(
           }
 
           if (userData) {
-            set({ user: userData });
+            // Transform Supabase data to match local interface
+            const transformedUser = {
+              ...userData,
+              companyId: userData.company_id || userData.companyId, // Handle both field names
+            };
+            set({ user: transformedUser });
           }
         } catch (error) {
           console.error('Error refreshing user:', error);

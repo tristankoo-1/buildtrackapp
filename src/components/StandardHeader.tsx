@@ -16,6 +16,7 @@ import { detectEnvironment, getEnvironmentStyles } from "../utils/environmentDet
 
 interface StandardHeaderProps {
   title: string;
+  subtitle?: string;
   onRefresh?: () => void;
   onLogout?: () => void;
   showBackButton?: boolean;
@@ -26,6 +27,7 @@ interface StandardHeaderProps {
 
 export default function StandardHeader({
   title,
+  subtitle,
   onRefresh,
   onLogout,
   showBackButton = false,
@@ -137,21 +139,28 @@ export default function StandardHeader({
       )}
       
       {/* Screen Title with Back Button */}
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center">
         {/* Back Button */}
         {showBackButton && (
           <Pressable 
             onPress={onBackPress}
-            className="w-10 h-10 items-center justify-center mr-2"
+            className="w-10 h-10 items-center justify-center mr-3"
           >
             <Ionicons name="arrow-back" size={24} color="#374151" />
           </Pressable>
         )}
         
-        {/* Title */}
-        <Text className="text-xl font-bold text-gray-900 flex-1">
-          {title}
-        </Text>
+        {/* Title and Subtitle */}
+        <View className="flex-1">
+          <Text className="text-xl font-bold text-gray-900">
+            {title}
+          </Text>
+          {subtitle && (
+            <Text className="text-sm text-gray-600 mt-0.5" numberOfLines={1}>
+              {subtitle}
+            </Text>
+          )}
+        </View>
         
         {/* Custom right element */}
         {rightElement}

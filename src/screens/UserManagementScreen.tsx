@@ -12,8 +12,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../state/authStore";
-import { useProjectStore } from "../state/projectStore";
-import { useUserStore } from "../state/userStore";
+import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
+import { useUserStoreWithInit } from "../state/userStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { User, Project, UserCategory } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -27,8 +27,8 @@ interface UserManagementScreenProps {
 
 export default function UserManagementScreen({ onNavigateBack }: UserManagementScreenProps) {
   const { user: currentUser } = useAuthStore();
-  const { getAllProjects, assignUserToProject, removeUserFromProject, getUserProjectAssignments } = useProjectStore();
-  const { getUsersByCompany, getAdminCountByCompany } = useUserStore();
+  const { getProjectsByCompany, assignUserToProject, removeUserFromProject, getUserProjectAssignments } = useProjectStoreWithCompanyInit(currentUser.companyId);
+  const { getUsersByCompany, getAdminCountByCompany } = useUserStoreWithInit();
   const { getCompanyById, getCompanyBanner } = useCompanyStore();
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -57,8 +57,29 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
   const companyUsers = currentUser.companyId 
     ? getUsersByCompany(currentUser.companyId)
     : [];
-  const projects = getAllProjects();
+  const projects = currentUser.companyId ? getProjectsByCompany(currentUser.companyId) : [];
   const currentCompany = currentUser.companyId ? getCompanyById(currentUser.companyId) : null;
+  
+  // Debug logging
+  console.log('=== USER MANAGEMENT DEBUG ===');
+  console.log('Current User:', currentUser.name, currentUser.email);
+  console.log('Current User Company ID:', currentUser.companyId);
+  console.log('Current User Company_id:', currentUser.company_id);
+  console.log('All Users in Store:', useUserStoreWithInit().getAllUsers().length);
+  console.log('Company Users Found:', companyUsers.length);
+  console.log('All Users Details:', useUserStoreWithInit().getAllUsers().map(u => ({ 
+    id: u.id, 
+    name: u.name, 
+    companyId: u.companyId, 
+    company_id: u.company_id 
+  })));
+  console.log('Filtered Users Details:', companyUsers.map(u => ({ 
+    id: u.id, 
+    name: u.name, 
+    companyId: u.companyId, 
+    company_id: u.company_id 
+  })));
+  console.log('============================');
   
   const filteredUsers = companyUsers.filter(u => 
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -129,8 +150,14 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
 
   const UserCard = ({ user }: { user: User }) => {
     const userAssignments = getUserProjectAssignments(user.id);
-    const { getAdminCountByCompany } = useUserStore();
     const isLastAdmin = user.role === "admin" && getAdminCountByCompany(user.companyId) === 1;
+    
+    // Debug logging for user assignments
+    console.log(`=== USER ASSIGNMENTS DEBUG for ${user.name} ===`);
+    console.log('- User ID:', user.id);
+    console.log('- User Assignments:', userAssignments);
+    console.log('- Available Projects:', projects.map(p => ({ id: p.id, name: p.name })));
+    console.log('==========================================');
     
     return (
       <View className="bg-white border border-gray-200 rounded-xl p-4 mb-3">
@@ -138,9 +165,14 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
         <View className="flex-row items-center justify-between mb-3">
           <View className="flex-1">
             <View className="flex-row items-center gap-2">
-              <Text className="font-semibold text-gray-900 text-base">
-                {user.name}
-              </Text>
+              <View className="flex-row items-center gap-1">
+                <Text className="font-semibold text-gray-900 text-base">
+                  {user.name}
+                </Text>
+                {user.role === "admin" && (
+                  <Ionicons name="star" size={16} color="#7c3aed" />
+                )}
+              </View>
               {user.role === "admin" && (
                 <View className="bg-purple-100 px-2 py-1 rounded">
                   <Text className="text-purple-700 text-xs font-bold">ADMIN</Text>
@@ -225,10 +257,20 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
     <SafeAreaView className="flex-1 bg-gray-50">
       <StatusBar style="dark" />
       
-      {/* Standard Header */}
-      <StandardHeader 
-        title="User Management"
-      />
+      {/* Header with Back Button */}
+      <View className="bg-white border-b border-gray-200 px-6 py-4">
+        <View className="flex-row items-center">
+          <Pressable 
+            onPress={onNavigateBack}
+            className="w-10 h-10 items-center justify-center mr-3"
+          >
+            <Ionicons name="arrow-back" size={24} color="#374151" />
+          </Pressable>
+          <Text className="text-xl font-bold text-gray-900 flex-1">
+            User Management
+          </Text>
+        </View>
+      </View>
 
       <View className="bg-white border-b border-gray-200 px-6 py-4">
         {/* Company Info Banner */}
@@ -246,18 +288,6 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
           </View>
         )}
 
-        {/* Admin Protection Notice */}
-        {getAdminCountByCompany(currentUser.companyId) === 1 && (
-          <View className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 flex-row">
-            <Ionicons name="shield-checkmark" size={20} color="#d97706" />
-            <View className="flex-1 ml-2">
-              <Text className="text-amber-900 font-medium text-sm">Admin Protection Active</Text>
-              <Text className="text-amber-700 text-xs mt-1">
-                Your company must have at least one admin. Role changes and deletions are protected.
-              </Text>
-            </View>
-          </View>
-        )}
 
         {/* Search Bar and Invite Button */}
         <View className="flex-row items-center mb-4 gap-2">

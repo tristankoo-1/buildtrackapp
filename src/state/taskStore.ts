@@ -147,7 +147,8 @@ export const useTaskStore = create<TaskStore>()(
 
       fetchTasksByProject: async (projectId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ tasks: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -161,7 +162,7 @@ export const useTaskStore = create<TaskStore>()(
                 id,
                 name
               ),
-              users!tasks_assigned_by_fkey (
+              users!assigned_by (
                 id,
                 name,
                 email
@@ -187,7 +188,8 @@ export const useTaskStore = create<TaskStore>()(
 
       fetchTasksByUser: async (userId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ tasks: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -259,7 +261,7 @@ export const useTaskStore = create<TaskStore>()(
                 id,
                 name
               ),
-              users!tasks_assigned_by_fkey (
+              users!assigned_by (
                 id,
                 name,
                 email
@@ -314,7 +316,7 @@ export const useTaskStore = create<TaskStore>()(
               attachments: taskData.attachments,
               current_status: 'not_started',
               completion_percentage: 0,
-              accepted: false,
+              accepted: null,
             })
             .select()
             .single();
@@ -433,7 +435,12 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       acceptTask: async (taskId, userId) => {
-        await get().updateTask(taskId, { accepted: true });
+        await get().updateTask(taskId, { 
+          accepted: true,
+          currentStatus: "in_progress",
+          acceptedBy: userId,
+          acceptedAt: new Date().toISOString()
+        });
       },
 
       declineTask: async (taskId, userId, reason) => {
@@ -735,7 +742,12 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       acceptSubTask: async (taskId, subTaskId, userId) => {
-        await get().updateSubTask(taskId, subTaskId, { accepted: true });
+        await get().updateSubTask(taskId, subTaskId, { 
+          accepted: true,
+          currentStatus: "in_progress",
+          acceptedBy: userId,
+          acceptedAt: new Date().toISOString()
+        });
       },
 
       declineSubTask: async (taskId, subTaskId, userId, reason) => {

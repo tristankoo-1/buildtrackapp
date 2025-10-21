@@ -3,9 +3,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { useAuthStore } from "../state/authStore";
-import { useTaskStore } from "../state/taskStore";
+import { useTaskStore } from "../state/taskStore.supabase";
 import { DataRefreshManager } from "../utils/DataRefreshManager";
 import LoginScreen from "../screens/LoginScreen";
 import RegisterScreen from "../screens/RegisterScreen";
@@ -20,6 +20,7 @@ import ProjectsScreen from "../screens/ProjectsScreen";
 import CreateProjectScreen from "../screens/CreateProjectScreen";
 import UserManagementScreen from "../screens/UserManagementScreen";
 import AdminDashboardScreen from "../screens/AdminDashboardScreen";
+import ProjectDetailScreen from "../screens/ProjectDetailScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -70,7 +71,7 @@ function DashboardMainScreen({ navigation }: { navigation: any }) {
   );
 }
 
-// Tasks Stack Navigator to include Task Detail screen
+// Tasks Stack Navigator to include Task Detail screen and Create Task
 function TasksStack() {
   return (
     <Stack.Navigator 
@@ -83,6 +84,13 @@ function TasksStack() {
       <Stack.Screen 
         name="TaskDetail" 
         component={TaskDetailScreenWrapper}
+        options={{
+          presentation: "modal"
+        }}
+      />
+      <Stack.Screen 
+        name="CreateTaskFromTask" 
+        component={CreateTaskFromTaskWrapper}
         options={{
           presentation: "modal"
         }}
@@ -110,6 +118,30 @@ function TaskDetailScreenWrapper({ route, navigation }: { route: any; navigation
       taskId={taskId}
       subTaskId={subTaskId}
       onNavigateBack={() => navigation.goBack()}
+      onNavigateToCreateTask={(parentTaskId, parentSubTaskId) => {
+        console.log('🚀 Navigation handler called');
+        console.log('🚀 parentTaskId:', parentTaskId);
+        console.log('🚀 parentSubTaskId:', parentSubTaskId);
+        
+        // Navigate within the same stack to CreateTaskFromTask
+        navigation.navigate("CreateTaskFromTask", { 
+          parentTaskId, 
+          parentSubTaskId
+        });
+        
+        console.log('🚀 Navigation called to CreateTaskFromTask');
+      }}
+    />
+  );
+}
+
+function CreateTaskFromTaskWrapper({ route, navigation }: { route: any; navigation: any }) {
+  const { parentTaskId, parentSubTaskId } = route.params || {};
+  return (
+    <CreateTaskScreen
+      onNavigateBack={() => navigation.goBack()}
+      parentTaskId={parentTaskId}
+      parentSubTaskId={parentSubTaskId}
     />
   );
 }
@@ -157,10 +189,13 @@ function CreateTaskStack() {
   );
 }
 
-function CreateTaskMainScreen({ navigation }: { navigation: any }) {
+function CreateTaskMainScreen({ navigation, route }: { navigation: any; route: any }) {
+  const { parentTaskId, parentSubTaskId } = route.params || {};
   return (
     <CreateTaskScreen
       onNavigateBack={() => navigation.goBack()}
+      parentTaskId={parentTaskId}
+      parentSubTaskId={parentSubTaskId}
     />
   );
 }
@@ -171,6 +206,7 @@ function AdminDashboardStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AdminDashboardMain" component={AdminDashboardMainScreen} />
       <Stack.Screen name="ProjectsList" component={ProjectsListScreen} />
+      <Stack.Screen name="ProjectDetail" component={ProjectDetailScreenWrapper} />
       <Stack.Screen name="CreateProject" component={CreateProjectMainScreen} />
       <Stack.Screen name="UserManagement" component={UserManagementMainScreen} />
     </Stack.Navigator>
@@ -192,6 +228,7 @@ function ProjectsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProjectsList" component={ProjectsListScreen} />
+      <Stack.Screen name="ProjectDetail" component={ProjectDetailScreenWrapper} />
       <Stack.Screen name="CreateProject" component={CreateProjectMainScreen} />
       <Stack.Screen name="UserManagement" component={UserManagementMainScreen} />
     </Stack.Navigator>
@@ -203,6 +240,7 @@ function UserProjectsStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="ProjectsList" component={ProjectsListScreen} />
+      <Stack.Screen name="ProjectDetail" component={ProjectDetailScreenWrapper} />
     </Stack.Navigator>
   );
 }
@@ -211,11 +249,21 @@ function ProjectsListScreen({ navigation }: { navigation: any }) {
   return (
     <ProjectsScreen
       onNavigateToProjectDetail={(projectId: string) => {
-        // For now, show alert - we'll implement project detail later
-        Alert.alert("Project Details", `Project ${projectId} details would open here.`);
+        navigation.navigate("ProjectDetail", { projectId });
       }}
       onNavigateToCreateProject={() => navigation.navigate("CreateProject")}
       onNavigateToUserManagement={() => navigation.navigate("UserManagement")}
+      onNavigateBack={() => navigation.goBack()}
+    />
+  );
+}
+
+function ProjectDetailScreenWrapper({ route, navigation }: { route: any; navigation: any }) {
+  const { projectId } = route.params;
+  return (
+    <ProjectDetailScreen
+      projectId={projectId}
+      onNavigateBack={() => navigation.goBack()}
     />
   );
 }

@@ -17,8 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useAuthStore } from "../state/authStore";
-import { useProjectStoreWithInit } from "../state/projectStore";
-import { useUserStoreWithInit } from "../state/userStore";
+import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
+import { useUserStoreWithInit } from "../state/userStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { Project, ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -29,16 +29,18 @@ interface ProjectsScreenProps {
   onNavigateToProjectDetail: (projectId: string) => void;
   onNavigateToCreateProject: () => void;
   onNavigateToUserManagement?: () => void;
+  onNavigateBack?: () => void;
 }
 
 export default function ProjectsScreen({ 
   onNavigateToProjectDetail, 
   onNavigateToCreateProject,
-  onNavigateToUserManagement
+  onNavigateToUserManagement,
+  onNavigateBack
 }: ProjectsScreenProps) {
   const { user } = useAuthStore();
-  const projectStore = useProjectStoreWithInit();
-  const { getAllProjects, getProjectsByUser, getProjectStats, updateProject, getProjectUserAssignments, assignUserToProject, getLeadPMForProject } = projectStore;
+  const projectStore = useProjectStoreWithCompanyInit(user.companyId);
+  const { getProjectsByCompany, getProjectsByUser, getProjectStats, updateProject, getProjectUserAssignments, assignUserToProject, getLeadPMForProject } = projectStore;
   const userStore = useUserStoreWithInit();
   const { getUserById, getUsersByCompany } = userStore;
   const { getCompanyById, getCompanyBanner } = useCompanyStore();
@@ -56,15 +58,13 @@ export default function ProjectsScreen({
   // Get projects based on user role - COMPANY FILTERED
   const allProjects = React.useMemo(() => {
     if (user.role === "admin") {
-      // For admins: Only show projects created by users in their company
-      const companyUsers = getUsersByCompany(user.companyId);
-      const companyUserIds = new Set(companyUsers.map(u => u.id));
-      return getAllProjects().filter(project => companyUserIds.has(project.createdBy));
+      // For admins: Only show projects owned by their company
+      return getProjectsByCompany(user.companyId);
     } else {
       // For non-admins: Show only projects they're assigned to
       return getProjectsByUser(user.id);
     }
-  }, [user.role, user.companyId, user.id, getUsersByCompany, getAllProjects, getProjectsByUser]);
+  }, [user.role, user.companyId, user.id, getProjectsByCompany, getProjectsByUser]);
   
   // Filter projects based on search and status
   const filteredProjects = React.useMemo(() => {
@@ -229,6 +229,8 @@ export default function ProjectsScreen({
       {/* Standard Header */}
       <StandardHeader 
         title="Projects"
+        showBackButton={!!onNavigateBack}
+        onBackPress={onNavigateBack}
         rightElement={
           user.role === "admin" ? (
             <View className="flex-row space-x-2">
@@ -351,7 +353,7 @@ function EditProjectModal({
 }) {
   const { user } = useAuthStore();
   const { getUsersByCompany } = useUserStoreWithInit();
-  const { getLeadPMForProject, assignUserToProject, getProjectUserAssignments, removeUserFromProject } = useProjectStoreWithInit();
+  const { getLeadPMForProject, assignUserToProject, getProjectUserAssignments, removeUserFromProject } = useProjectStoreWithCompanyInit(user?.companyId || "");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -371,6 +373,12 @@ function EditProjectModal({
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
+  // Memoize company users - must be called before any conditional returns
+  const companyUsers = React.useMemo(() => 
+    user?.companyId ? getUsersByCompany(user.companyId) : [], 
+    [user?.companyId, getUsersByCompany]
+  );
+
   // Initialize form when project changes (only once)
   React.useEffect(() => {
     if (project) {
@@ -389,17 +397,13 @@ function EditProjectModal({
     }
   }, [project?.id]); // Only depend on project ID, not the entire project object
 
-  if (!user || !project) return null;
-
-  const companyUsers = React.useMemo(() => 
-    getUsersByCompany(user.companyId), 
-    [user.companyId, getUsersByCompany]
-  );
-  
+  // Memoize eligible lead PMs - must be called before any conditional returns
   const eligibleLeadPMs = React.useMemo(() => 
     companyUsers.filter(u => u.role === "manager" || u.role === "admin"),
     [companyUsers]
   );
+
+  if (!user || !project) return null;
 
   const handleSave = () => {
     if (!formData.name.trim()) {

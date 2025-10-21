@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
-import { useTaskStore } from '../state/taskStore';
+import { useTaskStore } from '../state/taskStore.supabase';
 import { useProjectStore } from '../state/projectStore';
-import { useUserStore } from '../state/userStore';
+import { useUserStore } from '../state/userStore.supabase';
 
 /**
  * Auto-refresh hook that reloads data from stores when:

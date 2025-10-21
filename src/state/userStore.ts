@@ -4,7 +4,6 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../api/supabase";
 import { User, UserRole } from "../types/buildtrack";
-import { MOCK_USERS } from "./mockData";
 
 interface UserStore {
   users: User[];
@@ -92,7 +91,8 @@ export const useUserStore = create<UserStore>()(
 
       fetchUsersByCompany: async (companyId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ users: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 

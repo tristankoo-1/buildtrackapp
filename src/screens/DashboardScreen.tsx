@@ -10,8 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../state/authStore";
-import { useTaskStoreWithInit } from "../state/taskStore";
-import { useProjectStoreWithInit } from "../state/projectStore";
+import { useTaskStore } from "../state/taskStore.supabase";
+import { useProjectStoreWithInit } from "../state/projectStore.supabase";
 import { useProjectFilterStore } from "../state/projectFilterStore";
 import { useCompanyStore } from "../state/companyStore";
 import { useTranslation } from "../utils/useTranslation";
@@ -35,8 +35,9 @@ export default function DashboardScreen({
   onNavigateToReports
 }: DashboardScreenProps) {
   const { user } = useAuthStore();
-  const taskStore = useTaskStoreWithInit();
+  const taskStore = useTaskStore();
   const tasks = taskStore.tasks;
+  const { fetchTasks } = taskStore;
   const projectStore = useProjectStoreWithInit();
   const { getProjectsByUser, getProjectById, fetchProjects, fetchUserProjectAssignments } = projectStore;
   const { selectedProjectId, setSelectedProject, setSectionFilter, setStatusFilter } = useProjectFilterStore();
@@ -44,14 +45,22 @@ export default function DashboardScreen({
   const t = useTranslation();
 
   // Get projects user is participating in
-  const userProjects = getProjectsByUser(user.id);
+  const userProjects = user ? getProjectsByUser(user.id) : [];
 
-  // Auto-select first project if none is selected
+  // Set default to empty string (no project selected) - users should explicitly choose a project
   useEffect(() => {
-    if (!selectedProjectId && userProjects.length > 0) {
-      setSelectedProject(userProjects[0].id);
+    if (!selectedProjectId) {
+      setSelectedProject("");
     }
-  }, [selectedProjectId, userProjects, setSelectedProject]);
+  }, [selectedProjectId, setSelectedProject]);
+
+  // Fetch tasks when Dashboard mounts
+  useEffect(() => {
+    if (user) {
+      console.log('Dashboard: Fetching tasks for user:', user.id);
+      fetchTasks();
+    }
+  }, [user, fetchTasks]);
 
   // Manual refresh function
   const handleRefresh = async () => {
@@ -81,16 +90,17 @@ export default function DashboardScreen({
 
   if (!user) return null;
 
-  const activeProjects = userProjects.filter(p => p.status === "active");
-  const planningProjects = userProjects.filter(p => p.status === "planning");
+  // Only show project statistics when a project is selected
+  const activeProjects = selectedProjectId && selectedProjectId !== "" ? userProjects.filter(p => p.status === "active") : [];
+  const planningProjects = selectedProjectId && selectedProjectId !== "" ? userProjects.filter(p => p.status === "planning") : [];
   
   // Get selected project name for display
   const selectedProject = selectedProjectId ? getProjectById(selectedProjectId) : null;
 
-  // Filter tasks by selected project FIRST (same as TasksScreen)
-  const projectFilteredTasks = selectedProjectId 
+  // Filter tasks by selected project - show NO tasks when no project is selected
+  const projectFilteredTasks = selectedProjectId && selectedProjectId !== ""
     ? tasks.filter(task => task.projectId === selectedProjectId)
-    : tasks;
+    : []; // Show no tasks when no project is selected
 
   // Helper function to recursively collect all subtasks assigned by a user
   const collectSubTasksAssignedBy = (subTasks: SubTask[] | undefined, userId: string): SubTask[] => {
@@ -209,10 +219,19 @@ export default function DashboardScreen({
   console.log('🔍 Dashboard Task Analysis:', {
     userId: user.id,
     userName: user.name,
-    totalTasks: projectFilteredTasks.length,
+    selectedProjectId: selectedProjectId,
+    totalTasks: tasks.length,
+    projectFilteredTasks: projectFilteredTasks.length,
     myTasksCount: myAllTasks.length,
     inboxTasksCount: inboxAllTasks.length,
     outboxTasksCount: outboxAllTasks.length,
+    allTasksDetails: tasks.map(t => ({ 
+      id: t.id, 
+      title: t.title, 
+      projectId: t.projectId,
+      assignedBy: t.assignedBy, 
+      assignedTo: t.assignedTo 
+    })),
     myTasksDetails: myAllTasks.map(t => ({ id: t.id, title: t.title, assignedBy: t.assignedBy, assignedTo: t.assignedTo })),
     inboxTasksDetails: inboxAllTasks.map(t => ({ id: t.id, title: t.title, assignedBy: t.assignedBy, assignedTo: t.assignedTo })),
     outboxTasksDetails: outboxAllTasks.map(t => ({ id: t.id, title: t.title, assignedBy: t.assignedBy, assignedTo: t.assignedTo }))
@@ -330,12 +349,17 @@ export default function DashboardScreen({
         title={t.nav.dashboard}
         onRefresh={handleRefresh}
         rightElement={
-          <Pressable 
-            onPress={onNavigateToProfile}
-            className="w-10 h-10 items-center justify-center"
-          >
-            <Ionicons name="person-circle-outline" size={32} color="#3b82f6" />
-          </Pressable>
+          <View className="flex-row items-center">
+            <Text className="text-base font-medium text-gray-700 mr-2">
+              {user.name} ({user.role})
+            </Text>
+            <Pressable 
+              onPress={onNavigateToProfile}
+              className="w-10 h-10 items-center justify-center"
+            >
+              <Ionicons name="person-circle-outline" size={32} color="#3b82f6" />
+            </Pressable>
+          </View>
         }
       />
 
@@ -350,7 +374,7 @@ export default function DashboardScreen({
               <Ionicons name="business-outline" size={28} color="#3b82f6" />
               <View className="ml-3 flex-1">
                 <Text className="text-base font-semibold text-gray-900" numberOfLines={1}>
-                  {selectedProject ? selectedProject.name : t.dashboard.selectProject}
+                  {selectedProject ? selectedProject.name : userProjects.length === 0 ? "No Projects Assigned" : "---"}
                 </Text>
               </View>
             </View>
@@ -611,6 +635,41 @@ export default function DashboardScreen({
               {t.dashboard.yourProjects} ({userProjects.length})
             </Text>
             
+            {/* No Project Option - Only show when user has no projects assigned */}
+            {userProjects.length === 0 && (
+              <Pressable
+                onPress={() => {
+                  setSelectedProject("");
+                  setShowProjectPicker(false);
+                }}
+                className={cn(
+                  "bg-white border rounded-lg px-4 py-4 mb-3 flex-row items-center",
+                  (!selectedProjectId || selectedProjectId === "") ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                )}
+              >
+                <View className={cn(
+                  "w-5 h-5 rounded-full border-2 items-center justify-center mr-3",
+                  (!selectedProjectId || selectedProjectId === "") ? "border-blue-500" : "border-gray-300"
+                )}>
+                  {(!selectedProjectId || selectedProjectId === "") && (
+                    <View className="w-3 h-3 rounded-full bg-blue-500" />
+                  )}
+                </View>
+                <View className="flex-1">
+                  <Text className={cn(
+                    "text-sm font-semibold",
+                    (!selectedProjectId || selectedProjectId === "") ? "text-blue-900" : "text-gray-900"
+                  )} numberOfLines={1}>
+                    --- (No Project Selected)
+                  </Text>
+                  <Text className="text-xs text-gray-600 mt-0.5" numberOfLines={1}>
+                    No projects assigned to you yet
+                  </Text>
+                </View>
+                <Ionicons name="remove-outline" size={24} color={(!selectedProjectId || selectedProjectId === "") ? "#3b82f6" : "#6b7280"} />
+              </Pressable>
+            )}
+            
             {userProjects.map((project) => (
               <Pressable
                 key={project.id}
@@ -650,13 +709,31 @@ export default function DashboardScreen({
               <View className="bg-white border border-gray-200 rounded-lg p-8 items-center">
                 <Ionicons name="folder-open-outline" size={48} color="#9ca3af" />
                 <Text className="text-gray-500 text-center mt-2">
-                  {t.dashboard.noTasksYet}
+                  No projects assigned to you yet
+                </Text>
+                <Text className="text-gray-400 text-center mt-1 text-sm">
+                  Contact your admin to get assigned to projects
                 </Text>
               </View>
             )}
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Floating Action Button */}
+      <Pressable
+        onPress={onNavigateToCreateTask}
+        className="absolute bottom-8 right-6 w-14 h-14 bg-orange-500 rounded-full items-center justify-center shadow-lg"
+        style={{
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
+        <Ionicons name="add" size={28} color="white" />
+      </Pressable>
     </SafeAreaView>
   );
 }

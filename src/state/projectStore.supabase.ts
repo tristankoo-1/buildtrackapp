@@ -1,3 +1,4 @@
+import React from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -12,6 +13,7 @@ interface ProjectStore {
   
   // Fetching
   fetchProjects: () => Promise<void>;
+  fetchProjectsByCompany: (companyId: string) => Promise<void>;
   fetchProjectsByUser: (userId: string) => Promise<void>;
   fetchProjectById: (id: string) => Promise<Project | null>;
   fetchUserProjectAssignments: (userId: string) => Promise<void>;
@@ -20,6 +22,7 @@ interface ProjectStore {
   // Project management
   getAllProjects: () => Project[];
   getProjectById: (id: string) => Project | undefined;
+  getProjectsByCompany: (companyId: string) => Project[];
   getProjectsByUser: (userId: string) => Project[];
   createProject: (project: Omit<Project, "id" | "createdAt" | "updatedAt">) => Promise<string>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>;
@@ -31,6 +34,7 @@ interface ProjectStore {
   updateUserProjectCategory: (userId: string, projectId: string, category: UserCategory) => Promise<void>;
   getUserProjectAssignments: (userId: string) => UserProjectAssignment[];
   getProjectUserAssignments: (projectId: string) => UserProjectAssignment[];
+  cleanupDuplicateAssignments: (projectId: string) => Promise<void>;
   
   // Lead Project Manager utilities
   getUserLeadProjects: (userId: string) => Project[];
@@ -56,7 +60,8 @@ export const useProjectStore = create<ProjectStore>()(
       // FETCH from Supabase
       fetchProjects: async () => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -64,20 +69,25 @@ export const useProjectStore = create<ProjectStore>()(
         try {
           const { data, error } = await supabase
             .from('projects')
-            .select(`
-              *,
-              users!projects_created_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .order('name');
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedProjects = (data || []).map(project => ({
+            ...project,
+            startDate: project.start_date,
+            endDate: project.end_date,
+            createdBy: project.created_by,
+            companyId: project.company_id,
+            createdAt: project.created_at,
+            updatedAt: project.updated_at,
+            clientInfo: project.client_info,
+          }));
+
           set({ 
-            projects: data || [], 
+            projects: transformedProjects, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -89,9 +99,60 @@ export const useProjectStore = create<ProjectStore>()(
         }
       },
 
+      fetchProjectsByCompany: async (companyId: string) => {
+        if (!supabase) {
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
+          return;
+        }
+
+        set({ isLoading: true, error: null });
+        try {
+          const { data, error } = await supabase
+            .from('projects')
+            .select(`
+              *,
+              users!created_by (
+                id,
+                name,
+                email,
+                role
+              )
+            `)
+            .eq('company_id', companyId)
+            .order('created_at', { ascending: false });
+
+          if (error) throw error;
+
+          // Transform Supabase data to match local interface
+          const transformedProjects = (data || []).map(project => ({
+            ...project,
+            startDate: project.start_date,
+            endDate: project.end_date,
+            createdBy: project.created_by,
+            companyId: project.company_id,
+            createdAt: project.created_at,
+            updatedAt: project.updated_at,
+            clientInfo: project.client_info,
+          }));
+
+          set({ 
+            projects: transformedProjects, 
+            isLoading: false 
+          });
+        } catch (error: any) {
+          console.error('Error fetching projects by company:', error);
+          set({ 
+            error: error.message, 
+            isLoading: false 
+          });
+        }
+      },
+
       fetchProjectsByUser: async (userId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -115,21 +176,26 @@ export const useProjectStore = create<ProjectStore>()(
 
           const { data, error } = await supabase
             .from('projects')
-            .select(`
-              *,
-              users!projects_created_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .in('id', projectIds)
             .order('name');
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedProjects = (data || []).map(project => ({
+            ...project,
+            startDate: project.start_date,
+            endDate: project.end_date,
+            createdBy: project.created_by,
+            companyId: project.company_id,
+            createdAt: project.created_at,
+            updatedAt: project.updated_at,
+            clientInfo: project.client_info,
+          }));
+
           set({ 
-            projects: data || [], 
+            projects: transformedProjects, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -149,19 +215,25 @@ export const useProjectStore = create<ProjectStore>()(
         try {
           const { data, error } = await supabase
             .from('projects')
-            .select(`
-              *,
-              users!projects_created_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .eq('id', id)
             .single();
 
           if (error) throw error;
-          return data;
+          
+          // Transform Supabase data to match local interface
+          const transformedProject = {
+            ...data,
+            startDate: data.start_date,
+            endDate: data.end_date,
+            createdBy: data.created_by,
+            companyId: data.company_id,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            clientInfo: data.client_info,
+          };
+          
+          return transformedProject;
         } catch (error: any) {
           console.error('Error fetching project:', error);
           return null;
@@ -170,35 +242,36 @@ export const useProjectStore = create<ProjectStore>()(
 
       fetchUserProjectAssignments: async (userId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
         try {
           const { data, error } = await supabase
             .from('user_project_assignments')
-            .select(`
-              *,
-              projects (
-                id,
-                name,
-                status
-              ),
-              users!user_project_assignments_assigned_by_fkey (
-                id,
-                name
-              )
-            `)
+            .select('*')
             .eq('user_id', userId)
             .eq('is_active', true)
             .order('assigned_at', { ascending: false });
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedAssignments = (data || []).map(assignment => ({
+            id: assignment.id,
+            userId: assignment.user_id,
+            projectId: assignment.project_id,
+            category: assignment.category,
+            assignedAt: assignment.assigned_at,
+            assignedBy: assignment.assigned_by,
+            isActive: assignment.is_active,
+          }));
+
           set(state => ({
             userAssignments: [
               ...state.userAssignments.filter(a => a.userId !== userId),
-              ...(data || [])
+              ...transformedAssignments
             ]
           }));
         } catch (error: any) {
@@ -208,36 +281,36 @@ export const useProjectStore = create<ProjectStore>()(
 
       fetchProjectUserAssignments: async (projectId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
         try {
           const { data, error } = await supabase
             .from('user_project_assignments')
-            .select(`
-              *,
-              users (
-                id,
-                name,
-                email,
-                role
-              ),
-              users!user_project_assignments_assigned_by_fkey (
-                id,
-                name
-              )
-            `)
+            .select('*')
             .eq('project_id', projectId)
             .eq('is_active', true)
             .order('assigned_at', { ascending: false });
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedAssignments = (data || []).map(assignment => ({
+            id: assignment.id,
+            userId: assignment.user_id,
+            projectId: assignment.project_id,
+            category: assignment.category,
+            assignedAt: assignment.assigned_at,
+            assignedBy: assignment.assigned_by,
+            isActive: assignment.is_active,
+          }));
+
           set(state => ({
             userAssignments: [
               ...state.userAssignments.filter(a => a.projectId !== projectId),
-              ...(data || [])
+              ...transformedAssignments
             ]
           }));
         } catch (error: any) {
@@ -252,6 +325,10 @@ export const useProjectStore = create<ProjectStore>()(
 
       getProjectById: (id) => {
         return get().projects.find(project => project.id === id);
+      },
+
+      getProjectsByCompany: (companyId) => {
+        return get().projects.filter(project => project.companyId === companyId);
       },
 
       getProjectsByUser: (userId) => {
@@ -292,6 +369,7 @@ export const useProjectStore = create<ProjectStore>()(
               location: projectData.location,
               client_info: projectData.clientInfo,
               created_by: projectData.createdBy,
+              company_id: projectData.companyId,
             })
             .select()
             .single();
@@ -421,6 +499,16 @@ export const useProjectStore = create<ProjectStore>()(
         }
 
         try {
+          // Check if assignment already exists (any category)
+          const existingAssignments = get().userAssignments.filter(
+            a => a.userId === userId && a.projectId === projectId && a.isActive
+          );
+
+          if (existingAssignments.length > 0) {
+            console.log(`User ${userId} already assigned to project ${projectId}. Existing categories: ${existingAssignments.map(a => a.category).join(', ')}`);
+            return; // Skip if already assigned
+          }
+
           const { error } = await supabase
             .from('user_project_assignments')
             .insert({
@@ -431,10 +519,18 @@ export const useProjectStore = create<ProjectStore>()(
               is_active: true,
             });
 
-          if (error) throw error;
+          if (error) {
+            // Handle duplicate key constraint violation specifically
+            if (error.code === '23505') {
+              console.log(`User ${userId} already assigned to project ${projectId} with category ${category}`);
+              return; // Skip if duplicate
+            }
+            throw error;
+          }
 
-          // Refresh assignments
+          // Refresh assignments for both the user AND the project
           await get().fetchUserProjectAssignments(userId);
+          await get().fetchProjectUserAssignments(projectId);
         } catch (error: any) {
           console.error('Error assigning user to project:', error);
           throw error;
@@ -461,8 +557,9 @@ export const useProjectStore = create<ProjectStore>()(
 
           if (error) throw error;
 
-          // Refresh assignments
+          // Refresh assignments for both the user AND the project
           await get().fetchUserProjectAssignments(userId);
+          await get().fetchProjectUserAssignments(projectId);
         } catch (error: any) {
           console.error('Error removing user from project:', error);
           throw error;
@@ -505,6 +602,57 @@ export const useProjectStore = create<ProjectStore>()(
 
       getProjectUserAssignments: (projectId) => {
         return get().userAssignments.filter(a => a.projectId === projectId && a.isActive);
+      },
+
+      cleanupDuplicateAssignments: async (projectId) => {
+        if (!supabase) {
+          console.log('Supabase not available for cleanup');
+          return;
+        }
+
+        try {
+          // Get all assignments for this project
+          const { data, error } = await supabase
+            .from('user_project_assignments')
+            .select('*')
+            .eq('project_id', projectId)
+            .eq('is_active', true)
+            .order('assigned_at', { ascending: false });
+
+          if (error) throw error;
+
+          // Group by user_id and keep only the most recent assignment for each user
+          const userGroups = (data || []).reduce((acc, assignment) => {
+            const userId = assignment.user_id;
+            if (!acc[userId] || new Date(assignment.assigned_at) > new Date(acc[userId].assigned_at)) {
+              acc[userId] = assignment;
+            }
+            return acc;
+          }, {} as Record<string, any>);
+
+          // Find duplicates to remove
+          const assignmentsToKeep = Object.values(userGroups);
+          const assignmentsToRemove = (data || []).filter(assignment => 
+            !assignmentsToKeep.some(keep => keep.id === assignment.id)
+          );
+
+          if (assignmentsToRemove.length > 0) {
+            console.log(`Cleaning up ${assignmentsToRemove.length} duplicate assignments for project ${projectId}`);
+            
+            // Mark duplicates as inactive
+            const { error: updateError } = await supabase
+              .from('user_project_assignments')
+              .update({ is_active: false })
+              .in('id', assignmentsToRemove.map(a => a.id));
+
+            if (updateError) throw updateError;
+
+            // Refresh project assignments
+            await get().fetchProjectUserAssignments(projectId);
+          }
+        } catch (error: any) {
+          console.error('Error cleaning up duplicate assignments:', error);
+        }
       },
 
       // Lead Project Manager utilities
@@ -558,4 +706,32 @@ export const useProjectStore = create<ProjectStore>()(
     }
   )
 );
+
+// Custom hook that automatically initializes data when accessed
+export const useProjectStoreWithInit = () => {
+  const store = useProjectStore();
+  
+  React.useEffect(() => {
+    // Initialize data on first mount if not already loaded
+    if (store.projects.length === 0 && !store.isLoading && supabase) {
+      store.fetchProjects();
+    }
+  }, []);
+  
+  return store;
+};
+
+// Custom hook that automatically fetches projects for a specific company
+export const useProjectStoreWithCompanyInit = (companyId: string) => {
+  const store = useProjectStore();
+  
+  React.useEffect(() => {
+    // Fetch projects for the specific company if not already loaded
+    if (companyId && supabase) {
+      store.fetchProjectsByCompany(companyId);
+    }
+  }, [companyId]);
+  
+  return store;
+};
 

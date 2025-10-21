@@ -64,7 +64,8 @@ export const useTaskStore = create<TaskStore>()(
       // FETCH from Supabase
       fetchTasks: async () => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ tasks: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -72,24 +73,45 @@ export const useTaskStore = create<TaskStore>()(
         try {
           const { data, error } = await supabase
             .from('tasks')
-            .select(`
-              *,
-              projects (
-                id,
-                name
-              ),
-              users!tasks_assigned_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .order('created_at', { ascending: false });
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedTasks = (data || []).map(task => ({
+            id: task.id,
+            projectId: task.project_id,
+            title: task.title,
+            description: task.description,
+            priority: task.priority,
+            category: task.category,
+            dueDate: task.due_date,
+            currentStatus: task.current_status,
+            completionPercentage: task.completion_percentage,
+            assignedTo: task.assigned_to,
+            assignedBy: task.assigned_by,
+            location: task.location,
+            attachments: task.attachments || [],
+            accepted: task.accepted,
+            declineReason: task.decline_reason,
+            createdAt: task.created_at,
+            updatedAt: task.updated_at,
+            updates: [],
+            subTasks: [],
+          }));
+
+          console.log('✅ Fetched tasks from Supabase:', transformedTasks.length);
+          console.log('Task details:', transformedTasks.map(t => ({ 
+            id: t.id, 
+            title: t.title, 
+            projectId: t.projectId,
+            assignedTo: t.assignedTo, 
+            assignedBy: t.assignedBy 
+          })));
+
           set({ 
-            tasks: data || [], 
+            tasks: transformedTasks, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -103,7 +125,8 @@ export const useTaskStore = create<TaskStore>()(
 
       fetchTasksByProject: async (projectId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ tasks: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -111,25 +134,37 @@ export const useTaskStore = create<TaskStore>()(
         try {
           const { data, error } = await supabase
             .from('tasks')
-            .select(`
-              *,
-              projects (
-                id,
-                name
-              ),
-              users!tasks_assigned_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .eq('project_id', projectId)
             .order('created_at', { ascending: false });
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedTasks = (data || []).map(task => ({
+            id: task.id,
+            projectId: task.project_id,
+            title: task.title,
+            description: task.description,
+            priority: task.priority,
+            category: task.category,
+            dueDate: task.due_date,
+            currentStatus: task.current_status,
+            completionPercentage: task.completion_percentage,
+            assignedTo: task.assigned_to,
+            assignedBy: task.assigned_by,
+            location: task.location,
+            attachments: task.attachments || [],
+            accepted: task.accepted,
+            declineReason: task.decline_reason,
+            createdAt: task.created_at,
+            updatedAt: task.updated_at,
+            updates: [],
+            subTasks: [],
+          }));
+
           set({ 
-            tasks: data || [], 
+            tasks: transformedTasks, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -143,7 +178,8 @@ export const useTaskStore = create<TaskStore>()(
 
       fetchTasksByUser: async (userId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ tasks: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -151,25 +187,37 @@ export const useTaskStore = create<TaskStore>()(
         try {
           const { data, error } = await supabase
             .from('tasks')
-            .select(`
-              *,
-              projects (
-                id,
-                name
-              ),
-              users!tasks_assigned_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .contains('assigned_to', [userId])
             .order('created_at', { ascending: false });
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedTasks = (data || []).map(task => ({
+            id: task.id,
+            projectId: task.project_id,
+            title: task.title,
+            description: task.description,
+            priority: task.priority,
+            category: task.category,
+            dueDate: task.due_date,
+            currentStatus: task.current_status,
+            completionPercentage: task.completion_percentage,
+            assignedTo: task.assigned_to,
+            assignedBy: task.assigned_by,
+            location: task.location,
+            attachments: task.attachments || [],
+            accepted: task.accepted,
+            declineReason: task.decline_reason,
+            createdAt: task.created_at,
+            updatedAt: task.updated_at,
+            updates: [],
+            subTasks: [],
+          }));
+
           set({ 
-            tasks: data || [], 
+            tasks: transformedTasks, 
             isLoading: false 
           });
         } catch (error: any) {
@@ -187,25 +235,69 @@ export const useTaskStore = create<TaskStore>()(
         }
 
         try {
-          const { data, error } = await supabase
+          // Fetch task data
+          const { data: taskData, error: taskError } = await supabase
             .from('tasks')
-            .select(`
-              *,
-              projects (
-                id,
-                name
-              ),
-              users!tasks_assigned_by_fkey (
-                id,
-                name,
-                email
-              )
-            `)
+            .select('*')
             .eq('id', id)
             .single();
 
-          if (error) throw error;
-          return data;
+          if (taskError) throw taskError;
+
+          // Fetch task updates
+          const { data: updatesData, error: updatesError } = await supabase
+            .from('task_updates')
+            .select('*')
+            .eq('task_id', id)
+            .order('timestamp', { ascending: false });
+
+          if (updatesError) {
+            console.error('Error fetching task updates:', updatesError);
+            // Continue without updates rather than failing completely
+          }
+
+          // Transform updates data
+          const transformedUpdates = (updatesData || []).map(update => ({
+            id: update.id,
+            userId: update.user_id,
+            description: update.description,
+            photos: update.photos || [],
+            completionPercentage: update.completion_percentage,
+            status: update.status,
+            timestamp: update.timestamp,
+          }));
+
+          // Transform Supabase data to match local interface
+          const transformedTask = {
+            id: taskData.id,
+            projectId: taskData.project_id,
+            title: taskData.title,
+            description: taskData.description,
+            priority: taskData.priority,
+            category: taskData.category,
+            dueDate: taskData.due_date,
+            currentStatus: taskData.current_status,
+            completionPercentage: taskData.completion_percentage,
+            assignedTo: taskData.assigned_to,
+            assignedBy: taskData.assigned_by,
+            location: taskData.location,
+            attachments: taskData.attachments || [],
+            accepted: taskData.accepted,
+            declineReason: taskData.decline_reason,
+            createdAt: taskData.created_at,
+            updatedAt: taskData.updated_at,
+            updates: transformedUpdates,
+            subTasks: [],
+          };
+
+          // Update the task in the store
+          set(state => ({
+            tasks: state.tasks.map(task => 
+              task.id === id ? transformedTask : task
+            )
+          }));
+
+          return transformedTask;
         } catch (error: any) {
           console.error('Error fetching task:', error);
           return null;
@@ -245,19 +337,44 @@ export const useTaskStore = create<TaskStore>()(
               priority: taskData.priority,
               category: taskData.category,
               due_date: taskData.dueDate,
+              current_status: "not_started",
+              completion_percentage: 0,
               assigned_to: taskData.assignedTo,
               assigned_by: taskData.assignedBy,
               attachments: taskData.attachments,
-              accepted: false,
+              accepted: null,
             })
             .select()
             .single();
 
           if (error) throw error;
 
+          // Transform Supabase data to match local interface
+          const transformedTask = {
+            id: data.id,
+            projectId: data.project_id,
+            title: data.title,
+            description: data.description,
+            priority: data.priority,
+            category: data.category,
+            dueDate: data.due_date,
+            currentStatus: data.current_status,
+            completionPercentage: data.completion_percentage,
+            assignedTo: data.assigned_to,
+            assignedBy: data.assigned_by,
+            location: data.location,
+            attachments: data.attachments || [],
+            accepted: data.accepted,
+            declineReason: data.decline_reason,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            updates: [],
+            subTasks: [],
+          };
+
           // Update local state
           set(state => ({
-            tasks: [...state.tasks, data],
+            tasks: [...state.tasks, transformedTask],
             isLoading: false,
           }));
 
@@ -367,7 +484,12 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       acceptTask: async (taskId, userId) => {
-        await get().updateTask(taskId, { accepted: true });
+        await get().updateTask(taskId, { 
+          accepted: true,
+          currentStatus: "in_progress",
+          acceptedBy: userId,
+          acceptedAt: new Date().toISOString()
+        });
       },
 
       declineTask: async (taskId, userId, reason) => {
@@ -395,7 +517,8 @@ export const useTaskStore = create<TaskStore>()(
         }
 
         try {
-          const { error } = await supabase
+          // Insert the task update
+          const { error: updateError } = await supabase
             .from('task_updates')
             .insert({
               task_id: taskId,
@@ -406,7 +529,19 @@ export const useTaskStore = create<TaskStore>()(
               status: update.status,
             });
 
-          if (error) throw error;
+          if (updateError) throw updateError;
+
+          // Update the task's completion percentage and status
+          const { error: taskError } = await supabase
+            .from('tasks')
+            .update({
+              completion_percentage: update.completionPercentage,
+              current_status: update.status,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', taskId);
+
+          if (taskError) throw taskError;
 
           // Refresh task data
           await get().fetchTaskById(taskId);
@@ -669,7 +804,12 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       acceptSubTask: async (taskId, subTaskId, userId) => {
-        await get().updateSubTask(taskId, subTaskId, { accepted: true });
+        await get().updateSubTask(taskId, subTaskId, { 
+          accepted: true,
+          currentStatus: "in_progress",
+          acceptedBy: userId,
+          acceptedAt: new Date().toISOString()
+        });
       },
 
       declineSubTask: async (taskId, subTaskId, userId, reason) => {

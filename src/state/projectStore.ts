@@ -132,7 +132,8 @@ export const useProjectStore = create<ProjectStore>()(
 
       fetchProjectsByUser: async (userId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -158,7 +159,7 @@ export const useProjectStore = create<ProjectStore>()(
             .from('projects')
             .select(`
               *,
-              users!projects_created_by_fkey (
+              users!created_by (
                 id,
                 name,
                 email
@@ -192,7 +193,7 @@ export const useProjectStore = create<ProjectStore>()(
             .from('projects')
             .select(`
               *,
-              users!projects_created_by_fkey (
+              users!created_by (
                 id,
                 name,
                 email
@@ -211,7 +212,8 @@ export const useProjectStore = create<ProjectStore>()(
 
       fetchUserProjectAssignments: async (userId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -256,7 +258,8 @@ export const useProjectStore = create<ProjectStore>()(
 
       fetchProjectUserAssignments: async (projectId: string) => {
         if (!supabase) {
-          console.warn('Supabase not configured, using mock data');
+          console.error('Supabase not configured, no data available');
+          set({ projects: [], userAssignments: [], isLoading: false, error: 'Supabase not configured' });
           return;
         }
 
@@ -271,7 +274,7 @@ export const useProjectStore = create<ProjectStore>()(
                 email,
                 role
               ),
-              users!user_project_assignments_assigned_by_fkey (
+              users!assigned_by (
                 id,
                 name
               )
