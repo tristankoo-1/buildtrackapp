@@ -53,3 +53,4 @@ Successfully created admin users for all unique companies in the BuildTrack syst
 ---
 *Generated on: $(date)*
 *Script: create-unique-company-admins.js*
+

@@ -62,7 +62,7 @@ export const zhTW = {
     notStarted: "未開始",
     inProgress: "進行中",
     completed: "已完成",
-    blocked: "已封鎖",
+    rejected: "已拒絕",
     noTasksYet: "尚無任務",
     noTasksMessage: "指派給您的任務將顯示在這裡",
     projectParticipation: "專案參與",
@@ -111,7 +111,7 @@ export const zhTW = {
     notStarted: "未開始",
     inProgress: "進行中",
     completed: "已完成",
-    blocked: "已封鎖",
+    rejected: "已拒絕",
     
     // Categories
     general: "一般",

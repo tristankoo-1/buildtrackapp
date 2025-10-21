@@ -66,6 +66,29 @@ export async function checkSupabaseConnection() {
   }
 }
 
+// Helper function to check if Supabase is experiencing issues
+export async function checkSupabaseHealth() {
+  if (!supabase) return false;
+  
+  try {
+    // Try a simple query to check health
+    const { data, error } = await supabase
+      .from('user_project_assignments')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      console.warn('⚠️ Supabase health check failed:', error.message);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Supabase health check error:', error);
+    return false;
+  }
+}
+
 // Helper types for better TypeScript support
 export type Database = {
   public: {

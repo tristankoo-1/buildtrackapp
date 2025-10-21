@@ -134,6 +134,18 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
     return eligibleUsers;
   }, [formData.projectId, workers, managers, getProjectUserAssignments]);
 
+  // Inherit parent task title and description when creating sub-task
+  React.useEffect(() => {
+    if (parentTaskId && parentTask && (formData.title === "" || formData.description === "")) {
+      setFormData(prev => ({
+        ...prev,
+        title: parentTask.title,
+        description: parentTask.description,
+        projectId: parentTask.projectId || prev.projectId
+      }));
+    }
+  }, [parentTaskId, parentTask, formData.title, formData.description]);
+
   // Set default project if user has access to projects
   React.useEffect(() => {
     if (userProjects.length > 0 && !formData.projectId) {
@@ -351,23 +363,74 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
   };
 
   const handlePickImages = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
-        allowsMultipleSelection: true,
-        quality: 0.8,
-      });
+    Alert.alert(
+      "Add Attachment",
+      "Choose how you want to add photos",
+      [
+        {
+          text: "Take Photo",
+          onPress: async () => {
+            try {
+              // Request camera permissions
+              const { status } = await ImagePicker.requestCameraPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
+                return;
+              }
 
-      if (!result.canceled && result.assets) {
-        const newAttachments = result.assets.map(asset => asset.uri);
-        setFormData(prev => ({
-          ...prev,
-          attachments: [...prev.attachments, ...newAttachments],
-        }));
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to pick images");
-    }
+              const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
+                quality: 0.8,
+                allowsEditing: false,
+              });
+
+              if (!result.canceled && result.assets) {
+                const newAttachments = result.assets.map(asset => asset.uri);
+                setFormData(prev => ({
+                  ...prev,
+                  attachments: [...prev.attachments, ...newAttachments],
+                }));
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to take photo");
+            }
+          },
+        },
+        {
+          text: "Choose from Library",
+          onPress: async () => {
+            try {
+              // Request media library permissions
+              const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Photo library permission is required to select photos.');
+                return;
+              }
+
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
+                allowsMultipleSelection: true,
+                quality: 0.8,
+              });
+
+              if (!result.canceled && result.assets) {
+                const newAttachments = result.assets.map(asset => asset.uri);
+                setFormData(prev => ({
+                  ...prev,
+                  attachments: [...prev.attachments, ...newAttachments],
+                }));
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to pick images");
+            }
+          },
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   const removeAttachment = (index: number) => {
@@ -435,6 +498,18 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
           className="flex-1 px-6 py-4" 
           keyboardShouldPersistTaps="handled"
         >
+          {/* Inheritance Notice for Sub-tasks */}
+          {parentTaskId && parentTask && (
+            <View className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Text className="text-sm text-blue-800">
+                📋 <Text className="font-medium">Creating sub-task for:</Text> "{parentTask.title}"
+              </Text>
+              <Text className="text-xs text-blue-600 mt-1">
+                Title and description are pre-filled from the parent task. You can modify them as needed.
+              </Text>
+            </View>
+          )}
+
           {/* Title */}
           <InputField label="Title" error={errors.title}>
               <TextInput
@@ -449,6 +524,11 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
                 autoCorrect={false}
                 returnKeyType="next"
               />
+              {parentTaskId && parentTask && formData.title === parentTask.title && (
+                <Text className="text-xs text-blue-600 mt-1">
+                  📋 Inherited from parent task: "{parentTask.title}"
+                </Text>
+              )}
           </InputField>
 
           {/* Description */}
@@ -468,6 +548,11 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
                 autoCorrect={false}
                 returnKeyType="done"
               />
+              {parentTaskId && parentTask && formData.description === parentTask.description && (
+                <Text className="text-xs text-blue-600 mt-1">
+                  📋 Inherited from parent task
+                </Text>
+              )}
           </InputField>
 
           {/* Project Selection */}

@@ -78,3 +78,4 @@ async function resetAllPasswords() {
 
 // Run the script
 resetAllPasswords().catch(console.error);
+

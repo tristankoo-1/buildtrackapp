@@ -133,3 +133,4 @@ Once setup is complete:
 4. Test different user roles (admin vs worker vs manager)
 
 The authentication should now work seamlessly with Supabase!
+

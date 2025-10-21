@@ -189,3 +189,4 @@ async function checkCompaniesAndCreateAdmins() {
 
 // Run the script
 checkCompaniesAndCreateAdmins().catch(console.error);
+

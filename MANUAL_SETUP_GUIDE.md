@@ -300,3 +300,4 @@ npm run setup-auth
 ---
 
 Need help? The manual method is reliable and works every time! Just follow the steps carefully. 🚀
+

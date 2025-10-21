@@ -13,12 +13,19 @@
       "bundleIdentifier": "com.buildtrack.app.local",
       "displayName": "BuildTrack-local",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "This app uses the camera to take photos for task attachments and updates.",
+        "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select images for task attachments and updates."
       }
     },
     "android": {
       "edgeToEdgeEnabled": true,
-      "package": "com.buildtrack.app"
+      "package": "com.buildtrack.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "extra": {
       "eas": {

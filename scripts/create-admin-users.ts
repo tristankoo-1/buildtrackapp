@@ -148,3 +148,4 @@ export { createAdminUsers };
 if (require.main === module) {
   createAdminUsers().catch(console.error);
 }
+

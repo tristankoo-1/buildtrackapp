@@ -413,3 +413,4 @@ if (require.main === module) {
 }
 
 module.exports = { main, setupCompanies, setupAuthUsers, setupUserRecords, verifySetup };
+

@@ -6,7 +6,7 @@ export type InvitationStatus = "pending" | "accepted" | "declined" | "expired";
 
 export type Priority = "low" | "medium" | "high" | "critical";
 
-export type TaskStatus = "not_started" | "in_progress" | "blocked" | "completed";
+export type TaskStatus = "not_started" | "in_progress" | "rejected" | "completed";
 
 export type TaskCategory = "safety" | "electrical" | "plumbing" | "structural" | "general" | "materials";
 

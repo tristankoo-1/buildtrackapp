@@ -87,7 +87,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
     switch (status) {
       case "completed": return "text-green-600 bg-green-50";
       case "in_progress": return "text-blue-600 bg-blue-50";
-      case "blocked": return "text-red-600 bg-red-50";
+      case "rejected": return "text-red-600 bg-red-50";
       case "not_started": return "text-gray-600 bg-gray-50";
       default: return "text-gray-600 bg-gray-50";
     }
@@ -182,23 +182,74 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
   };
 
   const handleAddPhotos = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
-        allowsMultipleSelection: true,
-        quality: 0.8,
-      });
+    Alert.alert(
+      "Add Photos",
+      "Choose how you want to add photos",
+      [
+        {
+          text: "Take Photo",
+          onPress: async () => {
+            try {
+              // Request camera permissions
+              const { status } = await ImagePicker.requestCameraPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
+                return;
+              }
 
-      if (!result.canceled && result.assets) {
-        const newPhotos = result.assets.map(asset => asset.uri);
-        setUpdateForm(prev => ({
-          ...prev,
-          photos: [...prev.photos, ...newPhotos],
-        }));
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to pick images");
-    }
+              const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
+                quality: 0.8,
+                allowsEditing: false,
+              });
+
+              if (!result.canceled && result.assets) {
+                const newPhotos = result.assets.map(asset => asset.uri);
+                setUpdateForm(prev => ({
+                  ...prev,
+                  photos: [...prev.photos, ...newPhotos],
+                }));
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to take photo");
+            }
+          },
+        },
+        {
+          text: "Choose from Library",
+          onPress: async () => {
+            try {
+              // Request media library permissions
+              const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Photo library permission is required to select photos.');
+                return;
+              }
+
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
+                allowsMultipleSelection: true,
+                quality: 0.8,
+              });
+
+              if (!result.canceled && result.assets) {
+                const newPhotos = result.assets.map(asset => asset.uri);
+                setUpdateForm(prev => ({
+                  ...prev,
+                  photos: [...prev.photos, ...newPhotos],
+                }));
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to pick images");
+            }
+          },
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   const handleSubmitUpdate = async () => {

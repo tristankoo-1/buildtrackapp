@@ -112,3 +112,4 @@ SELECT 'Auth Users' as table_name, COUNT(*) as count FROM auth.users WHERE email
   'lisa@eliteelectric.com',
   'admin@eliteelectric.com'
 );
+

@@ -13,3 +13,4 @@ SET company_id = (
     WHERE u.id = projects.created_by
 )
 WHERE created_by IS NOT NULL;
+

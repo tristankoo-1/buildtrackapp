@@ -269,7 +269,7 @@ export default function ProjectsTasksScreen({
     switch (status) {
       case "completed": return "text-green-600 bg-green-50";
       case "in_progress": return "text-blue-600 bg-blue-50";
-      case "blocked": return "text-red-600 bg-red-50";
+      case "rejected": return "text-red-600 bg-red-50";
       case "not_started": return "text-gray-600 bg-gray-50";
       default: return "text-gray-600 bg-gray-50";
     }
@@ -498,7 +498,7 @@ export default function ProjectsTasksScreen({
               <StatusFilterButton status="not_started" label="Not Started" />
               <StatusFilterButton status="in_progress" label="In Progress" />
               <StatusFilterButton status="completed" label="Completed" />
-              <StatusFilterButton status="blocked" label="Blocked" />
+              <StatusFilterButton status="rejected" label="Rejected" />
             </View>
           </ScrollView>
         </View>

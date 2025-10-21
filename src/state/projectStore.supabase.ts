@@ -248,6 +248,8 @@ export const useProjectStore = create<ProjectStore>()(
         }
 
         try {
+          console.log('🔄 Fetching user project assignments for user:', userId);
+          
           const { data, error } = await supabase
             .from('user_project_assignments')
             .select('*')
@@ -255,7 +257,12 @@ export const useProjectStore = create<ProjectStore>()(
             .eq('is_active', true)
             .order('assigned_at', { ascending: false });
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Supabase assignments fetch error:', error);
+            throw error;
+          }
+
+          console.log('✅ User assignments fetched successfully:', data?.length || 0, 'assignments');
 
           // Transform Supabase data to match local interface
           const transformedAssignments = (data || []).map(assignment => ({
@@ -276,6 +283,43 @@ export const useProjectStore = create<ProjectStore>()(
           }));
         } catch (error: any) {
           console.error('Error fetching user project assignments:', error);
+          
+          // Check if it's a network error and retry once
+          if (error.message?.includes('502') || error.message?.includes('Bad Gateway')) {
+            console.log('🔄 Retrying fetchUserProjectAssignments due to 502 error...');
+            setTimeout(async () => {
+              try {
+                const { data, error: retryError } = await supabase
+                  .from('user_project_assignments')
+                  .select('*')
+                  .eq('user_id', userId)
+                  .eq('is_active', true)
+                  .order('assigned_at', { ascending: false });
+
+                if (!retryError && data) {
+                  console.log('✅ Retry successful:', data.length, 'assignments');
+                  const transformedAssignments = data.map(assignment => ({
+                    id: assignment.id,
+                    userId: assignment.user_id,
+                    projectId: assignment.project_id,
+                    category: assignment.category,
+                    assignedAt: assignment.assigned_at,
+                    assignedBy: assignment.assigned_by,
+                    isActive: assignment.is_active,
+                  }));
+
+                  set(state => ({
+                    userAssignments: [
+                      ...state.userAssignments.filter(a => a.userId !== userId),
+                      ...transformedAssignments
+                    ]
+                  }));
+                }
+              } catch (retryError) {
+                console.error('❌ Retry also failed:', retryError);
+              }
+            }, 2000); // Retry after 2 seconds
+          }
         }
       },
 

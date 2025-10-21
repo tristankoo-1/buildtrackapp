@@ -153,7 +153,7 @@ Become the **#1 mobile construction management platform** for small to medium-si
 - Task Inbox (tasks assigned to me)
 - Task Detail (view info, update progress)
 - Photo upload for proof of work
-- Status updates (in progress, blocked)
+- Status updates (in progress, rejected)
 
 ---
 
@@ -274,7 +274,7 @@ Become the **#1 mobile construction management platform** for small to medium-si
 - Special role with **full project visibility**
 - Sees ALL tasks in the project (even if not assigned)
 - Can view work of all contractors/subcontractors
-- Cannot be blocked from viewing any project task
+- Cannot be restricted from viewing any project task
 - Indicated with purple star ⭐ badge
 
 ---
@@ -300,7 +300,7 @@ Become the **#1 mobile construction management platform** for small to medium-si
   - Assigned By (creator)
   - Original Assigned By (tracks initial creator before delegation)
 - **Progress:**
-  - Status (Not Started, In Progress, Blocked, Completed)
+  - Status (Not Started, In Progress, Rejected, Completed)
   - Completion Percentage (0-100%)
   - Visual progress bar
 - **Media:**
@@ -380,7 +380,7 @@ Become the **#1 mobile construction management platform** for small to medium-si
      - Not Started (gray)
      - In Progress (blue)
      - Completed (green)
-     - Blocked (red)
+     - Rejected (red)
    - Each card shows count
    - Tappable to navigate to Tasks
 
@@ -391,7 +391,7 @@ Become the **#1 mobile construction management platform** for small to medium-si
      - Not Started (gray)
      - In Progress (purple)
      - Completed (green)
-     - Blocked (red)
+     - Rejected (red)
 
 5. **Recent Tasks:**
    - Swipeable cards (350px wide)
@@ -432,7 +432,7 @@ Become the **#1 mobile construction management platform** for small to medium-si
 
 **Status Filters:**
 - Horizontal scroll pills
-- All / Not Started / In Progress / Blocked / Completed
+- All / Not Started / In Progress / Rejected / Completed
 - Selected state: blue background
 
 **Task List:**
@@ -1629,7 +1629,7 @@ npx expo start
 **v1.5 (October 2, 2025)**
 - ✅ Company banner image upload feature
 - ✅ Unified header design across 11 screens
-- ✅ Enhanced DashboardScreen with blocked tasks
+- ✅ Enhanced DashboardScreen with rejected tasks
 - ✅ Hot reload system improvements
 
 **v1.0 (Initial Release)**

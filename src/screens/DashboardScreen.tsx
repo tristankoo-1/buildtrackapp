@@ -160,7 +160,7 @@ export default function DashboardScreen({
   const myNotStartedTasks = myAllTasks.filter(task => task.currentStatus === "not_started");
   const myInProgressTasks = myAllTasks.filter(task => task.currentStatus === "in_progress");
   const myCompletedTasks = myAllTasks.filter(task => task.currentStatus === "completed");
-  const myBlockedTasks = myAllTasks.filter(task => task.currentStatus === "blocked");
+  const myRejectedTasks = myAllTasks.filter(task => task.currentStatus === "rejected");
 
   // Section 2: Inbox - Tasks assigned to me by others (need acceptance)
   // These are tasks where others assigned them to me, but I didn't create them
@@ -185,7 +185,7 @@ export default function DashboardScreen({
   const inboxNotStartedTasks = inboxAllTasks.filter(task => task.currentStatus === "not_started");
   const inboxInProgressTasks = inboxAllTasks.filter(task => task.currentStatus === "in_progress");
   const inboxCompletedTasks = inboxAllTasks.filter(task => task.currentStatus === "completed");
-  const inboxBlockedTasks = inboxAllTasks.filter(task => task.currentStatus === "blocked");
+  const inboxRejectedTasks = inboxAllTasks.filter(task => task.currentStatus === "rejected");
   
   // Section 3: Outbox - Tasks I assigned to others
   // These are tasks where I created them and assigned them to others (not myself)
@@ -213,7 +213,7 @@ export default function DashboardScreen({
   const outboxNotStartedTasks = outboxAllTasks.filter(task => task.currentStatus === "not_started");
   const outboxInProgressTasks = outboxAllTasks.filter(task => task.currentStatus === "in_progress");
   const outboxCompletedTasks = outboxAllTasks.filter(task => task.currentStatus === "completed");
-  const outboxBlockedTasks = outboxAllTasks.filter(task => task.currentStatus === "blocked");
+  const outboxRejectedTasks = outboxAllTasks.filter(task => task.currentStatus === "rejected");
 
   // Debug logging to understand task counts
   console.log('🔍 Dashboard Task Analysis:', {
@@ -251,7 +251,7 @@ export default function DashboardScreen({
     switch (status) {
       case "completed": return "text-green-600";
       case "in_progress": return "text-blue-600";
-      case "blocked": return "text-red-600";
+      case "rejected": return "text-red-600";
       default: return "text-gray-600";
     }
   };
@@ -449,17 +449,17 @@ export default function DashboardScreen({
                     <Text className="text-xs text-green-600 text-center">Completed</Text>
                   </Pressable>
                   
-                  {/* Blocked */}
+                  {/* Rejected */}
                   <Pressable 
                     className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
-                      setStatusFilter("blocked");
+                      setStatusFilter("rejected");
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-red-700 mb-1">{myBlockedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Blocked</Text>
+                    <Text className="text-2xl font-bold text-red-700 mb-1">{myRejectedTasks.length}</Text>
+                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
                   </Pressable>
                 </View>
               </View>
@@ -517,17 +517,17 @@ export default function DashboardScreen({
                     <Text className="text-xs text-green-600 text-center">Completed</Text>
                   </Pressable>
                   
-                  {/* Blocked */}
+                  {/* Rejected */}
                   <Pressable 
                     className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
-                      setStatusFilter("blocked");
+                      setStatusFilter("rejected");
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-red-700 mb-1">{inboxBlockedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Blocked</Text>
+                    <Text className="text-2xl font-bold text-red-700 mb-1">{inboxRejectedTasks.length}</Text>
+                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
                   </Pressable>
                 </View>
               </View>
@@ -585,17 +585,17 @@ export default function DashboardScreen({
                     <Text className="text-xs text-green-600 text-center">Completed</Text>
                   </Pressable>
                   
-                  {/* Blocked */}
+                  {/* Rejected */}
                   <Pressable 
                     className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
                     onPress={() => {
                       setSectionFilter("outbox");
-                      setStatusFilter("blocked");
+                      setStatusFilter("rejected");
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-red-700 mb-1">{outboxBlockedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Blocked</Text>
+                    <Text className="text-2xl font-bold text-red-700 mb-1">{outboxRejectedTasks.length}</Text>
+                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
                   </Pressable>
                 </View>
               </View>

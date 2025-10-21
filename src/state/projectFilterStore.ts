@@ -5,10 +5,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 interface ProjectFilterState {
   selectedProjectId: string | null; // Now persists the last selected project
   sectionFilter: "my_tasks" | "inbox" | "outbox" | null;
-  statusFilter: "not_started" | "in_progress" | "completed" | "blocked" | null;
+  statusFilter: "not_started" | "in_progress" | "completed" | "rejected" | null;
   setSelectedProject: (projectId: string | null) => void;
   setSectionFilter: (section: "my_tasks" | "inbox" | "outbox") => void;
-  setStatusFilter: (status: "not_started" | "in_progress" | "completed" | "blocked") => void;
+  setStatusFilter: (status: "not_started" | "in_progress" | "completed" | "rejected") => void;
   clearSectionFilter: () => void;
   clearStatusFilter: () => void;
 }
@@ -28,7 +28,7 @@ export const useProjectFilterStore = create<ProjectFilterState>()(
         set({ sectionFilter: section });
       },
       
-      setStatusFilter: (status: "not_started" | "in_progress" | "completed" | "blocked" | null) => {
+      setStatusFilter: (status: "not_started" | "in_progress" | "completed" | "rejected" | null) => {
         set({ statusFilter: status });
       },
       

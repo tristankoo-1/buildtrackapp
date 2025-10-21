@@ -36,3 +36,17 @@ yarn-error.*
 # iOS & Android
 ios/
 android/
+# Large binary files that shouldn't be in git
+*.tar.gz
+*.zip
+*.ipa
+*.app
+node-v*/
+node.tar.gz
+node 2.tar.gz
+ExpoGo*.tar.gz
+ExpoGo*.zip
+ExpoGo*.ipa
+Expo Go.app/
+ExpoGo.app/
+*.app.tar.gz

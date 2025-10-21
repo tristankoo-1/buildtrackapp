@@ -80,3 +80,4 @@ ORDER BY company_id;
 
 -- Step 4: Show total count
 SELECT COUNT(*) as total_users FROM users;
+

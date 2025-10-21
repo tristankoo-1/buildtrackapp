@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high', 'critical')),
   category TEXT NOT NULL CHECK (category IN ('safety', 'electrical', 'plumbing', 'structural', 'general', 'materials')),
   due_date TIMESTAMPTZ NOT NULL,
-  current_status TEXT NOT NULL CHECK (current_status IN ('not_started', 'in_progress', 'blocked', 'completed')),
+  current_status TEXT NOT NULL CHECK (current_status IN ('not_started', 'in_progress', 'rejected', 'completed')),
   completion_percentage INTEGER DEFAULT 0 CHECK (completion_percentage >= 0 AND completion_percentage <= 100),
   assigned_to UUID[] NOT NULL,
   assigned_by UUID REFERENCES users(id),

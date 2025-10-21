@@ -229,20 +229,68 @@ export default function AdminDashboardScreen({
   };
 
   const pickBannerImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
-        allowsEditing: true,
-        aspect: [16, 3], // Wide banner aspect ratio
-        quality: 0.9,
-      });
+    Alert.alert(
+      "Select Banner Image",
+      "Choose how you want to add a banner image",
+      [
+        {
+          text: "Take Photo",
+          onPress: async () => {
+            try {
+              // Request camera permissions
+              const { status } = await ImagePicker.requestCameraPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Camera permission is required to take photos.');
+                return;
+              }
 
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setBannerForm(prev => ({ ...prev, imageUri: result.assets[0].uri }));
-      }
-    } catch (error) {
-      Alert.alert("Error", "Failed to pick image. Please try again.");
-    }
+              const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
+                allowsEditing: true,
+                aspect: [16, 3], // Wide banner aspect ratio
+                quality: 0.9,
+              });
+
+              if (!result.canceled && result.assets && result.assets[0]) {
+                setBannerForm(prev => ({ ...prev, imageUri: result.assets[0].uri }));
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to take photo. Please try again.");
+            }
+          },
+        },
+        {
+          text: "Choose from Library",
+          onPress: async () => {
+            try {
+              // Request media library permissions
+              const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission Denied', 'Photo library permission is required to select photos.');
+                return;
+              }
+
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images as any,
+                allowsEditing: true,
+                aspect: [16, 3], // Wide banner aspect ratio
+                quality: 0.9,
+              });
+
+              if (!result.canceled && result.assets && result.assets[0]) {
+                setBannerForm(prev => ({ ...prev, imageUri: result.assets[0].uri }));
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to pick image. Please try again.");
+            }
+          },
+        },
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+      ]
+    );
   };
 
   const removeBannerImage = () => {

@@ -126,7 +126,7 @@ export default function ReportsScreen({ onNavigateBack }: ReportsScreenProps) {
     completed: filteredTasks.filter(t => t.currentStatus === "completed").length,
     inProgress: filteredTasks.filter(t => t.currentStatus === "in_progress").length,
     notStarted: filteredTasks.filter(t => t.currentStatus === "not_started").length,
-    blocked: filteredTasks.filter(t => t.currentStatus === "blocked").length,
+    rejected: filteredTasks.filter(t => t.currentStatus === "rejected").length,
     overdue: filteredTasks.filter(t => 
       new Date(t.dueDate) < new Date() && t.currentStatus !== "completed"
     ).length,
@@ -196,7 +196,7 @@ export default function ReportsScreen({ onNavigateBack }: ReportsScreenProps) {
           "text-xs px-2 py-1 rounded capitalize",
           task.currentStatus === "completed" ? "bg-green-100 text-green-700" :
           task.currentStatus === "in_progress" ? "bg-blue-100 text-blue-700" :
-          task.currentStatus === "blocked" ? "bg-red-100 text-red-700" :
+          task.currentStatus === "rejected" ? "bg-red-100 text-red-700" :
           "bg-gray-100 text-gray-700"
         )}>
           {task.currentStatus.replace("_", " ")}

@@ -35,3 +35,4 @@ SELECT
   company_id
 FROM users 
 WHERE company_id IS NULL;
+

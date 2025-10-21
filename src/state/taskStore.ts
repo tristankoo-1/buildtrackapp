@@ -444,7 +444,11 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       declineTask: async (taskId, userId, reason) => {
-        await get().updateTask(taskId, { accepted: false, declineReason: reason });
+        await get().updateTask(taskId, { 
+          accepted: false, 
+          declineReason: reason,
+          currentStatus: "rejected"
+        });
       },
 
       // Progress tracking methods
@@ -751,7 +755,11 @@ export const useTaskStore = create<TaskStore>()(
       },
 
       declineSubTask: async (taskId, subTaskId, userId, reason) => {
-        await get().updateSubTask(taskId, subTaskId, { accepted: false, declineReason: reason });
+        await get().updateSubTask(taskId, subTaskId, { 
+          accepted: false, 
+          declineReason: reason,
+          currentStatus: "rejected"
+        });
       },
 
       // Task read status management

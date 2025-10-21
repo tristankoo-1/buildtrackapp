@@ -62,7 +62,7 @@ export const en = {
     notStarted: "Not Started",
     inProgress: "In Progress",
     completed: "Completed",
-    blocked: "Blocked",
+    rejected: "Rejected",
     noTasksYet: "No tasks assigned yet",
     noTasksMessage: "Tasks assigned to you will appear here",
     projectParticipation: "Project Participation",
@@ -111,7 +111,7 @@ export const en = {
     notStarted: "Not Started",
     inProgress: "In Progress",
     completed: "Completed",
-    blocked: "Blocked",
+    rejected: "Rejected",
     
     // Categories
     general: "General",
