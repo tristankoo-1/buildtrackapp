@@ -498,18 +498,6 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
           className="flex-1 px-6 py-4" 
           keyboardShouldPersistTaps="handled"
         >
-          {/* Inheritance Notice for Sub-tasks */}
-          {parentTaskId && parentTask && (
-            <View className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <Text className="text-sm text-blue-800">
-                📋 <Text className="font-medium">Creating sub-task for:</Text> "{parentTask.title}"
-              </Text>
-              <Text className="text-xs text-blue-600 mt-1">
-                Title and description are pre-filled from the parent task. You can modify them as needed.
-              </Text>
-            </View>
-          )}
-
           {/* Title */}
           <InputField label="Title" error={errors.title}>
               <TextInput
@@ -524,11 +512,6 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
                 autoCorrect={false}
                 returnKeyType="next"
               />
-              {parentTaskId && parentTask && formData.title === parentTask.title && (
-                <Text className="text-xs text-blue-600 mt-1">
-                  📋 Inherited from parent task: "{parentTask.title}"
-                </Text>
-              )}
           </InputField>
 
           {/* Description */}
@@ -548,11 +531,6 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
                 autoCorrect={false}
                 returnKeyType="done"
               />
-              {parentTaskId && parentTask && formData.description === parentTask.description && (
-                <Text className="text-xs text-blue-600 mt-1">
-                  📋 Inherited from parent task
-                </Text>
-              )}
           </InputField>
 
           {/* Project Selection */}
