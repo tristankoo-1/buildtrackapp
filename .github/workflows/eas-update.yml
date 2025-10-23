@@ -47,7 +47,9 @@ jobs:
         run: npm ci
 
       - name: Publish to EAS Update
-        run: npx eas update --branch main --message "Automated update: ${{ github.event.head_commit.message || 'Push to main' }}"
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message || 'Push to main' }}"
+          npx eas update --branch main --message "Automated update: $COMMIT_MSG"
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
