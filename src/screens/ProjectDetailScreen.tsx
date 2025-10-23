@@ -24,6 +24,7 @@ import { useCompanyStore } from "../state/companyStore";
 import { Project, ProjectStatus, UserCategory, Task } from "../types/buildtrack";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
+import ProjectForm from "../components/ProjectForm";
 import ModalHandle from "../components/ModalHandle";
 
 interface ProjectDetailScreenProps {
@@ -466,7 +467,7 @@ export default function ProjectDetailScreen({ projectId, onNavigateBack }: Proje
   );
 }
 
-// Edit Project Modal Component
+// Edit Project Modal Component - Simplified version using ProjectForm
 function EditProjectModal({
   visible,
   project,
@@ -479,349 +480,68 @@ function EditProjectModal({
   onSave: (project: Project) => void;
 }) {
   const { user } = useAuthStore();
-  const { getUsersByCompany } = useUserStoreWithInit();
   const { getLeadPMForProject, assignUserToProject, removeUserFromProject } = useProjectStoreWithCompanyInit(user?.companyId || "");
-
-  const [formData, setFormData] = useState({
-    name: project.name,
-    description: project.description,
-    status: project.status,
-    startDate: new Date(project.startDate),
-    endDate: project.endDate ? new Date(project.endDate) : new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
-    location: project.location,
-  });
-
-  const [selectedLeadPM, setSelectedLeadPM] = useState<string>("");
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [showLeadPMPicker, setShowLeadPMPicker] = useState(false);
-  const [showStatusPicker, setShowStatusPicker] = useState(false);
-
-  const companyUsers = React.useMemo(() => 
-    user?.companyId ? getUsersByCompany(user.companyId) : [], 
-    [user?.companyId, getUsersByCompany]
-  );
-
-  React.useEffect(() => {
-    const currentLeadPM = getLeadPMForProject(project.id);
-    console.log(`ProjectDetailScreen: Setting Lead PM for project ${project.id}:`, currentLeadPM);
-    setSelectedLeadPM(currentLeadPM || "");
-  }, [project.id, getLeadPMForProject]);
-
-  const eligibleLeadPMs = React.useMemo(() => 
-    companyUsers.filter(u => u.role === "manager"), // Only managers can be Lead PM, not admins
-    [companyUsers]
-  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!user) return null;
 
-  const handleSave = () => {
-    if (!formData.name.trim()) {
-      Alert.alert("Error", "Project name is required");
-      return;
-    }
+  const handleSubmit = async (formData: any) => {
+    setIsSubmitting(true);
 
-    if (formData.endDate <= formData.startDate) {
-      Alert.alert("Error", "End date must be after start date");
-      return;
-    }
+    try {
+      const updatedProject: Project = {
+        ...project,
+        name: formData.name,
+        description: formData.description,
+        status: formData.status,
+        startDate: formData.startDate.toISOString(),
+        endDate: formData.endDate.toISOString(),
+        location: formData.location,
+        clientInfo: formData.clientInfo,
+        updatedAt: new Date().toISOString(),
+      };
 
-    const updatedProject: Project = {
-      ...project,
-      name: formData.name,
-      description: formData.description,
-      status: formData.status,
-      startDate: formData.startDate.toISOString(),
-      endDate: formData.endDate.toISOString(),
-      location: formData.location,
-      updatedAt: new Date().toISOString(),
-    };
-
-    const currentLeadPM = getLeadPMForProject(project.id);
-    if (selectedLeadPM !== currentLeadPM) {
-      if (currentLeadPM) {
-        removeUserFromProject(currentLeadPM, project.id);
+      // Handle Lead PM changes
+      const currentLeadPM = getLeadPMForProject(project.id);
+      if (formData.selectedLeadPM !== currentLeadPM) {
+        if (currentLeadPM) {
+          await removeUserFromProject(currentLeadPM, project.id);
+        }
+        
+        if (formData.selectedLeadPM) {
+          await assignUserToProject(formData.selectedLeadPM, project.id, "lead_project_manager", user.id);
+        }
       }
-      
-      // Assign new Lead PM with PROJECT ROLE "lead_project_manager"
-      // This is their role ON THIS PROJECT, regardless of their system-wide job title
-      if (selectedLeadPM) {
-        assignUserToProject(selectedLeadPM, project.id, "lead_project_manager", user.id);
-      }
-    }
 
-    onSave(updatedProject);
+      onSave(updatedProject);
+      onClose();
+    } catch (error) {
+      console.error("Error updating project:", error);
+      Alert.alert("Error", "Failed to update project. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <SafeAreaView className="flex-1 bg-gray-50">
         <StatusBar style="dark" />
         
-        <ModalHandle />
+        <StandardHeader
+          title="Edit Project"
+          showBackButton={true}
+          onBackPress={onClose}
+        />
 
-        <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
-          <Pressable onPress={onClose} className="mr-4 w-10 h-10 items-center justify-center">
-            <Ionicons name="close" size={24} color="#374151" />
-          </Pressable>
-          <Text className="text-xl font-semibold text-gray-900 flex-1">
-            Edit Project
-          </Text>
-          <Pressable onPress={handleSave} className="px-4 py-2 bg-blue-600 rounded-lg">
-            <Text className="text-white font-medium">Save</Text>
-          </Pressable>
-        </View>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
-        >
-          <ScrollView className="flex-1 px-4 py-3" keyboardShouldPersistTaps="handled">
-            {/* Project Information */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-xl font-bold text-gray-900 mb-4">Project Information</Text>
-              
-              <View className="space-y-4">
-                {/* Project Name */}
-                <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-2">
-                    Project Name <Text className="text-red-500">*</Text>
-                  </Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
-                    placeholder="Enter project name"
-                    value={formData.name}
-                    onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-                    maxLength={100}
-                  />
-                </View>
-
-                {/* Description */}
-                <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
-                    placeholder="Project description"
-                    value={formData.description}
-                    onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                    maxLength={500}
-                  />
-                </View>
-
-                {/* Status */}
-                <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
-                  
-                  {/* Custom Status Dropdown */}
-                  <Pressable
-                    onPress={() => setShowStatusPicker(!showStatusPicker)}
-                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
-                  >
-                    <Text className="text-gray-900 text-base capitalize">
-                      {formData.status.replace("_", " ")}
-                    </Text>
-                    <Ionicons 
-                      name={showStatusPicker ? "chevron-up" : "chevron-down"} 
-                      size={20} 
-                      color="#6b7280" 
-                    />
-                  </Pressable>
-                  
-                  {/* Status Dropdown Options */}
-                  {showStatusPicker && (
-                    <View className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                      {["planning", "active", "on_hold", "completed", "cancelled"].map((status, index) => (
-                        <Pressable
-                          key={status}
-                          onPress={() => {
-                            setFormData(prev => ({ ...prev, status: status as ProjectStatus }));
-                            setShowStatusPicker(false);
-                          }}
-                          className={cn(
-                            "px-4 py-3",
-                            formData.status === status && "bg-blue-50",
-                            index < 4 && "border-b border-gray-200"
-                          )}
-                        >
-                          <Text className={cn(
-                            "text-base capitalize",
-                            formData.status === status ? "text-blue-900 font-medium" : "text-gray-900"
-                          )}>
-                            {status.replace("_", " ")}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            {/* Location */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-xl font-bold text-gray-900 mb-3">Location</Text>
-              
-              <View>
-                <TextInput
-                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
-                  placeholder="Enter full address (street, city, state/province, postal code, country)"
-                  value={formData.location.address}
-                  onChangeText={(text) => setFormData(prev => ({
-                    ...prev,
-                    location: { ...prev.location, address: text }
-                  }))}
-                  multiline={true}
-                  numberOfLines={5}
-                  textAlignVertical="top"
-                />
-              </View>
-            </View>
-
-            {/* Project Timeline */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-xl font-bold text-gray-900 mb-4">Project Timeline</Text>
-              
-              <View className="flex-row space-x-4">
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Start Date</Text>
-                  <Pressable
-                    onPress={() => setShowStartDatePicker(true)}
-                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
-                  >
-                    <Text className="text-gray-900 text-base">
-                      {formData.startDate.toLocaleDateString()}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={20} color="#6b7280" />
-                  </Pressable>
-                </View>
-
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
-                  <Pressable
-                    onPress={() => setShowEndDatePicker(true)}
-                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
-                  >
-                    <Text className="text-gray-900 text-base">
-                      {formData.endDate.toLocaleDateString()}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={20} color="#6b7280" />
-                  </Pressable>
-                </View>
-              </View>
-            </View>
-
-            {/* Lead Project Manager */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-xl font-bold text-gray-900 mb-4">Lead Project Manager</Text>
-              
-              <View className="space-y-3">
-                <Text className="text-sm text-gray-600">
-                  The Lead PM has full visibility to all tasks and subtasks in this project
-                </Text>
-                
-                <View>
-                  <Text className="text-xs text-gray-500 mb-2">Debug: selectedLeadPM = "{selectedLeadPM}"</Text>
-                  
-                  {/* Custom Dropdown Picker */}
-                  <Pressable
-                    onPress={() => setShowLeadPMPicker(!showLeadPMPicker)}
-                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
-                  >
-                    <Text className="text-gray-900 text-base">
-                      {selectedLeadPM 
-                        ? eligibleLeadPMs.find(u => u.id === selectedLeadPM)?.name + ` (${eligibleLeadPMs.find(u => u.id === selectedLeadPM)?.role})`
-                        : "No Lead PM (Select one)"
-                      }
-                    </Text>
-                    <Ionicons 
-                      name={showLeadPMPicker ? "chevron-up" : "chevron-down"} 
-                      size={20} 
-                      color="#6b7280" 
-                    />
-                  </Pressable>
-                  
-                  {/* Dropdown Options */}
-                  {showLeadPMPicker && (
-                    <View className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                      <Pressable
-                        onPress={() => {
-                          setSelectedLeadPM("");
-                          setShowLeadPMPicker(false);
-                          console.log(`ProjectDetailScreen: Lead PM changed to: ""`);
-                        }}
-                        className="px-4 py-3 border-b border-gray-200"
-                      >
-                        <Text className="text-gray-900 text-base">No Lead PM (Select one)</Text>
-                      </Pressable>
-                      {eligibleLeadPMs.map((user) => (
-                        <Pressable
-                          key={user.id}
-                          onPress={() => {
-                            setSelectedLeadPM(user.id);
-                            setShowLeadPMPicker(false);
-                            console.log(`ProjectDetailScreen: Lead PM changed to:`, user.id);
-                          }}
-                          className={cn(
-                            "px-4 py-3",
-                            user.id === selectedLeadPM && "bg-blue-50",
-                            user.id !== eligibleLeadPMs[eligibleLeadPMs.length - 1].id && "border-b border-gray-200"
-                          )}
-                        >
-                          <Text className={cn(
-                            "text-base",
-                            user.id === selectedLeadPM ? "text-blue-900 font-medium" : "text-gray-900"
-                          )}>
-                            {user.name} ({user.role})
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            <View className="h-20" />
-          </ScrollView>
-        </KeyboardAvoidingView>
-
-        {/* Date Pickers */}
-        {showStartDatePicker && (
-          <DateTimePicker
-            value={formData.startDate}
-            mode="date"
-            display="default"
-            onChange={(_event, selectedDate) => {
-              setShowStartDatePicker(false);
-              if (selectedDate) {
-                setFormData(prev => ({ ...prev, startDate: selectedDate }));
-              }
-            }}
-          />
-        )}
-
-        {showEndDatePicker && (
-          <DateTimePicker
-            value={formData.endDate}
-            mode="date"
-            display="default"
-            minimumDate={formData.startDate}
-            onChange={(_event, selectedDate) => {
-              setShowEndDatePicker(false);
-              if (selectedDate) {
-                setFormData(prev => ({ ...prev, endDate: selectedDate }));
-              }
-            }}
-          />
-        )}
+        <ProjectForm
+          mode="edit"
+          project={project}
+          onSubmit={handleSubmit}
+          onCancel={onClose}
+          submitButtonText="Save"
+          isSubmitting={isSubmitting}
+        />
       </SafeAreaView>
     </Modal>
   );
