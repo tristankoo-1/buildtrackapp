@@ -119,10 +119,30 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
             {/* Quick Login User List */}
             <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <Text className="text-sm font-semibold text-blue-800 mb-3">
-                👥 Quick Login - Tap any user (6 total):
+                👥 Quick Login - Tap any user (8 total):
               </Text>
               
               <View className="space-y-3">
+                {/* Tristan - Featured */}
+                <Pressable 
+                  className="bg-indigo-50 border-2 border-indigo-300 rounded-lg py-4 px-4 active:bg-indigo-100"
+                  onPress={() => handleQuickLogin('tristan@insitetech.com', 'password123')}
+                >
+                  <Text className="text-base font-bold text-indigo-900">
+                    ⭐ Insite Tech: Admin: Tristan
+                  </Text>
+                </Pressable>
+                
+                {/* Dennis - Featured */}
+                <Pressable 
+                  className="bg-blue-50 border-2 border-blue-300 rounded-lg py-4 px-4 active:bg-blue-100"
+                  onPress={() => handleQuickLogin('dennis@buildtrack.com', 'password123')}
+                >
+                  <Text className="text-base font-bold text-blue-900">
+                    ⭐ BuildTrack: Worker: Dennis
+                  </Text>
+                </Pressable>
+                
                 {/* John Manager */}
                 <Pressable 
                   className="bg-purple-50 border border-purple-200 rounded-lg py-4 px-4 active:bg-purple-100"
@@ -150,16 +170,6 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
                 >
                   <Text className="text-base font-semibold text-red-900">
                     BuildTrack: Admin: Alex Administrator
-                  </Text>
-                </Pressable>
-                
-                {/* Peter */}
-                <Pressable 
-                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
-                  onPress={() => handleQuickLogin('dennis@buildtrack.com', 'password123')}
-                >
-                  <Text className="text-base font-semibold text-blue-900">
-                    BuildTrack: Worker: Peter
                   </Text>
                 </Pressable>
                 
