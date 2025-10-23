@@ -198,7 +198,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
     children: React.ReactNode;
   }) => (
     <View className="mb-4">
-      <Text className="text-sm font-medium text-gray-700 mb-2">
+      <Text className="text-lg font-semibold text-gray-900 mb-2">
         {label} {required && <Text className="text-red-500">*</Text>}
       </Text>
       {children}

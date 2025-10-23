@@ -477,7 +477,7 @@ function EditProjectModal({
           <ScrollView className="flex-1 px-6 py-4" keyboardShouldPersistTaps="handled">
             {/* Project Name */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-2">
+              <Text className="text-lg font-semibold text-gray-900 mb-2">
                 Project Name <Text className="text-red-500">*</Text>
               </Text>
               <TextInput
@@ -491,7 +491,7 @@ function EditProjectModal({
 
             {/* Description */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
+              <Text className="text-lg font-semibold text-gray-900 mb-2">Description</Text>
               <TextInput
                 className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
                 placeholder="Project description"
@@ -506,7 +506,7 @@ function EditProjectModal({
 
             {/* Status */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
+              <Text className="text-lg font-semibold text-gray-900 mb-2">Status</Text>
               <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
                 <Picker
                   selectedValue={formData.status}
