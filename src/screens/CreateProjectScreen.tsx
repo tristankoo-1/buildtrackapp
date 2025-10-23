@@ -333,6 +333,31 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
             </View>
           </View>
 
+          {/* Location */}
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-3">Location</Text>
+            
+            <View>
+              <TextInput
+                className={cn(
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                  errors.address ? "border-red-300" : "border-gray-300"
+                )}
+                placeholder="Enter full address (street, city, state/province, postal code, country)"
+                value={formData.location.address}
+                onChangeText={(text) => handleLocationChange("address", text)}
+                multiline={true}
+                numberOfLines={5}
+                textAlignVertical="top"
+                autoCorrect={false}
+                returnKeyType="default"
+              />
+              {errors.address && (
+                <Text className="text-red-500 text-xs mt-1">{errors.address}</Text>
+              )}
+            </View>
+          </View>
+
           {/* Project Timeline */}
           <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
             <Text className="text-xl font-bold text-gray-900 mb-4">Project Timeline</Text>
@@ -344,7 +369,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                   onPress={() => setShowStartDatePicker(true)}
                   className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
                 >
-                  <Text className="text-gray-900 text-lg">
+                  <Text className="text-gray-900 text-base">
                     {formData.startDate.toLocaleDateString()}
                   </Text>
                   <Ionicons name="calendar-outline" size={20} color="#6b7280" />
@@ -360,7 +385,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                     errors.endDate ? "border-red-300" : "border-gray-300"
                   )}
                 >
-                  <Text className="text-gray-900 text-lg">
+                  <Text className="text-gray-900 text-base">
                     {formData.endDate.toLocaleDateString()}
                   </Text>
                   <Ionicons name="calendar-outline" size={20} color="#6b7280" />
@@ -369,31 +394,6 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                   <Text className="text-red-500 text-xs mt-1">{errors.endDate}</Text>
                 )}
               </View>
-            </View>
-          </View>
-
-          {/* Location */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <Text className="text-xl font-bold text-gray-900 mb-3">Location</Text>
-            
-            <View>
-              <TextInput
-                className={cn(
-                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
-                  errors.address ? "border-red-300" : "border-gray-300"
-                )}
-                placeholder="Enter full address (street, city, state/province, postal code, country)"
-                value={formData.location.address}
-                onChangeText={(text) => handleLocationChange("address", text)}
-                multiline={true}
-                numberOfLines={5}
-                textAlignVertical="top"
-                autoCorrect={false}
-                returnKeyType="default"
-              />
-              {errors.address && (
-                <Text className="text-red-500 text-xs mt-1">{errors.address}</Text>
-              )}
             </View>
           </View>
 
