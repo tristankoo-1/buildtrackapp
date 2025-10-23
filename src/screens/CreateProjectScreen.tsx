@@ -38,7 +38,6 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
     status: "planning" as ProjectStatus,
     startDate: new Date(),
     endDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // Default 6 months
-    budget: "",
     location: {
       address: "",
       city: "",
@@ -103,10 +102,6 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
       newErrors.endDate = "End date must be after start date";
     }
 
-    if (formData.budget && isNaN(Number(formData.budget))) {
-      newErrors.budget = "Budget must be a valid number";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -126,7 +121,6 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
         status: formData.status,
         startDate: formData.startDate.toISOString(),
         endDate: formData.endDate.toISOString(),
-        budget: formData.budget ? Number(formData.budget) : undefined,
         location: formData.location,
         clientInfo: {
           name: formData.clientInfo.name,
@@ -167,10 +161,6 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
 
   const handleDescriptionChange = useCallback((text: string) => {
     setFormData(prev => ({ ...prev, description: text }));
-  }, []);
-
-  const handleBudgetChange = useCallback((text: string) => {
-    setFormData(prev => ({ ...prev, budget: text }));
   }, []);
 
   const handleLocationChange = useCallback((field: string, text: string) => {
@@ -347,56 +337,36 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
           <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
             <Text className="text-xl font-bold text-gray-900 mb-4">Project Timeline</Text>
             
-            <View className="space-y-5">
-              <View className="flex-row space-x-4">
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Start Date</Text>
-                  <Pressable
-                    onPress={() => setShowStartDatePicker(true)}
-                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
-                  >
-                    <Text className="text-gray-900 text-base">
-                      {formData.startDate.toLocaleDateString()}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={20} color="#6b7280" />
-                  </Pressable>
-                </View>
-
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
-                  <Pressable
-                    onPress={() => setShowEndDatePicker(true)}
-                    className={cn(
-                      "border rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between",
-                      errors.endDate ? "border-red-300" : "border-gray-300"
-                    )}
-                  >
-                    <Text className="text-gray-900 text-base">
-                      {formData.endDate.toLocaleDateString()}
-                    </Text>
-                    <Ionicons name="calendar-outline" size={20} color="#6b7280" />
-                  </Pressable>
-                  {errors.endDate && (
-                    <Text className="text-red-500 text-xs mt-1">{errors.endDate}</Text>
-                  )}
-                </View>
+            <View className="flex-row space-x-4">
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-gray-700 mb-2">Start Date</Text>
+                <Pressable
+                  onPress={() => setShowStartDatePicker(true)}
+                  className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
+                >
+                  <Text className="text-gray-900 text-lg">
+                    {formData.startDate.toLocaleDateString()}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#6b7280" />
+                </Pressable>
               </View>
 
-              <View>
-                <Text className="text-sm font-medium text-gray-700 mb-2">Budget</Text>
-                <TextInput
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
+                <Pressable
+                  onPress={() => setShowEndDatePicker(true)}
                   className={cn(
-                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
-                    errors.budget ? "border-red-300" : "border-gray-300"
+                    "border rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between",
+                    errors.endDate ? "border-red-300" : "border-gray-300"
                   )}
-                  placeholder="Enter budget amount"
-                  value={formData.budget}
-                  onChangeText={handleBudgetChange}
-                  keyboardType="numeric"
-                  returnKeyType="next"
-                />
-                {errors.budget && (
-                  <Text className="text-red-500 text-xs mt-1">{errors.budget}</Text>
+                >
+                  <Text className="text-gray-900 text-lg">
+                    {formData.endDate.toLocaleDateString()}
+                  </Text>
+                  <Ionicons name="calendar-outline" size={20} color="#6b7280" />
+                </Pressable>
+                {errors.endDate && (
+                  <Text className="text-red-500 text-xs mt-1">{errors.endDate}</Text>
                 )}
               </View>
             </View>
