@@ -1,0 +1,64 @@
+name: EAS Update
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  update:
+    name: Install and publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for EXPO_TOKEN
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "❌ EXPO_TOKEN secret is not set"
+            echo "Please add your EXPO_TOKEN to GitHub Secrets:"
+            echo "1. Go to your GitHub repository"
+            echo "2. Click Settings → Secrets and variables → Actions"
+            echo "3. Click 'New repository secret'"
+            echo "4. Name: EXPO_TOKEN"
+            echo "5. Value: Your Expo token from 'npx eas whoami' or expo.dev"
+            exit 1
+          else
+            echo "✅ EXPO_TOKEN is configured"
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to EAS Update
+        run: npx eas update --branch main --message "Automated update: ${{ github.event.head_commit.message || 'Push to main' }}"
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 **EAS Update Published!**\n\nYour changes have been automatically published to EAS Update and are now available in Expo Go.\n\n📱 **To test:**\n1. Open Expo Go app\n2. Scan QR code or enter your project URL\n3. Pull down to refresh for the latest update'
+            })
