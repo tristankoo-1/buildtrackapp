@@ -615,6 +615,7 @@ function EditProjectModal({
                 <Picker
                   selectedValue={formData.status}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                  style={{ height: 50 }}
                 >
                   <Picker.Item label="Planning" value="planning" />
                   <Picker.Item label="Active" value="active" />
@@ -694,6 +695,7 @@ function EditProjectModal({
                 <Picker
                   selectedValue={selectedLeadPM}
                   onValueChange={(value) => setSelectedLeadPM(value)}
+                  style={{ height: 50 }}
                 >
                   <Picker.Item label="No Lead PM (Select one)" value="" />
                   {eligibleLeadPMs.map((user) => (

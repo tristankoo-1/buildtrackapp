@@ -287,6 +287,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                 <Picker
                   selectedValue={formData.status}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                  style={{ height: 50 }}
                 >
                   <Picker.Item label="Planning" value="planning" />
                   <Picker.Item label="Active" value="active" />
