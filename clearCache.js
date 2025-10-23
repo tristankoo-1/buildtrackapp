@@ -16,7 +16,7 @@ IMMEDIATE FIX - Force App to Reload NOW:
 1. CLOSE the Vibecode App completely on your device
 2. REOPEN the Vibecode App
 3. The app will automatically detect v11.4 and clear all data
-4. Login as Dennis: dennis@buildtrack.com / password: 123456
+4. Login as Peter: dennis@buildtrack.com / password: 123456
 5. You will see 2 projects and 3 tasks!
 
 WHY THIS WORKS:
@@ -48,10 +48,10 @@ OPTION 3: Login/Logout
   - Login to any account
   - Tap Profile
   - Logout
-  - Login as Dennis
+  - Login as Peter
 
 ╔═══════════════════════════════════════════════════════════╗
-║  Dennis is FULLY SETUP in the code:                      ║
+║  Peter is FULLY SETUP in the code:                       ║
 ║  - 2 Projects assigned                                    ║
 ║  - 3 Tasks assigned                                       ║
 ║  - Just needs the app to reload!                          ║

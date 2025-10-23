@@ -86,6 +86,12 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
     (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  /**
+   * Get color styling for PROJECT ROLE (category) badges
+   * 
+   * Note: "category" refers to PROJECT ROLE, not job title
+   * Example: A user with job title "manager" can have category "contractor" on a project
+   */
   const getCategoryColor = (category: UserCategory) => {
     const colors = {
       lead_project_manager: "bg-purple-50 text-purple-600 border-purple-200",
@@ -100,6 +106,11 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
     return colors[category] || colors.worker;
   };
 
+  /**
+   * Get display label for PROJECT ROLE (category)
+   * 
+   * Note: This is for project-specific roles, not system-wide job titles
+   */
   const getCategoryLabel = (category: UserCategory) => {
     const labels = {
       lead_project_manager: "Lead Project Manager",
@@ -117,6 +128,9 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
   const handleAssignUser = () => {
     if (!selectedUser || !selectedProject) return;
 
+    // Assign user to project with a PROJECT ROLE (category)
+    // Note: selectedCategory is the PROJECT ROLE (what they do on this project),
+    //       NOT their job title (admin/manager/worker)
     assignUserToProject(selectedUser.id, selectedProject.id, selectedCategory, currentUser.id);
     
     // Notify all users about the assignment
@@ -500,6 +514,11 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
       </Modal>
 
       {/* Category Picker Modal */}
+      {/* 
+        IMPORTANT: "Category" here means PROJECT ROLE
+        This is what the user will DO on this specific project,
+        not their system-wide job title (admin/manager/worker)
+      */}
       <Modal
         visible={activeModal === 'category'}
         animationType="slide"
@@ -516,11 +535,12 @@ export default function UserManagementScreen({ onNavigateBack }: UserManagementS
               <Text className="text-blue-600 font-medium">Done</Text>
             </Pressable>
             <Text className="text-lg font-semibold text-gray-900 flex-1">
-              Select Category
+              Select Project Role
             </Text>
           </View>
 
           <ScrollView className="flex-1">
+            {/* All available PROJECT ROLES (what they do on the project) */}
             {(["lead_project_manager", "contractor", "subcontractor", "inspector", "architect", "engineer", "worker", "foreman"] as UserCategory[]).map((category) => (
               <Pressable
                 key={category}

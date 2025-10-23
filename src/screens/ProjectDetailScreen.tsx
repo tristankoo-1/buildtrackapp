@@ -20,6 +20,7 @@ import { useAuthStore } from "../state/authStore";
 import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
 import { useUserStoreWithInit } from "../state/userStore.supabase";
 import { useTaskStore } from "../state/taskStore.supabase";
+import { useCompanyStore } from "../state/companyStore";
 import { Project, ProjectStatus, UserCategory, Task } from "../types/buildtrack";
 import { cn } from "../utils/cn";
 import StandardHeader from "../components/StandardHeader";
@@ -44,8 +45,9 @@ export default function ProjectDetailScreen({ projectId, onNavigateBack }: Proje
     fetchProjectUserAssignments,
     cleanupDuplicateAssignments,
   } = projectStore;
-  const { getUserById, getUsersByCompany } = useUserStoreWithInit();
+  const { getUserById, getUsersByCompany, getAllUsers } = useUserStoreWithInit();
   const { getTasksByProject } = useTaskStore();
+  const { getCompanyById } = useCompanyStore();
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -366,6 +368,7 @@ export default function ProjectDetailScreen({ projectId, onNavigateBack }: Proje
                           </View>
                         )}
                       </View>
+                      {/* Display PROJECT ROLE (category) - what they do on THIS project */}
                       <Text className="text-sm text-gray-600 capitalize">
                         {assignment.category.replace("_", " ")}
                       </Text>
@@ -420,7 +423,9 @@ export default function ProjectDetailScreen({ projectId, onNavigateBack }: Proje
           onClose={() => setShowAddMemberModal(false)}
           onAdd={async (userIds) => {
             try {
-              // Add all selected users with default 'worker' category
+              // Add all selected users with default 'worker' PROJECT ROLE (category)
+              // Note: "worker" here is their PROJECT ROLE, not their job title
+              // A "manager" (job title) can be assigned as "worker" (project role) on a project
               const results = await Promise.allSettled(
                 userIds.map(userId => 
                   assignUserToProject(userId, project.id, "worker", user.id)
@@ -535,6 +540,8 @@ function EditProjectModal({
         removeUserFromProject(currentLeadPM, project.id);
       }
       
+      // Assign new Lead PM with PROJECT ROLE "lead_project_manager"
+      // This is their role ON THIS PROJECT, regardless of their system-wide job title
       if (selectedLeadPM) {
         assignUserToProject(selectedLeadPM, project.id, "lead_project_manager", user.id);
       }
@@ -779,21 +786,48 @@ function AddMemberModal({
   onAdd: (userIds: string[]) => Promise<void>;
 }) {
   const { user } = useAuthStore();
-  const { getUsersByCompany } = useUserStoreWithInit();
+  const { getUsersByCompany, getAllUsers } = useUserStoreWithInit();
+  const { getCompanyById } = useCompanyStore();
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const companyUsers = React.useMemo(() => 
-    user?.companyId ? getUsersByCompany(user.companyId) : [], 
-    [user?.companyId, getUsersByCompany]
-  );
+  // CHANGED: Admins can see ALL users from ALL companies
+  // Non-admins see only users from their company (though they shouldn't reach this modal)
+  const allAvailableUsers = React.useMemo(() => {
+    if (user?.role === "admin") {
+      // Admin: Show ALL users from ALL companies
+      return getAllUsers().filter(u => !existingMembers.includes(u.id));
+    } else {
+      // Non-admin: Show only users from same company (fallback)
+      const companyUsers = user?.companyId ? getUsersByCompany(user.companyId) : [];
+      return companyUsers.filter(u => !existingMembers.includes(u.id));
+    }
+  }, [user?.role, user?.companyId, getAllUsers, getUsersByCompany, existingMembers]);
 
-  const availableUsers = companyUsers.filter(u => !existingMembers.includes(u.id));
+  // Filter by search query
+  const availableUsers = React.useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allAvailableUsers;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return allAvailableUsers.filter(u => {
+      const company = getCompanyById(u.companyId);
+      return (
+        u.name.toLowerCase().includes(query) ||
+        (u.email && u.email.toLowerCase().includes(query)) ||
+        u.position.toLowerCase().includes(query) ||
+        (company && company.name.toLowerCase().includes(query))
+      );
+    });
+  }, [allAvailableUsers, searchQuery, getCompanyById]);
 
-  // Reset selected users when modal opens
+  // Reset selected users and search when modal opens/closes
   React.useEffect(() => {
     if (visible) {
       setSelectedUsers([]);
+      setSearchQuery("");
     }
   }, [visible]);
 
@@ -842,6 +876,36 @@ function AddMemberModal({
           </Pressable>
         </View>
 
+        {/* Search Bar */}
+        <View className="bg-white px-6 py-3 border-b border-gray-200">
+          <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+            <Ionicons name="search" size={20} color="#6b7280" />
+            <TextInput
+              className="flex-1 ml-2 text-base text-gray-900"
+              placeholder="Search by name, email, position, or company..."
+              placeholderTextColor="#9ca3af"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {searchQuery.length > 0 && (
+              <Pressable onPress={() => setSearchQuery("")}>
+                <Ionicons name="close-circle" size={20} color="#6b7280" />
+              </Pressable>
+            )}
+          </View>
+          
+          {/* Results info */}
+          {user?.role === "admin" && (
+            <Text className="text-xs text-gray-600 mt-2">
+              {availableUsers.length} user{availableUsers.length !== 1 ? 's' : ''} available
+              {searchQuery && ` (filtered from ${allAvailableUsers.length})`}
+              {' • '}Showing users from all companies
+            </Text>
+          )}
+        </View>
+
         <ScrollView className="flex-1 px-6 py-4">
           {availableUsers.length > 0 ? (
             <View className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -856,6 +920,7 @@ function AddMemberModal({
               
               {availableUsers.map((availableUser, index) => {
                 const isSelected = selectedUsers.includes(availableUser.id);
+                const userCompany = getCompanyById(availableUser.companyId);
                 
                 return (
                   <Pressable
@@ -871,11 +936,26 @@ function AddMemberModal({
                       <Text className="text-base font-medium text-gray-900">
                         {availableUser.name}
                       </Text>
-                      <Text className="text-sm text-gray-600 capitalize mt-0.5">
-                        {availableUser.role}
-                      </Text>
+                      <View className="flex-row items-center mt-1">
+                        <Text className="text-sm text-gray-600 capitalize">
+                          {availableUser.position}
+                        </Text>
+                        <View className="w-1 h-1 rounded-full bg-gray-400 mx-2" />
+                        <Text className="text-sm text-gray-500 capitalize">
+                          {availableUser.role}
+                        </Text>
+                      </View>
+                      {/* Show company name - important for cross-company visibility */}
+                      {userCompany && (
+                        <View className="flex-row items-center mt-1">
+                          <Ionicons name="business-outline" size={12} color="#9ca3af" />
+                          <Text className="text-xs text-gray-500 ml-1">
+                            {userCompany.name}
+                          </Text>
+                        </View>
+                      )}
                       {availableUser.email && (
-                        <Text className="text-xs text-gray-500 mt-0.5">
+                        <Text className="text-xs text-gray-400 mt-0.5">
                           {availableUser.email}
                         </Text>
                       )}
@@ -897,12 +977,31 @@ function AddMemberModal({
                 );
               })}
             </View>
+          ) : searchQuery ? (
+            // No results from search
+            <View className="flex-1 items-center justify-center py-16">
+              <Ionicons name="search-outline" size={64} color="#9ca3af" />
+              <Text className="text-gray-500 text-lg font-medium mt-4">No Users Found</Text>
+              <Text className="text-gray-400 text-center mt-2 px-8">
+                Try adjusting your search query
+              </Text>
+              <Pressable 
+                onPress={() => setSearchQuery("")}
+                className="mt-4 bg-blue-600 px-4 py-2 rounded-lg"
+              >
+                <Text className="text-white font-medium">Clear Search</Text>
+              </Pressable>
+            </View>
           ) : (
+            // No users available at all
             <View className="flex-1 items-center justify-center py-16">
               <Ionicons name="people-outline" size={64} color="#9ca3af" />
               <Text className="text-gray-500 text-lg font-medium mt-4">No Available Users</Text>
               <Text className="text-gray-400 text-center mt-2 px-8">
-                All company members are already assigned to this project.
+                {user?.role === "admin" 
+                  ? "All users from all companies are already assigned to this project."
+                  : "All company members are already assigned to this project."
+                }
               </Text>
             </View>
           )}

@@ -87,7 +87,7 @@ const TEST_USERS = [
   },
   {
     email: 'dennis@buildtrack.com',
-    name: 'Dennis',
+    name: 'Peter',
     role: 'worker',
     companyId: 'comp-1',
     position: 'Site Supervisor',

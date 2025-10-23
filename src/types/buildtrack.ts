@@ -1,3 +1,40 @@
+// ============================================
+// USER ROLES vs USER CATEGORIES - IMPORTANT!
+// ============================================
+// See ROLE_VS_CATEGORY_GUIDE.md for complete documentation
+//
+// USER ROLE (Job Title):
+//   - System-wide permission level
+//   - Examples: "admin", "manager", "worker"
+//   - Stored in: users.role
+//   - Controls: What features you can access
+//   - Changes: Rarely
+//
+// USER CATEGORY (Project Role):
+//   - Project-specific capacity
+//   - Examples: "contractor", "inspector", "lead_project_manager"
+//   - Stored in: user_project_assignments.category
+//   - Controls: What you do on a specific project
+//   - Changes: Per project assignment
+//
+// Example: Sarah is a "manager" (role) but works as "contractor" 
+//          on Project A and "inspector" on Project B
+// ============================================
+
+/**
+ * USER ROLE (Job Title)
+ * 
+ * System-wide permission level that determines what a user can do
+ * across the entire BuildTrack application.
+ * 
+ * - admin: Full system access, can manage everything
+ * - manager: Can manage projects, tasks, and assign users
+ * - worker: Can view and update assigned tasks only
+ * 
+ * Stored in: users.role
+ * Scope: System-wide
+ * Frequency: Rarely changes
+ */
 export type UserRole = "admin" | "manager" | "worker";
 
 export type CompanyType = "general_contractor" | "subcontractor" | "supplier" | "consultant" | "owner";
@@ -8,13 +45,54 @@ export type Priority = "low" | "medium" | "high" | "critical";
 
 export type TaskStatus = "not_started" | "in_progress" | "rejected" | "completed";
 
+/**
+ * TASK CATEGORY (not to be confused with USER CATEGORY)
+ * 
+ * Describes the type of work in a task.
+ * This is different from UserCategory which describes a user's role.
+ */
 export type TaskCategory = "safety" | "electrical" | "plumbing" | "structural" | "general" | "materials";
 
 export type ProjectStatus = "planning" | "active" | "on_hold" | "completed" | "cancelled";
 
+/**
+ * USER CATEGORY (Project Role)
+ * 
+ * Defines what a user does on a SPECIFIC project.
+ * Same user can have different categories on different projects.
+ * 
+ * Examples:
+ * - lead_project_manager: Oversees entire project, sees all tasks
+ * - contractor: Main contractor for project work
+ * - subcontractor: Specialized contractor for specific tasks
+ * - inspector: Reviews and inspects work quality
+ * - architect: Provides architectural guidance
+ * - engineer: Provides engineering guidance
+ * - worker: Executes assigned tasks
+ * - foreman: Supervises workers on-site
+ * 
+ * Stored in: user_project_assignments.category
+ * Scope: Project-specific
+ * Frequency: Can change per project
+ * 
+ * Note: "worker" appears in both UserRole AND UserCategory!
+ *       - UserRole "worker" = job title with limited system permissions
+ *       - UserCategory "worker" = project role doing general labor
+ */
 export type UserCategory = "lead_project_manager" | "contractor" | "subcontractor" | "inspector" | "architect" | "engineer" | "worker" | "foreman";
 
-// Role-related types (NEW)
+/**
+ * ROLE NAME (New Role System)
+ * 
+ * Combined type for the new role system that includes BOTH:
+ * - Job titles (admin, manager, worker)
+ * - Project roles (lead_project_manager, contractor, etc.)
+ * 
+ * WARNING: This mixes two different concepts! 
+ * Future refactoring should separate these into JobTitle and ProjectRole types.
+ * 
+ * See REFACTORING_ROLES_CATEGORIES.md for migration plan.
+ */
 export type RoleName = "admin" | "manager" | "worker" | "lead_project_manager" | "contractor" | "subcontractor" | "inspector" | "architect" | "engineer" | "foreman";
 
 export interface Role {
@@ -100,41 +178,108 @@ export interface Project {
   updatedAt: string;
 }
 
-// DEPRECATED: Use UserProjectRole instead
+/**
+ * USER PROJECT ASSIGNMENT (DEPRECATED)
+ * 
+ * Links a user to a project with a specific PROJECT ROLE (category).
+ * 
+ * @deprecated Use UserProjectRole instead
+ */
 export interface UserProjectAssignment {
   userId: string;
   projectId: string;
+  
+  /** 
+   * PROJECT ROLE (UserCategory) - What the user does on THIS project
+   * Examples: "contractor", "inspector", "lead_project_manager"
+   * 
+   * NOTE: This is NOT the user's job title! A "manager" (role) can be 
+   * assigned as "contractor" (category) on a project.
+   */
   category: UserCategory;
+  
   assignedAt: string;
   assignedBy: string;
   isActive: boolean;
 }
 
-// NEW: User Project Role Assignment (replaces UserProjectAssignment)
+/**
+ * USER PROJECT ROLE (NEW)
+ * 
+ * Replaces UserProjectAssignment with better support for the new role system.
+ */
 export interface UserProjectRole {
   id: string;
   userId: string;
   projectId: string;
   roleId: string;
-  category?: UserCategory; // Optional category within the project
+  
+  /** 
+   * PROJECT ROLE (UserCategory) - What the user does on THIS project
+   * Optional in new system, defined by roleId instead
+   */
+  category?: UserCategory;
+  
   assignedAt: string;
   assignedBy: string;
   isActive: boolean;
 }
 
+/**
+ * USER
+ * 
+ * Represents a user in the BuildTrack system.
+ */
 export interface User {
   id: string;
   email?: string; // Optional - can use phone as username
   name: string;
-  role: UserRole; // DEPRECATED: For backward compatibility, use defaultRole instead
-  defaultRole?: Role; // NEW: Default role reference
-  defaultRoleId?: string; // NEW: Default role ID
+  
+  /** 
+   * JOB TITLE (UserRole) - System-wide permission level
+   * 
+   * Values: "admin" | "manager" | "worker"
+   * 
+   * This determines what the user CAN do across the entire system:
+   * - admin: Full access to everything
+   * - manager: Can manage projects and assign users
+   * - worker: Limited to viewing assigned tasks
+   * 
+   * @deprecated Use defaultRole/defaultRoleId instead (new role system)
+   */
+  role: UserRole;
+  
+  /** 
+   * NEW: Default role reference (new role system)
+   * Will eventually replace the "role" field above
+   */
+  defaultRole?: Role;
+  
+  /** 
+   * NEW: Default role ID (new role system)
+   * Will eventually replace the "role" field above
+   */
+  defaultRoleId?: string;
+  
   companyId: string; // Required - must belong to a company
-  position: string; // Job position/title (required)
+  
+  /** 
+   * POSITION - Human-readable job position
+   * 
+   * Examples: "Senior Construction Manager", "Electrician", "Site Supervisor"
+   * 
+   * This is different from "role" (job title):
+   * - role: System permission level (admin/manager/worker)
+   * - position: Actual job title for display
+   */
+  position: string;
+  
   phone: string; // Required - primary identifier
   createdAt: string;
-  updatedAt?: string; // NEW: Track updates
-  // Project assignments will be handled separately in UserProjectRole
+  updatedAt?: string;
+  
+  // Project assignments (with PROJECT ROLES) are handled separately 
+  // in UserProjectRole or UserProjectAssignment tables
 }
 
 export interface TaskUpdate {

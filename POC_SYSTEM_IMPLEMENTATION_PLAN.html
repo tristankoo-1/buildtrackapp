@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>POC_SYSTEM_IMPLEMENTATION_PLAN</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css" />
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#point-of-contact-poc-system---implementation-plan"
+id="toc-point-of-contact-poc-system---implementation-plan">Point of
+Contact (POC) System - Implementation Plan</a>
+<ul>
+<li><a href="#buildtrack-feature-enhancement"
+id="toc-buildtrack-feature-enhancement">BuildTrack Feature
+Enhancement</a></li>
+<li><a href="#executive-summary" id="toc-executive-summary">Executive
+Summary</a>
+<ul>
+<li><a href="#key-benefits" id="toc-key-benefits">Key Benefits</a></li>
+</ul></li>
+<li><a href="#core-concepts" id="toc-core-concepts">Core Concepts</a>
+<ul>
+<li><a href="#point-of-contact-poc" id="toc-point-of-contact-poc">1.
+Point of Contact (POC)</a></li>
+<li><a href="#company-abstraction" id="toc-company-abstraction">2.
+Company Abstraction</a></li>
+<li><a href="#delegation-authority" id="toc-delegation-authority">3.
+Delegation Authority</a></li>
+<li><a href="#hierarchical-structure" id="toc-hierarchical-structure">4.
+Hierarchical Structure</a></li>
+</ul></li>
+<li><a href="#database-schema-changes"
+id="toc-database-schema-changes">Database Schema Changes</a>
+<ul>
+<li><a href="#new-table-company_project_memberships"
+id="toc-new-table-company_project_memberships">1. New Table:
+company_project_memberships</a></li>
+<li><a href="#modify-user_project_assignments"
+id="toc-modify-user_project_assignments">2. Modify:
+user_project_assignments</a></li>
+<li><a href="#new-table-project_invitations"
+id="toc-new-table-project_invitations">3. New Table:
+project_invitations</a></li>
+<li><a href="#modify-tasks" id="toc-modify-tasks">4. Modify:
+tasks</a></li>
+<li><a href="#new-table-task_visibility_rules"
+id="toc-new-table-task_visibility_rules">5. New Table:
+task_visibility_rules</a></li>
+</ul></li>
+<li><a href="#feature-architecture"
+id="toc-feature-architecture">Feature Architecture</a>
+<ul>
+<li><a href="#phase-1-foundation-database-core-logic"
+id="toc-phase-1-foundation-database-core-logic">Phase 1: Foundation
+(Database &amp; Core Logic)</a></li>
+<li><a href="#phase-2-invitation-system"
+id="toc-phase-2-invitation-system">Phase 2: Invitation System</a></li>
+<li><a href="#phase-3-user-selection-visibility"
+id="toc-phase-3-user-selection-visibility">Phase 3: User Selection &amp;
+Visibility</a></li>
+<li><a href="#phase-4-task-assignment-logic"
+id="toc-phase-4-task-assignment-logic">Phase 4: Task Assignment
+Logic</a></li>
+<li><a href="#phase-5-ui-components"
+id="toc-phase-5-ui-components">Phase 5: UI Components</a></li>
+<li><a href="#phase-6-permissions-security"
+id="toc-phase-6-permissions-security">Phase 6: Permissions &amp;
+Security</a></li>
+</ul></li>
+<li><a href="#workflow-examples" id="toc-workflow-examples">Workflow
+Examples</a>
+<ul>
+<li><a href="#scenario-1-creating-new-project"
+id="toc-scenario-1-creating-new-project">Scenario 1: Creating New
+Project</a></li>
+<li><a href="#scenario-2-task-assignment-flow"
+id="toc-scenario-2-task-assignment-flow">Scenario 2: Task Assignment
+Flow</a></li>
+<li><a href="#scenario-3-sub-contractor-hierarchy"
+id="toc-scenario-3-sub-contractor-hierarchy">Scenario 3: Sub-Contractor
+Hierarchy</a></li>
+</ul></li>
+<li><a href="#implementation-timeline"
+id="toc-implementation-timeline">Implementation Timeline</a>
+<ul>
+<li><a href="#week-1-database-foundation"
+id="toc-week-1-database-foundation">Week 1: Database Foundation</a></li>
+<li><a href="#week-2-core-business-logic"
+id="toc-week-2-core-business-logic">Week 2: Core Business Logic</a></li>
+<li><a href="#week-3-invitation-system"
+id="toc-week-3-invitation-system">Week 3: Invitation System</a></li>
+<li><a href="#week-4-task-assignment-refactor"
+id="toc-week-4-task-assignment-refactor">Week 4: Task Assignment
+Refactor</a></li>
+<li><a href="#week-5-ui-components" id="toc-week-5-ui-components">Week
+5: UI Components</a></li>
+<li><a href="#week-6-testing-launch" id="toc-week-6-testing-launch">Week
+6: Testing &amp; Launch</a></li>
+</ul></li>
+<li><a href="#edge-cases-handling" id="toc-edge-cases-handling">Edge
+Cases &amp; Handling</a>
+<ul>
+<li><a href="#poc-leaves-project" id="toc-poc-leaves-project">1. POC
+Leaves Project</a></li>
+<li><a href="#company-has-no-active-members"
+id="toc-company-has-no-active-members">2. Company Has No Active
+Members</a></li>
+<li><a href="#circular-dependencies" id="toc-circular-dependencies">3.
+Circular Dependencies</a></li>
+<li><a href="#multiple-poc-designation-attempts"
+id="toc-multiple-poc-designation-attempts">4. Multiple POC Designation
+Attempts</a></li>
+<li><a href="#invitation-expiry" id="toc-invitation-expiry">5.
+Invitation Expiry</a></li>
+<li><a href="#user-belongs-to-multiple-companies"
+id="toc-user-belongs-to-multiple-companies">6. User Belongs to Multiple
+Companies</a></li>
+<li><a href="#task-reassignment" id="toc-task-reassignment">7. Task
+Reassignment</a></li>
+<li><a href="#poc-cannot-see-own-assignments"
+id="toc-poc-cannot-see-own-assignments">8. POC Cannot See Own
+Assignments</a></li>
+</ul></li>
+<li><a href="#success-metrics" id="toc-success-metrics">Success
+Metrics</a>
+<ul>
+<li><a href="#technical-metrics" id="toc-technical-metrics">Technical
+Metrics</a></li>
+<li><a href="#functional-metrics" id="toc-functional-metrics">Functional
+Metrics</a></li>
+<li><a href="#user-experience-metrics"
+id="toc-user-experience-metrics">User Experience Metrics</a></li>
+</ul></li>
+<li><a href="#security-considerations"
+id="toc-security-considerations">Security Considerations</a>
+<ul>
+<li><a href="#data-privacy" id="toc-data-privacy">Data Privacy</a></li>
+<li><a href="#permission-enforcement"
+id="toc-permission-enforcement">Permission Enforcement</a></li>
+<li><a href="#invitation-security"
+id="toc-invitation-security">Invitation Security</a></li>
+</ul></li>
+<li><a href="#migration-strategy" id="toc-migration-strategy">Migration
+Strategy</a>
+<ul>
+<li><a href="#phase-1-development-week-1-3"
+id="toc-phase-1-development-week-1-3">Phase 1: Development (Week
+1-3)</a></li>
+<li><a href="#phase-2-staging-week-4"
+id="toc-phase-2-staging-week-4">Phase 2: Staging (Week 4)</a></li>
+<li><a href="#phase-3-beta-week-5" id="toc-phase-3-beta-week-5">Phase 3:
+Beta (Week 5)</a></li>
+<li><a href="#phase-4-production-week-6"
+id="toc-phase-4-production-week-6">Phase 4: Production (Week 6)</a></li>
+</ul></li>
+<li><a href="#rollback-plan" id="toc-rollback-plan">Rollback Plan</a>
+<ul>
+<li><a href="#if-critical-issues-found"
+id="toc-if-critical-issues-found">If Critical Issues Found</a></li>
+</ul></li>
+<li><a href="#future-enhancements" id="toc-future-enhancements">Future
+Enhancements</a>
+<ul>
+<li><a href="#phase-2-features-post-launch"
+id="toc-phase-2-features-post-launch">Phase 2 Features
+(Post-Launch)</a></li>
+<li><a href="#integration-opportunities"
+id="toc-integration-opportunities">Integration Opportunities</a></li>
+</ul></li>
+<li><a href="#appendix" id="toc-appendix">Appendix</a>
+<ul>
+<li><a href="#a.-database-schema-diagram"
+id="toc-a.-database-schema-diagram">A. Database Schema Diagram</a></li>
+<li><a href="#b.-api-endpoints" id="toc-b.-api-endpoints">B. API
+Endpoints</a></li>
+<li><a href="#c.-testing-checklist" id="toc-c.-testing-checklist">C.
+Testing Checklist</a></li>
+</ul></li>
+<li><a href="#conclusion" id="toc-conclusion">Conclusion</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="point-of-contact-poc-system---implementation-plan">Point of
+Contact (POC) System - Implementation Plan</h1>
+<h2 id="buildtrack-feature-enhancement">BuildTrack Feature
+Enhancement</h2>
+<p><strong>Date:</strong> October 22, 2025<br />
+<strong>Version:</strong> 1.0<br />
+<strong>Status:</strong> Planning Phase</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This document outlines the implementation plan for a <strong>Point of
+Contact (POC) system</strong> in BuildTrack. The system introduces
+hierarchical project management with company-level abstraction, enabling
+multiple companies to collaborate on projects while maintaining clear
+boundaries and single points of contact between organizations.</p>
+<h3 id="key-benefits">Key Benefits</h3>
+<ul>
+<li><strong>Company Abstraction</strong>: Upstream members only see
+POCs, not internal team structures</li>
+<li><strong>Delegation Authority</strong>: POCs can build teams without
+upstream visibility</li>
+<li><strong>Single Communication Channel</strong>: All cross-company
+communication flows through designated POCs</li>
+<li><strong>Hierarchical Structure</strong>: Same logic applies
+recursively at all task levels</li>
+<li><strong>Enhanced Privacy</strong>: Companies maintain control over
+their internal operations</li>
+</ul>
+<hr />
+<h2 id="core-concepts">Core Concepts</h2>
+<h3 id="point-of-contact-poc">1. Point of Contact (POC)</h3>
+<p>The first person from a company to join a project automatically
+becomes that company’s POC on the project. The POC serves as: - Primary
+representative for their company - Single communication channel to
+upstream - Authority to invite team members and subcontractors - Manager
+of internal task delegation</p>
+<h3 id="company-abstraction">2. Company Abstraction</h3>
+<p>Upstream project members see only: - POC name and contact information
+- Overall company progress/status - <strong>NOT visible</strong>:
+Internal team structure, individual assignments, sub-contractors</p>
+<h3 id="delegation-authority">3. Delegation Authority</h3>
+<p>POCs have the power to: - Add members from their own company - Invite
+external companies as subcontractors - Assign tasks internally without
+upstream visibility - Manage their own project hierarchy</p>
+<h3 id="hierarchical-structure">4. Hierarchical Structure</h3>
+<p>The POC system applies at every level:</p>
+<pre><code>Project Owner (Company A)
+  └─ POC can invite Contractors
+      └─ Contractor POC can invite Subcontractors
+          └─ Subcontractor POC can invite their Subcontractors
+              └─ ... (infinite depth)</code></pre>
+<hr />
+<h2 id="database-schema-changes">Database Schema Changes</h2>
+<h3 id="new-table-company_project_memberships">1. New Table:
+company_project_memberships</h3>
+<p>Tracks which companies are involved in each project and their
+POC.</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> company_project_memberships (</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span> UUID <span class="kw">PRIMARY</span> <span class="kw">KEY</span> <span class="kw">DEFAULT</span> uuid_generate_v4(),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  company_id UUID <span class="kw">REFERENCES</span> companies(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  project_id UUID <span class="kw">REFERENCES</span> projects(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  point_of_contact_user_id UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">SET</span> <span class="kw">NULL</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  invited_by UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>),</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  invited_at TIMESTAMPTZ <span class="kw">DEFAULT</span> NOW(),</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  status TEXT <span class="kw">CHECK</span> (status <span class="kw">IN</span> (<span class="st">&#39;pending&#39;</span>, <span class="st">&#39;active&#39;</span>, <span class="st">&#39;declined&#39;</span>)) <span class="kw">DEFAULT</span> <span class="st">&#39;active&#39;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  relationship_type TEXT <span class="kw">CHECK</span> (relationship_type <span class="kw">IN</span> (</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;owner&#39;</span>, <span class="st">&#39;contractor&#39;</span>, <span class="st">&#39;subcontractor&#39;</span>, <span class="st">&#39;supplier&#39;</span>, <span class="st">&#39;consultant&#39;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  )) <span class="kw">DEFAULT</span> <span class="st">&#39;contractor&#39;</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  parent_company_membership_id UUID <span class="kw">REFERENCES</span> company_project_memberships(<span class="kw">id</span>),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  visibility_level <span class="dt">INTEGER</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  is_active <span class="dt">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">true</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNIQUE</span>(company_id, project_id)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_company_project <span class="kw">ON</span> company_project_memberships(company_id, project_id);</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_poc_user <span class="kw">ON</span> company_project_memberships(point_of_contact_user_id);</span></code></pre></div>
+<h3 id="modify-user_project_assignments">2. Modify:
+user_project_assignments</h3>
+<p>Add POC designation and visibility tracking.</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> user_project_assignments </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ADD</span> <span class="kw">COLUMN</span> is_point_of_contact <span class="dt">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">false</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">ADD</span> <span class="kw">COLUMN</span> invited_by UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">ADD</span> <span class="kw">COLUMN</span> visibility_level <span class="dt">INTEGER</span> <span class="kw">DEFAULT</span> <span class="dv">0</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">ADD</span> <span class="kw">COLUMN</span> parent_company_membership_id UUID <span class="kw">REFERENCES</span> company_project_memberships(<span class="kw">id</span>);</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_poc_assignments <span class="kw">ON</span> user_project_assignments(project_id, is_point_of_contact) </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">WHERE</span> is_point_of_contact <span class="op">=</span> <span class="kw">true</span>;</span></code></pre></div>
+<h3 id="new-table-project_invitations">3. New Table:
+project_invitations</h3>
+<p>Manages external user invitations via email/phone.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> project_invitations (</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span> UUID <span class="kw">PRIMARY</span> <span class="kw">KEY</span> <span class="kw">DEFAULT</span> uuid_generate_v4(),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  project_id UUID <span class="kw">REFERENCES</span> projects(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  invited_by UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  invitee_email TEXT,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  invitee_phone TEXT,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  company_id UUID <span class="kw">REFERENCES</span> companies(<span class="kw">id</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  invited_user_id UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  should_be_poc <span class="dt">BOOLEAN</span> <span class="kw">DEFAULT</span> <span class="kw">false</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  relationship_type TEXT <span class="kw">CHECK</span> (relationship_type <span class="kw">IN</span> (</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;contractor&#39;</span>, <span class="st">&#39;subcontractor&#39;</span>, <span class="st">&#39;supplier&#39;</span>, <span class="st">&#39;consultant&#39;</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  )),</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  invitation_token TEXT <span class="kw">UNIQUE</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  status TEXT <span class="kw">CHECK</span> (status <span class="kw">IN</span> (<span class="st">&#39;pending&#39;</span>, <span class="st">&#39;accepted&#39;</span>, <span class="st">&#39;declined&#39;</span>, <span class="st">&#39;expired&#39;</span>)) <span class="kw">DEFAULT</span> <span class="st">&#39;pending&#39;</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  expires_at TIMESTAMPTZ <span class="kw">DEFAULT</span> NOW() <span class="op">+</span> <span class="dt">INTERVAL</span> <span class="st">&#39;7 days&#39;</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  created_at TIMESTAMPTZ <span class="kw">DEFAULT</span> NOW(),</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  accepted_at TIMESTAMPTZ,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  message TEXT</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_invitation_token <span class="kw">ON</span> project_invitations(invitation_token);</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_invitation_status <span class="kw">ON</span> project_invitations(project_id, status);</span></code></pre></div>
+<h3 id="modify-tasks">4. Modify: tasks</h3>
+<p>Add company-level assignment tracking.</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="kw">TABLE</span> tasks</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">ADD</span> <span class="kw">COLUMN</span> assigned_to_companies UUID[],</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">ADD</span> <span class="kw">COLUMN</span> assigned_to_pocs UUID[];</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_task_companies <span class="kw">ON</span> tasks <span class="kw">USING</span> GIN(assigned_to_companies);</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_task_pocs <span class="kw">ON</span> tasks <span class="kw">USING</span> GIN(assigned_to_pocs);</span></code></pre></div>
+<h3 id="new-table-task_visibility_rules">5. New Table:
+task_visibility_rules</h3>
+<p>Controls granular task visibility.</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> task_visibility_rules (</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">id</span> UUID <span class="kw">PRIMARY</span> <span class="kw">KEY</span> <span class="kw">DEFAULT</span> uuid_generate_v4(),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  task_id UUID <span class="kw">REFERENCES</span> tasks(<span class="kw">id</span>) <span class="kw">ON</span> <span class="kw">DELETE</span> <span class="kw">CASCADE</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  visible_to_company_id UUID <span class="kw">REFERENCES</span> companies(<span class="kw">id</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  visible_to_user_id UUID <span class="kw">REFERENCES</span> users(<span class="kw">id</span>),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  visibility_scope TEXT <span class="kw">CHECK</span> (visibility_scope <span class="kw">IN</span> (</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">&#39;full&#39;</span>, <span class="st">&#39;summary_only&#39;</span>, <span class="st">&#39;hidden&#39;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  )) <span class="kw">DEFAULT</span> <span class="st">&#39;full&#39;</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  created_at TIMESTAMPTZ <span class="kw">DEFAULT</span> NOW(),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">UNIQUE</span>(task_id, visible_to_company_id, visible_to_user_id)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>);</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_visibility_task <span class="kw">ON</span> task_visibility_rules(task_id);</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">INDEX</span> idx_visibility_company <span class="kw">ON</span> task_visibility_rules(visible_to_company_id);</span></code></pre></div>
+<hr />
+<h2 id="feature-architecture">Feature Architecture</h2>
+<h3 id="phase-1-foundation-database-core-logic">Phase 1: Foundation
+(Database &amp; Core Logic)</h3>
+<h4 id="company-project-membership-system">1.1 Company-Project
+Membership System</h4>
+<ul>
+<li>Track company involvement in projects</li>
+<li>Store POC designation for each company</li>
+<li>Maintain relationship hierarchy (owner → contractor →
+subcontractor)</li>
+<li>Support visibility levels</li>
+</ul>
+<h4 id="poc-management">1.2 POC Management</h4>
+<ul>
+<li>Auto-assign first user from company as POC</li>
+<li>Allow POC transfer within company (admin only)</li>
+<li>Validate POC permissions before actions</li>
+<li>Prevent multiple POCs per company per project</li>
+</ul>
+<h4 id="visibility-hierarchy">1.3 Visibility Hierarchy</h4>
+<ul>
+<li><strong>Level 0</strong>: Project owner company (visible to all
+downstream)</li>
+<li><strong>Level 1</strong>: Direct contractors (visible to owner
+only)</li>
+<li><strong>Level 2+</strong>: Subcontractors (visible only to their
+contractor)</li>
+</ul>
+<h3 id="phase-2-invitation-system">Phase 2: Invitation System</h3>
+<h4 id="invitation-data-model">2.1 Invitation Data Model</h4>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> ProjectInvitation {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  id<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  invitedBy<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> <span class="co">// User ID</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  inviteeEmail<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  inviteePhone<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  companyId<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  shouldBePOC<span class="op">:</span> <span class="dt">boolean</span><span class="op">;</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  relationshipType<span class="op">:</span> <span class="st">&#39;contractor&#39;</span> <span class="op">|</span> <span class="st">&#39;subcontractor&#39;</span> <span class="op">|</span> <span class="st">&#39;supplier&#39;</span> <span class="op">|</span> <span class="st">&#39;consultant&#39;</span><span class="op">;</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  invitationToken<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  status<span class="op">:</span> <span class="st">&#39;pending&#39;</span> <span class="op">|</span> <span class="st">&#39;accepted&#39;</span> <span class="op">|</span> <span class="st">&#39;declined&#39;</span> <span class="op">|</span> <span class="st">&#39;expired&#39;</span><span class="op">;</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  expiresAt<span class="op">:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  message<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="invitation-flow">2.2 Invitation Flow</h4>
+<ol type="1">
+<li><strong>POC creates invitation</strong>
+<ul>
+<li>Enter email or phone number</li>
+<li>Select relationship type</li>
+<li>Optionally designate as POC</li>
+<li>Add personal message</li>
+</ul></li>
+<li><strong>System generates unique token</strong>
+<ul>
+<li>Create secure invitation link</li>
+<li>Set expiration (7 days default)</li>
+</ul></li>
+<li><strong>Notification sent</strong>
+<ul>
+<li>Email with invitation link</li>
+<li>SMS with short link (optional)</li>
+<li>Push notification if user exists</li>
+</ul></li>
+<li><strong>Invitee accepts</strong>
+<ul>
+<li>Click link → Accept page</li>
+<li>If existing user: Add to project immediately</li>
+<li>If new user: Create account → Add to project</li>
+<li>Auto-assign POC status if designated</li>
+</ul></li>
+<li><strong>Project updated</strong>
+<ul>
+<li>Add company to project memberships</li>
+<li>Create user assignment</li>
+<li>Notify inviting POC</li>
+<li>Trigger data sync</li>
+</ul></li>
+</ol>
+<h4 id="invitation-ui-components">2.3 Invitation UI Components</h4>
+<ul>
+<li><strong>Invite Modal</strong>: Input form with email/phone</li>
+<li><strong>Relationship Selector</strong>: Choose contractor type</li>
+<li><strong>POC Toggle</strong>: Designate as point of contact</li>
+<li><strong>Message Field</strong>: Personal invitation message</li>
+<li><strong>Preview</strong>: Show what invitee will see</li>
+</ul>
+<h3 id="phase-3-user-selection-visibility">Phase 3: User Selection &amp;
+Visibility</h3>
+<h4 id="smart-user-picker-logic">3.1 Smart User Picker Logic</h4>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getAssignableUsers</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  currentUserId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  taskId<span class="op">?:</span> <span class="dt">string</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> User[] {</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> currentUser <span class="op">=</span> <span class="fu">getUserById</span>(currentUserId)<span class="op">;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> membership <span class="op">=</span> <span class="fu">getCompanyProjectMembership</span>(</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    currentUser<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    projectId</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Get own company members (always visible)</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> ownTeam <span class="op">=</span> <span class="fu">getCompanyMembers</span>(</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    currentUser<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    projectId</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Get downstream POCs based on visibility level</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> downstreamPOCs <span class="op">=</span> <span class="fu">getDownstreamPOCs</span>(</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    currentUser<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    projectId<span class="op">,</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    membership<span class="op">.</span><span class="at">visibilityLevel</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> [<span class="op">...</span>ownTeam<span class="op">,</span> <span class="op">...</span>downstreamPOCs]<span class="op">;</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="visibility-matrix">3.2 Visibility Matrix</h4>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 19%" />
+<col style="width: 31%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>User Type</th>
+<th>Can See</th>
+<th>Can Assign To</th>
+<th>Can Invite</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Project Owner</td>
+<td>Own team + All direct contractor POCs</td>
+<td>Own team + Contractor POCs</td>
+<td>New contractors</td>
+</tr>
+<tr>
+<td>Contractor POC</td>
+<td>Own team + Subcontractor POCs</td>
+<td>Own team + Subcontractor POCs</td>
+<td>New subcontractors</td>
+</tr>
+<tr>
+<td>Team Member</td>
+<td>Only own team</td>
+<td>Only own team</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Subcontractor POC</td>
+<td>Own team only</td>
+<td>Own team only</td>
+<td>New subcontractors</td>
+</tr>
+</tbody>
+</table>
+<h3 id="phase-4-task-assignment-logic">Phase 4: Task Assignment
+Logic</h3>
+<h4 id="company-level-assignment">4.1 Company-Level Assignment</h4>
+<p>When assigning tasks to POCs: 1. Task is assigned to the company
+(company-level) 2. POC is notified and sees the task 3. POC can delegate
+internally to team members 4. Upstream only sees “Assigned to [Company
+Name] ([POC Name])” 5. Internal delegation is hidden from upstream</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">assignTaskToPOC</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  taskId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  pocUserId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  assignerId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> poc <span class="op">=</span> <span class="fu">getUserById</span>(pocUserId)<span class="op">;</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> task <span class="op">=</span> <span class="fu">getTask</span>(taskId)<span class="op">;</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Add company-level assignment</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  task<span class="op">.</span><span class="at">assignedToCompanies</span><span class="op">.</span><span class="fu">push</span>(poc<span class="op">.</span><span class="at">companyId</span>)<span class="op">;</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  task<span class="op">.</span><span class="at">assignedToPOCs</span><span class="op">.</span><span class="fu">push</span>(pocUserId)<span class="op">;</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Create visibility rule</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">createTaskVisibilityRule</span>({</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    taskId<span class="op">:</span> task<span class="op">.</span><span class="at">id</span><span class="op">,</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    visibleToCompanyId<span class="op">:</span> poc<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    visibilityScope<span class="op">:</span> <span class="st">&#39;full&#39;</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Upstream sees summary only</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">createTaskVisibilityRule</span>({</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    taskId<span class="op">:</span> task<span class="op">.</span><span class="at">id</span><span class="op">,</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    visibleToUserId<span class="op">:</span> assignerId<span class="op">,</span></span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    visibilityScope<span class="op">:</span> <span class="st">&#39;summary_only&#39;</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Notify POC</span></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">notifyUser</span>(pocUserId<span class="op">,</span> {</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&#39;task_assigned&#39;</span><span class="op">,</span></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    taskId<span class="op">:</span> task<span class="op">.</span><span class="at">id</span><span class="op">,</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    message<span class="op">:</span> <span class="vs">`New task assigned to </span><span class="sc">${</span>poc<span class="op">.</span><span class="at">companyName</span><span class="sc">}</span><span class="vs">`</span></span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="internal-delegation">4.2 Internal Delegation</h4>
+<p>When POC delegates to team members: 1. Add team members to internal
+assignment list 2. <strong>Do not</strong> update upstream visibility 3.
+Team members see full task details 4. Upstream still sees only POC</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">delegateTaskInternally</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  taskId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  pocUserId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  teamMemberIds<span class="op">:</span> <span class="dt">string</span>[]</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> task <span class="op">=</span> <span class="fu">getTask</span>(taskId)<span class="op">;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> poc <span class="op">=</span> <span class="fu">getUserById</span>(pocUserId)<span class="op">;</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Verify POC authority</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span><span class="fu">isPOC</span>(pocUserId<span class="op">,</span> task<span class="op">.</span><span class="at">projectId</span>)) {</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Only POC can delegate internally&#39;</span>)<span class="op">;</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Add team members (hidden from upstream)</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (<span class="kw">const</span> memberId <span class="kw">of</span> teamMemberIds) {</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> member <span class="op">=</span> <span class="fu">getUserById</span>(memberId)<span class="op">;</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verify same company</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (member<span class="op">.</span><span class="at">companyId</span> <span class="op">!==</span> poc<span class="op">.</span><span class="at">companyId</span>) {</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Can only delegate to own company members&#39;</span>)<span class="op">;</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Add internal assignment</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    task<span class="op">.</span><span class="at">assignedToUsers</span><span class="op">.</span><span class="fu">push</span>(memberId)<span class="op">;</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Grant full visibility to team member</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">createTaskVisibilityRule</span>({</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>      taskId<span class="op">:</span> task<span class="op">.</span><span class="at">id</span><span class="op">,</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>      visibleToUserId<span class="op">:</span> memberId<span class="op">,</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>      visibilityScope<span class="op">:</span> <span class="st">&#39;full&#39;</span></span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Upstream visibility unchanged</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h4 id="task-visibility-query">4.3 Task Visibility Query</h4>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getTasksForUser</span>(userId<span class="op">:</span> <span class="dt">string</span>)<span class="op">:</span> Task[] {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="fu">getUserById</span>(userId)<span class="op">;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> pocProjects <span class="op">=</span> <span class="fu">getUserPOCProjects</span>(userId)<span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="fu">getAllTasks</span>()<span class="op">.</span><span class="fu">filter</span>(task <span class="kw">=&gt;</span> {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Direct assignment</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (task<span class="op">.</span><span class="at">assignedToUsers</span><span class="op">.</span><span class="fu">includes</span>(userId)) <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Assigned as POC</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (task<span class="op">.</span><span class="at">assignedToPOCs</span><span class="op">.</span><span class="fu">includes</span>(userId)) <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Company-level assignment (user is POC)</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (pocProjects<span class="op">.</span><span class="fu">includes</span>(task<span class="op">.</span><span class="at">projectId</span>) <span class="op">&amp;&amp;</span> </span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        task<span class="op">.</span><span class="at">assignedToCompanies</span><span class="op">.</span><span class="fu">includes</span>(user<span class="op">.</span><span class="at">companyId</span>)) {</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Check visibility rules</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> rule <span class="op">=</span> <span class="fu">getTaskVisibilityRule</span>(task<span class="op">.</span><span class="at">id</span><span class="op">,</span> userId)<span class="op">;</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rule <span class="op">&amp;&amp;</span> rule<span class="op">.</span><span class="at">visibilityScope</span> <span class="op">!==</span> <span class="st">&#39;hidden&#39;</span><span class="op">;</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="phase-5-ui-components">Phase 5: UI Components</h3>
+<h4 id="poc-badge-component">5.1 POC Badge Component</h4>
+<pre class="tsx"><code>interface POCBadgeProps {
+  userId: string;
+  projectId: string;
+  size?: &#39;small&#39; | &#39;medium&#39; | &#39;large&#39;;
+  showCompanyName?: boolean;
+}
+
+&lt;POCBadge 
+  userId={user.id}
+  projectId={project.id}
+  size=&quot;medium&quot;
+  showCompanyName={true}
+/&gt;
+// Output: &quot;⭐ Point of Contact for Acme Corp&quot;</code></pre>
+<h4 id="company-hierarchy-view">5.2 Company Hierarchy View</h4>
+<p>Visual representation of project structure:</p>
+<pre><code>Project: Downtown Tower Construction
+│
+├─ 🏢 Acme Construction (Owner)
+│   ├─ 👤 John Smith ⭐ (POC)
+│   ├─ 👤 Sarah Johnson
+│   └─ 👤 Mike Davis
+│
+├─ 🏢 Elite Electrical (Contractor)
+│   └─ 👤 David Brown ⭐ (POC)
+│       └─ 🔒 Team: 5 members (hidden from owner)
+│
+└─ 🏢 Premier Plumbing (Contractor)
+    └─ 👤 Lisa Garcia ⭐ (POC)
+        └─ 🔒 Team: 3 members (hidden from owner)</code></pre>
+<h4 id="enhanced-user-picker">5.3 Enhanced User Picker</h4>
+<p><strong>For Project Owner (Acme Construction):</strong></p>
+<pre><code>┌─────────────────────────────────────┐
+│ Assign Task To                      │
+├─────────────────────────────────────┤
+│ Your Team (Acme Construction)       │
+│ ☐ John Smith (you) ⭐              │
+│ ☐ Sarah Johnson                     │
+│ ☐ Mike Davis                        │
+│                                     │
+│ Contractors                         │
+│ ☐ 🏢 Elite Electrical               │
+│    → David Brown ⭐                 │
+│ ☐ 🏢 Premier Plumbing               │
+│    → Lisa Garcia ⭐                 │
+└─────────────────────────────────────┘</code></pre>
+<p><strong>For Contractor POC (Elite Electrical):</strong></p>
+<pre><code>┌─────────────────────────────────────┐
+│ Assign Task To                      │
+├─────────────────────────────────────┤
+│ Your Team (Elite Electrical)        │
+│ ☐ David Brown (you) ⭐              │
+│ ☐ Mark Wilson                       │
+│ ☐ Jennifer Lee                      │
+│ ☐ Tom Anderson                      │
+│ ☐ Amy Chen                          │
+│                                     │
+│ Your Subcontractors                 │
+│ ☐ 🏢 Specialized Wiring             │
+│    → Robert Taylor ⭐               │
+│                                     │
+│ [+ Invite Subcontractor]            │
+└─────────────────────────────────────┘</code></pre>
+<h4 id="invitation-modal">5.4 Invitation Modal</h4>
+<pre><code>┌─────────────────────────────────────┐
+│ Invite to Project                   │
+├─────────────────────────────────────┤
+│ Contact Information:                │
+│ ○ Email  ● Phone                    │
+│ [____________________________]      │
+│                                     │
+│ Company (optional):                 │
+│ [Select Company         ▼]          │
+│ or [Create New Company]             │
+│                                     │
+│ Role on Project:                    │
+│ ● Contractor                        │
+│ ○ Subcontractor                     │
+│ ○ Supplier                          │
+│ ○ Consultant                        │
+│                                     │
+│ ☑ Designate as Point of Contact    │
+│                                     │
+│ Personal Message (optional):        │
+│ ┌──────────────────────────────┐   │
+│ │                              │   │
+│ │                              │   │
+│ └──────────────────────────────┘   │
+│                                     │
+│ [Cancel]         [Send Invitation]  │
+└─────────────────────────────────────┘</code></pre>
+<h4 id="team-management-screen">5.5 Team Management Screen</h4>
+<p>New screen for POCs to manage their team:</p>
+<pre><code>┌─────────────────────────────────────┐
+│ My Team - Elite Electrical          │
+├─────────────────────────────────────┤
+│ Team Members (5)                    │
+│                                     │
+│ 👤 David Brown ⭐                   │
+│    Point of Contact                 │
+│    [Transfer POC] [Remove]          │
+│                                     │
+│ 👤 Mark Wilson                      │
+│    Panel Installer                  │
+│    [Make POC] [Remove]              │
+│                                     │
+│ 👤 Jennifer Lee                     │
+│    Electrician                      │
+│    [Make POC] [Remove]              │
+│                                     │
+│ ... (3 more members)                │
+│                                     │
+│ [+ Add Team Member]                 │
+│                                     │
+│ ─────────────────────────────────   │
+│                                     │
+│ Subcontractors (1)                  │
+│                                     │
+│ 🏢 Specialized Wiring               │
+│    Contact: Robert Taylor ⭐        │
+│    Status: Active                   │
+│    [View] [Remove]                  │
+│                                     │
+│ [+ Invite Subcontractor]            │
+└─────────────────────────────────────┘</code></pre>
+<h3 id="phase-6-permissions-security">Phase 6: Permissions &amp;
+Security</h3>
+<h4 id="permission-matrix">6.1 Permission Matrix</h4>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Project Owner</th>
+<th>POC</th>
+<th>Team Member</th>
+<th>Upstream Can See</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add own company members</td>
+<td>✅ Admin + POC</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>Remove own company members</td>
+<td>✅ Admin + POC</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>Invite external companies</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅ Yes (POC only)</td>
+</tr>
+<tr>
+<td>Designate POC for invited company</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Change own company POC</td>
+<td>✅ Admin only</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>Transfer POC to team member</td>
+<td>✅ Admin only</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>View upstream team structure</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>View own team structure</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td>View downstream POCs</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>View downstream team structure</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td>Assign tasks to upstream</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Assign tasks to own team</td>
+<td>✅</td>
+<td>✅</td>
+<td>Limited</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td>Assign tasks to downstream POCs</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅ Summary only</td>
+</tr>
+</tbody>
+</table>
+<h4 id="security-rules">6.2 Security Rules</h4>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Rule 1: Can only invite if POC or Project Creator</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">canInviteToProject</span>(</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  userId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> <span class="dt">boolean</span> {</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> project <span class="op">=</span> <span class="fu">getProject</span>(projectId)<span class="op">;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> isPOC <span class="op">=</span> <span class="fu">checkIfPOC</span>(userId<span class="op">,</span> projectId)<span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> isCreator <span class="op">=</span> project<span class="op">.</span><span class="at">createdBy</span> <span class="op">===</span> userId<span class="op">;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> isAdmin <span class="op">=</span> <span class="fu">getUserRole</span>(userId) <span class="op">===</span> <span class="st">&#39;admin&#39;</span><span class="op">;</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (isPOC <span class="op">||</span> isCreator) <span class="op">&amp;&amp;</span> isAdmin<span class="op">;</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="co">// Rule 2: Can only see POCs, not their teams</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getVisibleUsers</span>(</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  userId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> User[] {</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> user <span class="op">=</span> <span class="fu">getUserById</span>(userId)<span class="op">;</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> membership <span class="op">=</span> <span class="fu">getCompanyProjectMembership</span>(</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    user<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    projectId</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Own company members (full visibility)</span></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> ownTeam <span class="op">=</span> <span class="fu">getCompanyMembers</span>(</span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    user<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    projectId</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Downstream POCs only (no team visibility)</span></span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> downstreamPOCs <span class="op">=</span> <span class="fu">getDownstreamPOCs</span>(</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>    user<span class="op">.</span><span class="at">companyId</span><span class="op">,</span></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>    projectId<span class="op">,</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>    membership<span class="op">.</span><span class="at">visibilityLevel</span></span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> [<span class="op">...</span>ownTeam<span class="op">,</span> <span class="op">...</span>downstreamPOCs]<span class="op">;</span></span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a><span class="co">// Rule 3: Can only assign to visible users</span></span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">canAssignTaskTo</span>(</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>  assignerId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>  assigneeId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>  taskId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> <span class="dt">boolean</span> {</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> task <span class="op">=</span> <span class="fu">getTask</span>(taskId)<span class="op">;</span></span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> visibleUsers <span class="op">=</span> <span class="fu">getVisibleUsers</span>(</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>    assignerId<span class="op">,</span></span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>    task<span class="op">.</span><span class="at">projectId</span></span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> visibleUsers<span class="op">.</span><span class="fu">some</span>(u <span class="kw">=&gt;</span> u<span class="op">.</span><span class="at">id</span> <span class="op">===</span> assigneeId)<span class="op">;</span></span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true" tabindex="-1"></a><span class="co">// Rule 4: POC-only actions</span></span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">canPerformPOCAction</span>(</span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true" tabindex="-1"></a>  userId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true" tabindex="-1"></a>  action<span class="op">:</span> <span class="st">&#39;invite&#39;</span> <span class="op">|</span> <span class="st">&#39;delegate&#39;</span> <span class="op">|</span> <span class="st">&#39;transfer_poc&#39;</span></span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> <span class="dt">boolean</span> {</span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> isPOC <span class="op">=</span> <span class="fu">checkIfPOC</span>(userId<span class="op">,</span> projectId)<span class="op">;</span></span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> isAdmin <span class="op">=</span> <span class="fu">getUserRole</span>(userId) <span class="op">===</span> <span class="st">&#39;admin&#39;</span><span class="op">;</span></span>
+<span id="cb18-64"><a href="#cb18-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-65"><a href="#cb18-65" aria-hidden="true" tabindex="-1"></a>  <span class="cf">switch</span> (action) {</span>
+<span id="cb18-66"><a href="#cb18-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> <span class="st">&#39;invite&#39;</span><span class="op">:</span></span>
+<span id="cb18-67"><a href="#cb18-67" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> <span class="st">&#39;delegate&#39;</span><span class="op">:</span></span>
+<span id="cb18-68"><a href="#cb18-68" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> isPOC<span class="op">;</span></span>
+<span id="cb18-69"><a href="#cb18-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> <span class="st">&#39;transfer_poc&#39;</span><span class="op">:</span></span>
+<span id="cb18-70"><a href="#cb18-70" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> isPOC <span class="op">&amp;&amp;</span> isAdmin<span class="op">;</span></span>
+<span id="cb18-71"><a href="#cb18-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">default</span><span class="op">:</span></span>
+<span id="cb18-72"><a href="#cb18-72" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb18-73"><a href="#cb18-73" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb18-74"><a href="#cb18-74" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb18-75"><a href="#cb18-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-76"><a href="#cb18-76" aria-hidden="true" tabindex="-1"></a><span class="co">// Rule 5: Visibility scope enforcement</span></span>
+<span id="cb18-77"><a href="#cb18-77" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">getTaskDetailsForUser</span>(</span>
+<span id="cb18-78"><a href="#cb18-78" aria-hidden="true" tabindex="-1"></a>  taskId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb18-79"><a href="#cb18-79" aria-hidden="true" tabindex="-1"></a>  userId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb18-80"><a href="#cb18-80" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> TaskDetails {</span>
+<span id="cb18-81"><a href="#cb18-81" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> task <span class="op">=</span> <span class="fu">getTask</span>(taskId)<span class="op">;</span></span>
+<span id="cb18-82"><a href="#cb18-82" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> rule <span class="op">=</span> <span class="fu">getTaskVisibilityRule</span>(taskId<span class="op">,</span> userId)<span class="op">;</span></span>
+<span id="cb18-83"><a href="#cb18-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-84"><a href="#cb18-84" aria-hidden="true" tabindex="-1"></a>  <span class="cf">switch</span> (rule<span class="op">?.</span><span class="at">visibilityScope</span>) {</span>
+<span id="cb18-85"><a href="#cb18-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> <span class="st">&#39;full&#39;</span><span class="op">:</span></span>
+<span id="cb18-86"><a href="#cb18-86" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="fu">getFullTaskDetails</span>(task)<span class="op">;</span></span>
+<span id="cb18-87"><a href="#cb18-87" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> <span class="st">&#39;summary_only&#39;</span><span class="op">:</span></span>
+<span id="cb18-88"><a href="#cb18-88" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="fu">getSummaryTaskDetails</span>(task)<span class="op">;</span></span>
+<span id="cb18-89"><a href="#cb18-89" aria-hidden="true" tabindex="-1"></a>    <span class="cf">case</span> <span class="st">&#39;hidden&#39;</span><span class="op">:</span></span>
+<span id="cb18-90"><a href="#cb18-90" aria-hidden="true" tabindex="-1"></a>      <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Task not visible to user&#39;</span>)<span class="op">;</span></span>
+<span id="cb18-91"><a href="#cb18-91" aria-hidden="true" tabindex="-1"></a>    <span class="cf">default</span><span class="op">:</span></span>
+<span id="cb18-92"><a href="#cb18-92" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> <span class="fu">getSummaryTaskDetails</span>(task)<span class="op">;</span></span>
+<span id="cb18-93"><a href="#cb18-93" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb18-94"><a href="#cb18-94" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<hr />
+<h2 id="workflow-examples">Workflow Examples</h2>
+<h3 id="scenario-1-creating-new-project">Scenario 1: Creating New
+Project</h3>
+<p><strong>Step 1: Project Creation</strong> - User A (Acme Construction
+- Admin) creates “Downtown Tower Construction” - System automatically: -
+Sets Acme Construction as owner company - Designates User A as POC for
+Acme Construction - Creates company_project_membership record - Sets
+visibility_level = 0 (owner level)</p>
+<p><strong>Step 2: Adding Own Team</strong> - User A adds Sarah Johnson
+(same company) - Validation: ✅ Allowed (POC can add own team) - Sarah
+becomes team member (not POC) - Sarah has full visibility to project</p>
+<p><strong>Step 3: Inviting External Contractor</strong> - User A sends
+invitation to david@eliteelectrical.com - Selects: Relationship =
+“Contractor” - Checks: “Designate as Point of Contact” - System
+generates invitation token and sends email</p>
+<p><strong>Step 4: Contractor Accepts</strong> - David clicks invitation
+link - System: - Creates Elite Electrical company membership -
+Designates David as POC - Sets visibility_level = 1 (contractor level) -
+Notifies User A of acceptance</p>
+<p><strong>Result:</strong></p>
+<pre><code>Project: Downtown Tower Construction
+├─ Acme Construction (Owner) [Level 0]
+│   ├─ User A ⭐ (POC)
+│   └─ Sarah Johnson
+└─ Elite Electrical (Contractor) [Level 1]
+    └─ David Brown ⭐ (POC)</code></pre>
+<h3 id="scenario-2-task-assignment-flow">Scenario 2: Task Assignment
+Flow</h3>
+<p><strong>Step 1: Owner Creates Task</strong> - User A creates task:
+“Install Main Electrical Panel” - Due date: 2 weeks - Priority: High</p>
+<p><strong>Step 2: Owner Assigns to Contractor</strong> - User A opens
+user picker - Sees: - Own team: User A, Sarah Johnson - Contractors: 🏢
+Elite Electrical → David Brown ⭐ - Selects: David Brown (Elite
+Electrical)</p>
+<p><strong>Step 3: System Processing</strong> - Task assigned to: -
+assigned_to_companies: [Elite Electrical ID] - assigned_to_pocs: [David
+Brown ID] - Visibility rules created: - Elite Electrical: full access -
+User A: summary_only (sees POC, not team) - David receives
+notification</p>
+<p><strong>Step 4: POC Views Task</strong> - David sees task in his
+inbox - Full details visible - Can see all task information - Ready to
+delegate internally</p>
+<p><strong>Step 5: POC Delegates Internally</strong> - David assigns to
+his team: - Mark Wilson (Panel Installation) - Jennifer Lee (Wiring) -
+Tom Anderson (Testing) - Team members added to assigned_to_users
+(internal) - User A <strong>does not</strong> see this delegation - User
+A only sees: “Assigned to Elite Electrical (David Brown)”</p>
+<p><strong>Step 6: Progress Reporting</strong> - Mark, Jennifer, Tom
+update their progress - David sees: Mark 100%, Jennifer 80%, Tom 20% -
+Overall: 66% complete - User A sees: “Elite Electrical - 66% complete
+(David Brown)” - User A <strong>cannot</strong> see individual team
+member progress</p>
+<p><strong>Result - Owner View:</strong></p>
+<pre><code>Task: Install Main Electrical Panel
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Assigned to: Elite Electrical ⚡
+Contact: David Brown ⭐
+Status: In Progress
+Progress: 66%</code></pre>
+<p><strong>Result - POC View:</strong></p>
+<pre><code>Task: Install Main Electrical Panel
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+My Team Assignments:
+  ✅ Mark Wilson (Panel) 100%
+  🔄 Jennifer Lee (Wiring) 80%
+  🔄 Tom Anderson (Testing) 20%
+
+Overall Progress: 66%</code></pre>
+<h3 id="scenario-3-sub-contractor-hierarchy">Scenario 3: Sub-Contractor
+Hierarchy</h3>
+<p><strong>Step 1: Contractor Needs Specialist</strong> - David (Elite
+Electrical POC) realizes he needs specialized wiring - Creates sub-task:
+“Install High-Voltage Circuit Breakers” - Needs external specialist</p>
+<p><strong>Step 2: Contractor Invites Sub-Contractor</strong> - David
+invites: robert@specializedwiring.com - Relationship: “Subcontractor” -
+Designates: “Point of Contact” - Adds message: “Need your expertise for
+HV circuits”</p>
+<p><strong>Step 3: Sub-Contractor Accepts</strong> - Robert accepts
+invitation - System: - Creates Specialized Wiring company membership -
+parent_company_membership_id = Elite Electrical membership -
+visibility_level = 2 (subcontractor level) - Designates Robert as POC -
+<strong>Important</strong>: User A (owner) does NOT see this invitation
+- Only David sees Specialized Wiring</p>
+<p><strong>Step 4: Contractor Assigns Sub-Task</strong> - David assigns
+sub-task to Robert - Robert’s company: Specialized Wiring - Visibility:
+- ✅ David (Elite Electrical) - Full access - ✅ Robert (Specialized
+Wiring) - Full access - ❌ User A (Acme Construction) - No
+visibility</p>
+<p><strong>Step 5: Sub-Contractor Builds Team</strong> - Robert adds his
+team members: - Lisa Martinez - Carlos Rodriguez - Only Robert and his
+team see these members - David sees: “Specialized Wiring (Robert
+Taylor)” - User A has no knowledge of Specialized Wiring at all</p>
+<p><strong>Result - Hierarchy:</strong></p>
+<pre><code>User A&#39;s View (Owner):
+├─ Task: Install Main Electrical Panel
+│   └─ Assigned to: Elite Electrical (David Brown) 66%
+
+David&#39;s View (Contractor POC):
+├─ Task: Install Main Electrical Panel
+│   ├─ Mark Wilson 100%
+│   ├─ Jennifer Lee 80%
+│   ├─ Tom Anderson 20%
+│   └─ Sub-task: Install HV Circuits
+│       └─ Assigned to: Specialized Wiring (Robert Taylor) 50%
+
+Robert&#39;s View (Subcontractor POC):
+└─ Sub-task: Install HV Circuits
+    ├─ Lisa Martinez 60%
+    └─ Carlos Rodriguez 40%</code></pre>
+<p><strong>Privacy Maintained:</strong> - User A cannot see Robert’s
+company or team - User A cannot see David’s internal delegation - David
+cannot see Robert’s internal delegation - Each level maintains its own
+team structure</p>
+<hr />
+<h2 id="implementation-timeline">Implementation Timeline</h2>
+<h3 id="week-1-database-foundation">Week 1: Database Foundation</h3>
+<p><strong>Days 1-2: Schema Design</strong> - [ ] Finalize all table
+structures - [ ] Create migration scripts - [ ] Design indexes for
+performance - [ ] Document relationships</p>
+<p><strong>Days 3-5: Database Implementation</strong> - [ ] Run
+migrations on development database - [ ] Create helper functions/views -
+[ ] Write seed data scripts - [ ] Test data integrity</p>
+<h3 id="week-2-core-business-logic">Week 2: Core Business Logic</h3>
+<p><strong>Days 1-2: POC Management</strong> - [ ] Implement POC
+detection logic - [ ] Create POC assignment functions - [ ] Build POC
+transfer mechanism - [ ] Add validation rules</p>
+<p><strong>Days 3-4: Visibility Engine</strong> - [ ] Implement
+visibility level calculations - [ ] Create user filtering functions - [
+] Build company hierarchy queries - [ ] Test visibility rules</p>
+<p><strong>Day 5: Assignment Logic</strong> - [ ] Update task assignment
+functions - [ ] Implement company-level assignments - [ ] Add delegation
+mechanisms - [ ] Create visibility rule generators</p>
+<h3 id="week-3-invitation-system">Week 3: Invitation System</h3>
+<p><strong>Days 1-2: Backend</strong> - [ ] Create invitation data
+models - [ ] Implement token generation - [ ] Build invitation
+acceptance flow - [ ] Add expiration handling</p>
+<p><strong>Days 3-4: Notifications</strong> - [ ] Email template design
+- [ ] SMS integration - [ ] Push notification setup - [ ] Test
+notification delivery</p>
+<p><strong>Day 5: Frontend</strong> - [ ] Design invitation modal - [ ]
+Build invitation form - [ ] Create acceptance page - [ ] Test invitation
+flow</p>
+<h3 id="week-4-task-assignment-refactor">Week 4: Task Assignment
+Refactor</h3>
+<p><strong>Days 1-2: User Selection</strong> - [ ] Update user picker
+component - [ ] Implement smart filtering - [ ] Add POC indicators - [ ]
+Show company grouping</p>
+<p><strong>Days 3-4: Assignment UI</strong> - [ ] Modify task creation
+screen - [ ] Update task detail screen - [ ] Add delegation interface -
+[ ] Implement permission checks</p>
+<p><strong>Day 5: Testing</strong> - [ ] Test assignment flows - [ ]
+Verify visibility rules - [ ] Check edge cases - [ ] Fix bugs</p>
+<h3 id="week-5-ui-components">Week 5: UI Components</h3>
+<p><strong>Days 1-2: Core Components</strong> - [ ] POC badge component
+- [ ] Company hierarchy view - [ ] Enhanced user picker - [ ] Invitation
+modal</p>
+<p><strong>Days 3-4: Management Screens</strong> - [ ] Team management
+screen - [ ] Company settings page - [ ] POC transfer interface - [ ]
+Member list views</p>
+<p><strong>Day 5: Polish</strong> - [ ] Improve UI/UX - [ ] Add
+animations - [ ] Responsive design - [ ] Accessibility</p>
+<h3 id="week-6-testing-launch">Week 6: Testing &amp; Launch</h3>
+<p><strong>Days 1-2: Testing</strong> - [ ] Unit tests for all functions
+- [ ] Integration tests - [ ] Permission tests - [ ] Performance
+tests</p>
+<p><strong>Days 3-4: Documentation</strong> - [ ] User guide - [ ] Admin
+guide - [ ] API documentation - [ ] Video tutorials</p>
+<p><strong>Day 5: Launch Preparation</strong> - [ ] Final QA - [ ]
+Staging deployment - [ ] Production deployment - [ ] Monitor and
+support</p>
+<hr />
+<h2 id="edge-cases-handling">Edge Cases &amp; Handling</h2>
+<h3 id="poc-leaves-project">1. POC Leaves Project</h3>
+<p><strong>Scenario</strong>: Current POC is removed or leaves
+company</p>
+<p><strong>Solution</strong>: - System automatically promotes next admin
+user - If no admin available, promote senior team member - Notify all
+team members of POC change - Send notification to upstream POC -
+Maintain all existing permissions</p>
+<p><strong>Implementation</strong>:</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">handlePOCDeparture</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  departingPOCId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>) {</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> company <span class="op">=</span> <span class="fu">getCompanyForUser</span>(departingPOCId)<span class="op">;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> teamMembers <span class="op">=</span> <span class="fu">getCompanyMembers</span>(</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    company<span class="op">.</span><span class="at">id</span><span class="op">,</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    projectId</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Find replacement</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> newPOC <span class="op">=</span> teamMembers<span class="op">.</span><span class="fu">find</span>(m <span class="kw">=&gt;</span> m<span class="op">.</span><span class="at">role</span> <span class="op">===</span> <span class="st">&#39;admin&#39;</span>)</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">||</span> teamMembers[<span class="dv">0</span>]<span class="op">;</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>newPOC) {</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// No team members left</span></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">handleCompanyDeparture</span>(company<span class="op">.</span><span class="at">id</span><span class="op">,</span> projectId)<span class="op">;</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Transfer POC</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transferPOC</span>(projectId<span class="op">,</span> company<span class="op">.</span><span class="at">id</span><span class="op">,</span> departingPOCId<span class="op">,</span> newPOC<span class="op">.</span><span class="at">id</span>)<span class="op">;</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Notify stakeholders</span></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">notifyPOCChange</span>(projectId<span class="op">,</span> company<span class="op">.</span><span class="at">id</span><span class="op">,</span> newPOC)<span class="op">;</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="company-has-no-active-members">2. Company Has No Active
+Members</h3>
+<p><strong>Scenario</strong>: Last team member leaves/is removed</p>
+<p><strong>Solution</strong>: - Mark company membership as inactive -
+Notify upstream POC - Freeze all active tasks assigned to company -
+Offer to reassign tasks to other companies - Preserve data for potential
+reactivation</p>
+<h3 id="circular-dependencies">3. Circular Dependencies</h3>
+<p><strong>Scenario</strong>: Company A tries to invite Company A as
+subcontractor</p>
+<p><strong>Solution</strong>: - Validate company relationships before
+invitation - Check entire hierarchy for circular references - Prevent
+invitation if circular dependency detected - Show clear error
+message</p>
+<p><strong>Implementation</strong>:</p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">validateInvitation</span>(</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  invitingCompanyId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  inviteeCompanyId<span class="op">:</span> <span class="dt">string</span><span class="op">,</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  projectId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">:</span> <span class="dt">boolean</span> {</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Check if invitee is already upstream</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> hierarchy <span class="op">=</span> <span class="fu">getCompanyHierarchy</span>(projectId)<span class="op">;</span></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> upstreamCompanies <span class="op">=</span> <span class="fu">getUpstreamCompanies</span>(</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    invitingCompanyId<span class="op">,</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    hierarchy</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>  )<span class="op">;</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (upstreamCompanies<span class="op">.</span><span class="fu">includes</span>(inviteeCompanyId)) {</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>      <span class="st">&#39;Cannot invite company that is already upstream in hierarchy&#39;</span></span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    )<span class="op">;</span></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Check if invitee would create circular reference</span></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (invitingCompanyId <span class="op">===</span> inviteeCompanyId) {</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;Company cannot invite itself&#39;</span>)<span class="op">;</span></span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="multiple-poc-designation-attempts">4. Multiple POC Designation
+Attempts</h3>
+<p><strong>Scenario</strong>: Two users from same company both
+designated as POC</p>
+<p><strong>Solution</strong>: - Database constraint prevents multiple
+POCs - UI validates before allowing designation - If conflict occurs,
+show modal to resolve - Admin chooses which user should be POC - Other
+user reverted to team member</p>
+<h3 id="invitation-expiry">5. Invitation Expiry</h3>
+<p><strong>Scenario</strong>: Invitation not accepted within 7 days</p>
+<p><strong>Solution</strong>: - Automated job runs daily - Marks expired
+invitations - Sends reminder before expiry (day 5) - Allows
+re-invitation after expiry - Cleans up old expired invitations (30
+days)</p>
+<p><strong>Implementation</strong>:</p>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Cron job (daily at 2 AM)</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="kw">async</span> <span class="kw">function</span> <span class="fu">processExpiredInvitations</span>() {</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> now <span class="op">=</span> <span class="kw">new</span> <span class="bu">Date</span>()<span class="op">;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Find expiring soon (reminder)</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> expiringSoon <span class="op">=</span> <span class="cf">await</span> supabase</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">from</span>(<span class="st">&#39;project_invitations&#39;</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">select</span>(<span class="st">&#39;*&#39;</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">eq</span>(<span class="st">&#39;status&#39;</span><span class="op">,</span> <span class="st">&#39;pending&#39;</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">gte</span>(<span class="st">&#39;expires_at&#39;</span><span class="op">,</span> now)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">lte</span>(<span class="st">&#39;expires_at&#39;</span><span class="op">,</span> <span class="fu">addDays</span>(now<span class="op">,</span> <span class="dv">2</span>))<span class="op">;</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (<span class="kw">const</span> invitation <span class="kw">of</span> expiringSoon) {</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sendExpiryReminder</span>(invitation)<span class="op">;</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Mark expired</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> supabase</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">from</span>(<span class="st">&#39;project_invitations&#39;</span>)</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">update</span>({ status<span class="op">:</span> <span class="st">&#39;expired&#39;</span> })</span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">eq</span>(<span class="st">&#39;status&#39;</span><span class="op">,</span> <span class="st">&#39;pending&#39;</span>)</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">lt</span>(<span class="st">&#39;expires_at&#39;</span><span class="op">,</span> now)<span class="op">;</span></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Clean up old expired (30+ days)</span></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> supabase</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">from</span>(<span class="st">&#39;project_invitations&#39;</span>)</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">delete</span>()</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">eq</span>(<span class="st">&#39;status&#39;</span><span class="op">,</span> <span class="st">&#39;expired&#39;</span>)</span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span><span class="fu">lt</span>(<span class="st">&#39;expires_at&#39;</span><span class="op">,</span> <span class="fu">addDays</span>(now<span class="op">,</span> <span class="op">-</span><span class="dv">30</span>))<span class="op">;</span></span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="user-belongs-to-multiple-companies">6. User Belongs to Multiple
+Companies</h3>
+<p><strong>Scenario</strong>: User is member of Company A and Company
+B</p>
+<p><strong>Solution</strong>: - User can be POC for different companies
+on different projects - Context switching UI shows current company
+context - Clear visual indicator of active company - Separate
+notifications for each company role - Permission checks based on current
+context</p>
+<h3 id="task-reassignment">7. Task Reassignment</h3>
+<p><strong>Scenario</strong>: Task needs to be reassigned from one
+company to another</p>
+<p><strong>Solution</strong>: - Allow POC to decline task (with reason)
+- Task returns to assigner’s inbox - Assigner can reassign to different
+company - Maintain assignment history - Notify both companies</p>
+<h3 id="poc-cannot-see-own-assignments">8. POC Cannot See Own
+Assignments</h3>
+<p><strong>Scenario</strong>: POC assigns task to themselves</p>
+<p><strong>Solution</strong>: - Always show tasks assigned to POC -
+Special handling for self-assignments - POC sees task in both “Assigned
+to Me” and “My Company” views - Clear indication that POC is both
+assigner and assignee</p>
+<hr />
+<h2 id="success-metrics">Success Metrics</h2>
+<h3 id="technical-metrics">Technical Metrics</h3>
+<ul>
+<li>✅ Database queries execute in &lt; 100ms</li>
+<li>✅ Page load times remain under 2 seconds</li>
+<li>✅ No N+1 query issues</li>
+<li>✅ Proper indexes on all foreign keys</li>
+<li>✅ 100% test coverage on permission logic</li>
+</ul>
+<h3 id="functional-metrics">Functional Metrics</h3>
+<ul>
+<li>✅ Clear company boundaries maintained</li>
+<li>✅ Zero unauthorized visibility into downstream teams</li>
+<li>✅ POC can manage teams independently</li>
+<li>✅ Upstream users see simplified view (POC only)</li>
+<li>✅ All communication flows through POCs</li>
+<li>✅ Invitation system success rate &gt; 95%</li>
+<li>✅ Permission checks prevent unauthorized actions</li>
+</ul>
+<h3 id="user-experience-metrics">User Experience Metrics</h3>
+<ul>
+<li>✅ Users understand POC concept (&lt; 5 min onboarding)</li>
+<li>✅ Invitation acceptance time &lt; 24 hours</li>
+<li>✅ Task assignment completion rate &gt; 90%</li>
+<li>✅ User satisfaction score &gt; 4.5/5</li>
+<li>✅ Support tickets &lt; 5 per week</li>
+</ul>
+<hr />
+<h2 id="security-considerations">Security Considerations</h2>
+<h3 id="data-privacy">Data Privacy</h3>
+<ol type="1">
+<li><strong>Encryption</strong>: All invitation tokens encrypted</li>
+<li><strong>Access Control</strong>: Row-level security on all
+tables</li>
+<li><strong>Audit Logging</strong>: Track all POC changes and
+invitations</li>
+<li><strong>Data Isolation</strong>: Companies cannot see each other’s
+data</li>
+<li><strong>Session Management</strong>: Proper context switching
+between companies</li>
+</ol>
+<h3 id="permission-enforcement">Permission Enforcement</h3>
+<ol type="1">
+<li><strong>Backend Validation</strong>: Never trust client-side
+checks</li>
+<li><strong>Database Constraints</strong>: Enforce rules at DB
+level</li>
+<li><strong>API Guards</strong>: Verify permissions before data
+access</li>
+<li><strong>UI Disable</strong>: Disable unavailable actions
+proactively</li>
+<li><strong>Error Messages</strong>: Generic messages to prevent info
+leakage</li>
+</ol>
+<h3 id="invitation-security">Invitation Security</h3>
+<ol type="1">
+<li><strong>Token Expiry</strong>: Maximum 7 days validity</li>
+<li><strong>One-time Use</strong>: Tokens invalidated after
+acceptance</li>
+<li><strong>Rate Limiting</strong>: Prevent invitation spam</li>
+<li><strong>Email Verification</strong>: Confirm email before account
+creation</li>
+<li><strong>HTTPS Only</strong>: No plain-text invitation links</li>
+</ol>
+<hr />
+<h2 id="migration-strategy">Migration Strategy</h2>
+<h3 id="phase-1-development-week-1-3">Phase 1: Development (Week
+1-3)</h3>
+<ul>
+<li>Implement all features in development environment</li>
+<li>Create comprehensive test suite</li>
+<li>Perform load testing</li>
+<li>Security audit</li>
+</ul>
+<h3 id="phase-2-staging-week-4">Phase 2: Staging (Week 4)</h3>
+<ul>
+<li>Deploy to staging environment</li>
+<li>Internal team testing</li>
+<li>Fix bugs and issues</li>
+<li>Performance optimization</li>
+</ul>
+<h3 id="phase-3-beta-week-5">Phase 3: Beta (Week 5)</h3>
+<ul>
+<li>Invite select customers for beta testing</li>
+<li>Gather feedback</li>
+<li>Iterate on UI/UX</li>
+<li>Monitor for issues</li>
+</ul>
+<h3 id="phase-4-production-week-6">Phase 4: Production (Week 6)</h3>
+<ul>
+<li>Gradual rollout (10% → 50% → 100%)</li>
+<li>Monitor performance metrics</li>
+<li>24/7 support availability</li>
+<li>Emergency rollback plan ready</li>
+</ul>
+<hr />
+<h2 id="rollback-plan">Rollback Plan</h2>
+<h3 id="if-critical-issues-found">If Critical Issues Found</h3>
+<p><strong>Immediate Actions</strong>: 1. Disable invitation system
+(prevent new invitations) 2. Revert to old user assignment logic 3.
+Notify affected users via email 4. Investigate root cause</p>
+<p><strong>Data Preservation</strong>: - All new tables remain intact -
+No data deletion required - Can re-enable when fixed - Maintain audit
+trail</p>
+<p><strong>Communication</strong>: - Status page updates - Email
+notifications to admins - In-app banner message - Support team
+briefing</p>
+<hr />
+<h2 id="future-enhancements">Future Enhancements</h2>
+<h3 id="phase-2-features-post-launch">Phase 2 Features
+(Post-Launch)</h3>
+<ol type="1">
+<li><strong>Company Templates</strong>: Pre-defined company
+structures</li>
+<li><strong>Bulk Invitations</strong>: Invite multiple users at
+once</li>
+<li><strong>Smart Suggestions</strong>: AI-recommended team members</li>
+<li><strong>Performance Analytics</strong>: POC performance metrics</li>
+<li><strong>Advanced Reporting</strong>: Company-level reports</li>
+</ol>
+<h3 id="integration-opportunities">Integration Opportunities</h3>
+<ol type="1">
+<li><strong>Calendar Integration</strong>: Sync with Google/Outlook</li>
+<li><strong>Communication Tools</strong>: Slack/Teams integration</li>
+<li><strong>Document Sharing</strong>: Connect to Google
+Drive/Dropbox</li>
+<li><strong>Time Tracking</strong>: Integration with time tracking
+tools</li>
+<li><strong>Accounting Systems</strong>: Invoice generation</li>
+</ol>
+<hr />
+<h2 id="appendix">Appendix</h2>
+<h3 id="a.-database-schema-diagram">A. Database Schema Diagram</h3>
+<pre><code>companies
+├─ id (PK)
+├─ name
+└─ type
+
+users
+├─ id (PK)
+├─ company_id (FK → companies)
+├─ name
+└─ role
+
+projects
+├─ id (PK)
+├─ company_id (FK → companies)
+└─ created_by (FK → users)
+
+company_project_memberships
+├─ id (PK)
+├─ company_id (FK → companies)
+├─ project_id (FK → projects)
+├─ point_of_contact_user_id (FK → users)
+├─ parent_company_membership_id (FK → self)
+└─ visibility_level
+
+user_project_assignments
+├─ id (PK)
+├─ user_id (FK → users)
+├─ project_id (FK → projects)
+├─ is_point_of_contact
+└─ visibility_level
+
+project_invitations
+├─ id (PK)
+├─ project_id (FK → projects)
+├─ invited_by (FK → users)
+├─ should_be_poc
+└─ status
+
+tasks
+├─ id (PK)
+├─ project_id (FK → projects)
+├─ assigned_to_companies[]
+└─ assigned_to_pocs[]
+
+task_visibility_rules
+├─ id (PK)
+├─ task_id (FK → tasks)
+├─ visible_to_company_id (FK → companies)
+├─ visible_to_user_id (FK → users)
+└─ visibility_scope</code></pre>
+<h3 id="b.-api-endpoints">B. API Endpoints</h3>
+<p><strong>Company Management</strong></p>
+<pre><code>POST   /api/companies/:companyId/projects/:projectId/members
+GET    /api/companies/:companyId/projects/:projectId/members
+DELETE /api/companies/:companyId/projects/:projectId/members/:userId
+PUT    /api/companies/:companyId/projects/:projectId/poc</code></pre>
+<p><strong>Invitations</strong></p>
+<pre><code>POST   /api/projects/:projectId/invitations
+GET    /api/projects/:projectId/invitations
+PUT    /api/invitations/:token/accept
+PUT    /api/invitations/:token/decline
+DELETE /api/invitations/:invitationId</code></pre>
+<p><strong>Task Assignment</strong></p>
+<pre><code>POST   /api/tasks/:taskId/assign-company
+POST   /api/tasks/:taskId/assign-internal
+GET    /api/tasks/:taskId/visibility
+PUT    /api/tasks/:taskId/visibility</code></pre>
+<p><strong>User Queries</strong></p>
+<pre><code>GET    /api/projects/:projectId/assignable-users
+GET    /api/projects/:projectId/pocs
+GET    /api/projects/:projectId/company-hierarchy
+GET    /api/users/:userId/is-poc</code></pre>
+<h3 id="c.-testing-checklist">C. Testing Checklist</h3>
+<p><strong>Unit Tests</strong> - [ ] POC detection logic - [ ]
+Visibility calculations - [ ] Permission validation - [ ] Invitation
+token generation - [ ] Company hierarchy queries - [ ] Task assignment
+rules</p>
+<p><strong>Integration Tests</strong> - [ ] Complete invitation flow - [
+] Task assignment end-to-end - [ ] POC transfer process - [ ] Company
+departure handling - [ ] Circular dependency prevention</p>
+<p><strong>UI Tests</strong> - [ ] Invitation modal - [ ] User picker
+filtering - [ ] POC badge display - [ ] Team management screen - [ ]
+Company hierarchy view</p>
+<p><strong>Performance Tests</strong> - [ ] Load testing (100 concurrent
+users) - [ ] Query performance (&lt; 100ms) - [ ] Page load times (&lt;
+2s) - [ ] Memory usage - [ ] Database connection pooling</p>
+<p><strong>Security Tests</strong> - [ ] Permission bypass attempts - [
+] SQL injection prevention - [ ] XSS prevention - [ ] CSRF protection -
+[ ] Token manipulation</p>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>The Point of Contact system represents a significant enhancement to
+BuildTrack’s multi-company collaboration capabilities. By implementing
+this hierarchical structure with clear visibility boundaries, we
+enable:</p>
+<ol type="1">
+<li><strong>Efficient Collaboration</strong>: Multiple companies work
+together seamlessly</li>
+<li><strong>Privacy Protection</strong>: Each company maintains control
+over internal operations</li>
+<li><strong>Clear Communication</strong>: Single point of contact
+eliminates confusion</li>
+<li><strong>Scalability</strong>: Unlimited hierarchy depth supports
+complex projects</li>
+<li><strong>Security</strong>: Robust permission system prevents
+unauthorized access</li>
+</ol>
+<p>This implementation plan provides a comprehensive roadmap for
+delivering this feature within a 6-week timeline. The phased approach
+ensures thorough testing and smooth deployment while minimizing risk to
+existing functionality.</p>
+<hr />
+<p><strong>Document Control</strong></p>
+<table>
+<thead>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.0</td>
+<td>2025-10-22</td>
+<td>BuildTrack Team</td>
+<td>Initial release</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Approval Signatures</strong></p>
+<p><em>To be completed after review</em></p>
+<ul class="task-list">
+<li><label><input type="checkbox" />Project Manager: _________________
+Date: _______</label></li>
+<li><label><input type="checkbox" />Tech Lead: _________________ Date:
+_______</label></li>
+<li><label><input type="checkbox" />Product Owner: _________________
+Date: _______</label></li>
+</ul>
+<hr />
+<p><em>End of Document</em></p>
+</body>
+</html>

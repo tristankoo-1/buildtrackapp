@@ -98,7 +98,7 @@ const LOGIN_USERS = [
   {
     id: '4',
     email: 'dennis@buildtrack.com',
-    name: 'Dennis',
+    name: 'Peter',
     role: 'worker',
     companyId: 'comp-1',
     position: 'Site Supervisor',

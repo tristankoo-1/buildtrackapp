@@ -91,6 +91,7 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
   const [showCompanyPicker, setShowCompanyPicker] = useState(false);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
 
   // All hooks must be called before any early returns
   const userProjects = getProjectsByUser(user?.id || "");
@@ -106,7 +107,7 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
   console.log('========================');
   
   // Filter users based on selected project
-  // Only show users who are assigned to the selected project
+  // Show ALL users who are assigned to the selected project (regardless of company)
   const allAssignableUsers = React.useMemo(() => {
     if (!formData.projectId) {
       // If no project selected, show all workers and managers
@@ -125,7 +126,8 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
     console.log('- All Workers:', workers.map(u => ({ id: u.id, name: u.name })));
     console.log('- All Managers:', managers.map(u => ({ id: u.id, name: u.name })));
     
-    // Filter to only show users assigned to this project
+    // Get ALL users from the project (regardless of company)
+    // This includes workers and managers assigned to this project
     const eligibleUsers = [...workers, ...managers].filter(u => assignedUserIds.has(u.id));
     
     console.log('- Eligible Users:', eligibleUsers.map(u => ({ id: u.id, name: u.name })));
@@ -133,6 +135,21 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
     
     return eligibleUsers;
   }, [formData.projectId, workers, managers, getProjectUserAssignments]);
+
+  // Filter users by search query
+  const filteredAssignableUsers = React.useMemo(() => {
+    if (!userSearchQuery.trim()) {
+      return allAssignableUsers;
+    }
+    
+    const query = userSearchQuery.toLowerCase();
+    return allAssignableUsers.filter(user => 
+      user.name.toLowerCase().includes(query) ||
+      (user.email && user.email.toLowerCase().includes(query)) ||
+      user.position.toLowerCase().includes(query) ||
+      user.role.toLowerCase().includes(query)
+    );
+  }, [allAssignableUsers, userSearchQuery]);
 
   // Inherit parent task title and description when creating sub-task
   React.useEffect(() => {
@@ -639,7 +656,7 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
           {/* Assign To */}
           <InputField label="Assign To" error={errors.assignedTo}>
             <Pressable
-              onPress={() => setShowUserPicker(!showUserPicker)}
+              onPress={() => setShowUserPicker(true)}
               className={cn(
                 "border rounded-lg px-3 py-3 bg-white flex-row items-center justify-between",
                 errors.assignedTo ? "border-red-300" : "border-gray-300"
@@ -652,51 +669,31 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
                 }
               </Text>
               <Ionicons 
-                name={showUserPicker ? "chevron-up" : "chevron-down"} 
+                name="chevron-forward" 
                 size={20} 
                 color="#6b7280" 
               />
             </Pressable>
           </InputField>
 
-          {/* User Selection List - Compact */}
-          {showUserPicker && (
-            <View className="bg-white border border-gray-300 rounded-lg -mt-6 mb-4">
-              <ScrollView className="max-h-64">
-                {allAssignableUsers.length > 0 ? (
-                  allAssignableUsers.map((assignableUser) => (
-                    <Pressable
-                      key={assignableUser.id}
-                      onPress={() => toggleUserSelection(assignableUser.id)}
-                      className="flex-row items-center px-3 py-2 border-b border-gray-100"
-                    >
-                      <View className={cn(
-                        "w-4 h-4 border-2 rounded mr-2 items-center justify-center",
-                        selectedUsers.includes(assignableUser.id) 
-                          ? "border-blue-600 bg-blue-600" 
-                          : "border-gray-300"
-                      )}>
-                        {selectedUsers.includes(assignableUser.id) && (
-                          <Ionicons name="checkmark" size={10} color="white" />
-                        )}
-                      </View>
-                      <Text className="text-sm font-medium text-gray-900 flex-1">
-                        {assignableUser.name}
-                      </Text>
-                      <Text className="text-xs text-gray-500 capitalize ml-2">
-                        {assignableUser.role}
-                      </Text>
-                    </Pressable>
-                  ))
-                ) : (
-                  <View className="p-4 items-center">
-                    <Ionicons name="people-outline" size={32} color="#d1d5db" />
-                    <Text className="text-gray-500 mt-2 text-sm text-center">
-                      No users assigned to this project
-                    </Text>
-                  </View>
-                )}
-              </ScrollView>
+          {/* Show selected users */}
+          {selectedUsers.length > 0 && (
+            <View className="bg-gray-50 border border-gray-200 rounded-lg p-3 -mt-6 mb-4">
+              <Text className="text-xs font-medium text-gray-700 mb-2">Selected Users:</Text>
+              <View className="flex-row flex-wrap">
+                {selectedUsers.map((userId) => {
+                  const user = allAssignableUsers.find(u => u.id === userId);
+                  if (!user) return null;
+                  return (
+                    <View key={userId} className="bg-blue-100 rounded-full px-3 py-1 mr-2 mb-2 flex-row items-center">
+                      <Text className="text-blue-900 text-xs font-medium mr-1">{user.name}</Text>
+                      <Pressable onPress={() => toggleUserSelection(userId)}>
+                        <Ionicons name="close-circle" size={16} color="#1e40af" />
+                      </Pressable>
+                    </View>
+                  );
+                })}
+              </View>
             </View>
           )}
 
@@ -942,6 +939,171 @@ export default function CreateTaskScreen({ onNavigateBack, parentTaskId, parentS
               </View>
             )}
           </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* User Picker Modal with Search */}
+      <Modal
+        visible={showUserPicker}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setShowUserPicker(false);
+          setUserSearchQuery("");
+        }}
+      >
+        <SafeAreaView className="flex-1 bg-gray-50">
+          <StatusBar style="dark" />
+          
+          <ModalHandle />
+          
+          <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
+            <Pressable 
+              onPress={() => {
+                setShowUserPicker(false);
+                setUserSearchQuery("");
+              }}
+              className="mr-4 w-10 h-10 items-center justify-center"
+            >
+              <Ionicons name="close" size={24} color="#374151" />
+            </Pressable>
+            <Text className="text-xl font-semibold text-gray-900 flex-1">
+              Assign To
+            </Text>
+            <Text className="text-sm text-blue-600 font-medium">
+              {selectedUsers.length} selected
+            </Text>
+          </View>
+
+          {/* Search Bar */}
+          <View className="bg-white px-6 py-3 border-b border-gray-200">
+            <View className="flex-row items-center bg-gray-100 rounded-lg px-3 py-2">
+              <Ionicons name="search" size={20} color="#6b7280" />
+              <TextInput
+                className="flex-1 ml-2 text-base text-gray-900"
+                placeholder="Search by name, email, position, or role..."
+                placeholderTextColor="#9ca3af"
+                value={userSearchQuery}
+                onChangeText={setUserSearchQuery}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {userSearchQuery.length > 0 && (
+                <Pressable onPress={() => setUserSearchQuery("")}>
+                  <Ionicons name="close-circle" size={20} color="#6b7280" />
+                </Pressable>
+              )}
+            </View>
+            
+            {/* Results count */}
+            <Text className="text-xs text-gray-600 mt-2">
+              {filteredAssignableUsers.length} user{filteredAssignableUsers.length !== 1 ? 's' : ''} available
+              {userSearchQuery && ` (filtered from ${allAssignableUsers.length})`}
+            </Text>
+          </View>
+
+          {/* User List */}
+          <ScrollView className="flex-1 px-6 py-4">
+            {filteredAssignableUsers.length > 0 ? (
+              filteredAssignableUsers.map((assignableUser) => {
+                const isSelected = selectedUsers.includes(assignableUser.id);
+                return (
+                  <Pressable
+                    key={assignableUser.id}
+                    onPress={() => toggleUserSelection(assignableUser.id)}
+                    className={cn(
+                      "bg-white border rounded-lg px-4 py-3 mb-3 flex-row items-center",
+                      isSelected ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                    )}
+                  >
+                    {/* Checkbox */}
+                    <View className={cn(
+                      "w-5 h-5 rounded border-2 mr-3 items-center justify-center",
+                      isSelected 
+                        ? "border-blue-600 bg-blue-600" 
+                        : "border-gray-300"
+                    )}>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={14} color="white" />
+                      )}
+                    </View>
+
+                    {/* User Info */}
+                    <View className="flex-1">
+                      <Text className={cn(
+                        "text-base font-semibold",
+                        isSelected ? "text-blue-900" : "text-gray-900"
+                      )}>
+                        {assignableUser.name}
+                      </Text>
+                      <View className="flex-row items-center mt-1">
+                        <Text className="text-xs text-gray-600 capitalize">
+                          {assignableUser.position}
+                        </Text>
+                        <View className="w-1 h-1 rounded-full bg-gray-400 mx-2" />
+                        <Text className="text-xs text-gray-500 capitalize">
+                          {assignableUser.role}
+                        </Text>
+                      </View>
+                      {assignableUser.email && (
+                        <Text className="text-xs text-gray-500 mt-0.5">
+                          {assignableUser.email}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Selected indicator */}
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={24} color="#2563eb" />
+                    )}
+                  </Pressable>
+                );
+              })
+            ) : allAssignableUsers.length > 0 ? (
+              // No results found (filtered out)
+              <View className="bg-white border border-gray-200 rounded-lg p-8 items-center">
+                <Ionicons name="search-outline" size={48} color="#9ca3af" />
+                <Text className="text-gray-500 text-center mt-3 font-medium">
+                  No users found
+                </Text>
+                <Text className="text-gray-400 text-center mt-1 text-sm">
+                  Try adjusting your search
+                </Text>
+                <Pressable
+                  onPress={() => setUserSearchQuery("")}
+                  className="mt-4 bg-blue-600 px-4 py-2 rounded-lg"
+                >
+                  <Text className="text-white font-medium">Clear Search</Text>
+                </Pressable>
+              </View>
+            ) : (
+              // No users assigned to project
+              <View className="bg-white border border-gray-200 rounded-lg p-8 items-center">
+                <Ionicons name="people-outline" size={48} color="#9ca3af" />
+                <Text className="text-gray-500 text-center mt-3 font-medium">
+                  No users assigned to this project
+                </Text>
+                <Text className="text-gray-400 text-center mt-1 text-sm">
+                  Add team members to the project first
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Footer - Done Button */}
+          <View className="bg-white border-t border-gray-200 px-6 py-4">
+            <Pressable
+              onPress={() => {
+                setShowUserPicker(false);
+                setUserSearchQuery("");
+              }}
+              className="bg-blue-600 rounded-lg py-3 items-center"
+            >
+              <Text className="text-white font-semibold text-base">
+                Done ({selectedUsers.length} selected)
+              </Text>
+            </Pressable>
+          </View>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

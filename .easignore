@@ -1,0 +1,57 @@
+# Build artifacts and generated files
+dist/
+build/
+*.log
+*.tar.gz
+*.zip
+*.app
+*.ipa
+
+# Development files
+node_modules/
+.expo/
+.expo-shared/
+*.tsbuildinfo
+
+# Documentation and markdown files
+*.md
+docs/
+
+# Backup files
+backup-*/
+*_backup/
+*_old/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+
+# Scripts that aren't needed for build
+scripts/

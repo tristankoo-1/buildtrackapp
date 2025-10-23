@@ -636,6 +636,14 @@ export const useTaskStore = create<TaskStore>()(
         }
 
         try {
+          console.log('Creating sub-task with data:', {
+            parent_task_id: taskId,
+            project_id: subTaskData.projectId,
+            title: subTaskData.title,
+            assigned_to: subTaskData.assignedTo,
+            assigned_by: subTaskData.assignedBy,
+          });
+
           const { data, error } = await supabase
             .from('sub_tasks')
             .insert({
@@ -646,6 +654,8 @@ export const useTaskStore = create<TaskStore>()(
               priority: subTaskData.priority,
               category: subTaskData.category,
               due_date: subTaskData.dueDate,
+              current_status: "not_started",
+              completion_percentage: 0,
               assigned_to: subTaskData.assignedTo,
               assigned_by: subTaskData.assignedBy,
               attachments: subTaskData.attachments,
@@ -655,6 +665,8 @@ export const useTaskStore = create<TaskStore>()(
             .single();
 
           if (error) throw error;
+          
+          console.log('✅ Sub-task created successfully:', data.id);
 
           // Refresh task data to get updated subtasks
           await get().fetchTaskById(taskId);
@@ -703,6 +715,8 @@ export const useTaskStore = create<TaskStore>()(
               priority: subTaskData.priority,
               category: subTaskData.category,
               due_date: subTaskData.dueDate,
+              current_status: "not_started",
+              completion_percentage: 0,
               assigned_to: subTaskData.assignedTo,
               assigned_by: subTaskData.assignedBy,
               attachments: subTaskData.attachments,

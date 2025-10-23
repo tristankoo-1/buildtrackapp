@@ -153,13 +153,13 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
                   </Text>
                 </Pressable>
                 
-                {/* Dennis */}
+                {/* Peter */}
                 <Pressable 
                   className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
                   onPress={() => handleQuickLogin('dennis@buildtrack.com', 'password123')}
                 >
                   <Text className="text-base font-semibold text-blue-900">
-                    BuildTrack: Worker: Dennis
+                    BuildTrack: Worker: Peter
                   </Text>
                 </Pressable>
                 
