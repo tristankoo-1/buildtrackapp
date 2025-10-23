@@ -42,14 +42,26 @@ jobs:
           expo-version: latest
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
+          cache: false
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Install latest EAS CLI
+        run: npm install -g eas-cli@latest
+
+      - name: Verify EAS CLI installation
+        run: |
+          echo "EAS CLI version:"
+          npx eas --version
+          echo "Expo CLI version:"
+          npx expo --version
+
       - name: Publish to EAS Update
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message || 'Push to main' }}"
-          npx eas update --branch main --message "Automated update: $COMMIT_MSG"
+          echo "Publishing EAS update with message: $COMMIT_MSG"
+          npx eas update --branch main --message "Automated update: $COMMIT_MSG" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
