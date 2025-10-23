@@ -579,7 +579,7 @@ function EditProjectModal({
           className="flex-1"
         >
           <ScrollView className="flex-1 px-6 py-4" keyboardShouldPersistTaps="handled">
-            {/* Project Name */}
+            {/* Project */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-900 mb-2">
                 Project Name <Text className="text-red-500">*</Text>
@@ -593,7 +593,7 @@ function EditProjectModal({
               />
             </View>
 
-            {/* Description */}
+            {/* Details */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-900 mb-2">Description</Text>
               <TextInput
@@ -608,7 +608,6 @@ function EditProjectModal({
               />
             </View>
 
-            {/* Status */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
               <Text className="text-lg font-semibold text-gray-900 mb-2">Status</Text>
               <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
@@ -623,6 +622,27 @@ function EditProjectModal({
                   <Picker.Item label="Completed" value="completed" />
                   <Picker.Item label="Cancelled" value="cancelled" />
                 </Picker>
+              </View>
+            </View>
+
+            {/* Location */}
+            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <Text className="text-lg font-semibold text-gray-900 mb-4">Location</Text>
+              
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-gray-700 mb-2">Location</Text>
+                <TextInput
+                  className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
+                  placeholder="Enter full address (street, city, state/province, postal code, country)"
+                  value={formData.location.address}
+                  onChangeText={(text) => setFormData(prev => ({
+                    ...prev,
+                    location: { ...prev.location, address: text }
+                  }))}
+                  multiline={true}
+                  numberOfLines={5}
+                  textAlignVertical="top"
+                />
               </View>
             </View>
 
@@ -656,27 +676,6 @@ function EditProjectModal({
                     <Ionicons name="calendar-outline" size={20} color="#6b7280" />
                   </Pressable>
                 </View>
-              </View>
-            </View>
-
-            {/* Location */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-4">Location</Text>
-              
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-700 mb-2">Location</Text>
-                <TextInput
-                  className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                  placeholder="Enter full address (street, city, state/province, postal code, country)"
-                  value={formData.location.address}
-                  onChangeText={(text) => setFormData(prev => ({
-                    ...prev,
-                    location: { ...prev.location, address: text }
-                  }))}
-                  multiline={true}
-                  numberOfLines={5}
-                  textAlignVertical="top"
-                />
               </View>
             </View>
 
