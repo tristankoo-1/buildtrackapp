@@ -241,14 +241,14 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
         className="flex-1"
       >
         <ScrollView 
-          className="flex-1 px-6 py-4" 
+          className="flex-1 px-4 py-3" 
           keyboardShouldPersistTaps="handled"
         >
           {/* Project Information */}
-          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-            <Text className="text-xl font-bold text-gray-900 mb-6">Project Information</Text>
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-4">Project Information</Text>
             
-            <View className="space-y-5">
+            <View className="space-y-4">
               {/* Project Name */}
               <View>
                 <Text className="text-sm font-medium text-gray-700 mb-2">
@@ -256,7 +256,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                 </Text>
                 <TextInput
                   className={cn(
-                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
                     errors.name ? "border-red-300" : "border-gray-300"
                   )}
                   placeholder="Enter project name"
@@ -276,7 +276,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                 <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
                 <TextInput
                   className={cn(
-                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
                     errors.description ? "border-red-300" : "border-gray-300"
                   )}
                   placeholder="Describe the project..."
@@ -303,7 +303,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                   onPress={() => setShowStatusPicker(!showStatusPicker)}
                   className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
                 >
-                  <Text className="text-gray-900 text-base capitalize">
+                  <Text className="text-gray-900 text-lg capitalize">
                     {formData.status.replace("_", " ")}
                   </Text>
                   <Ionicons 
@@ -329,10 +329,10 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                           index < 4 && "border-b border-gray-200"
                         )}
                       >
-                        <Text className={cn(
-                          "text-base capitalize",
-                          formData.status === status ? "text-blue-900 font-medium" : "text-gray-900"
-                        )}>
+                          <Text className={cn(
+                            "text-lg capitalize",
+                            formData.status === status ? "text-blue-900 font-medium" : "text-gray-900"
+                          )}>
                           {status.replace("_", " ")}
                         </Text>
                       </Pressable>
@@ -344,8 +344,8 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
           </View>
 
           {/* Project Timeline */}
-          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-            <Text className="text-xl font-bold text-gray-900 mb-6">Project Timeline</Text>
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-4">Project Timeline</Text>
             
             <View className="space-y-5">
               <View className="flex-row space-x-4">
@@ -403,14 +403,13 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
           </View>
 
           {/* Location */}
-          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-            <Text className="text-xl font-bold text-gray-900 mb-6">Location</Text>
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-3">Location</Text>
             
             <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Address</Text>
               <TextInput
                 className={cn(
-                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
                   errors.address ? "border-red-300" : "border-gray-300"
                 )}
                 placeholder="Enter full address (street, city, state/province, postal code, country)"
@@ -429,16 +428,16 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
           </View>
 
           {/* Client Information */}
-          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-            <Text className="text-xl font-bold text-gray-900 mb-6">Client Information</Text>
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-4">Client Information</Text>
             
-            <View className="space-y-5">
+            <View className="space-y-4">
               {/* Client Name */}
               <View>
                 <Text className="text-sm font-medium text-gray-700 mb-2">Client Name</Text>
                 <TextInput
                   className={cn(
-                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
                     errors.clientName ? "border-red-300" : "border-gray-300"
                   )}
                   placeholder="Enter client name"
@@ -458,7 +457,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                 <Text className="text-sm font-medium text-gray-700 mb-2">Client Email</Text>
                 <TextInput
                   className={cn(
-                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
                     errors.clientEmail ? "border-red-300" : "border-gray-300"
                   )}
                   placeholder="Enter client email"
@@ -478,7 +477,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
               <View>
                 <Text className="text-sm font-medium text-gray-700 mb-2">Client Phone</Text>
                 <TextInput
-                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
+                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
                   placeholder="Enter client phone"
                   value={formData.clientInfo.phone}
                   onChangeText={(text) => handleClientChange("phone", text)}

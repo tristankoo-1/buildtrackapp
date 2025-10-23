@@ -477,19 +477,19 @@ function EditProjectModal({
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
         >
-          <ScrollView className="flex-1 px-6 py-4" keyboardShouldPersistTaps="handled">
+          <ScrollView className="flex-1 px-4 py-3" keyboardShouldPersistTaps="handled">
             {/* Project Information */}
-            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-              <Text className="text-xl font-bold text-gray-900 mb-6">Project Information</Text>
+            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <Text className="text-xl font-bold text-gray-900 mb-4">Project Information</Text>
               
-              <View className="space-y-5">
+              <View className="space-y-4">
                 {/* Project Name */}
                 <View>
                   <Text className="text-sm font-medium text-gray-700 mb-2">
                     Project Name <Text className="text-red-500">*</Text>
                   </Text>
                   <TextInput
-                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
+                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
                     placeholder="Enter project name"
                     value={formData.name}
                     onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
@@ -501,7 +501,7 @@ function EditProjectModal({
                 <View>
                   <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
                   <TextInput
-                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
+                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
                     placeholder="Project description"
                     value={formData.description}
                     onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
@@ -562,11 +562,10 @@ function EditProjectModal({
             </View>
 
             {/* Location */}
-            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-              <Text className="text-xl font-bold text-gray-900 mb-6">Location</Text>
+            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <Text className="text-xl font-bold text-gray-900 mb-3">Location</Text>
               
               <View>
-                <Text className="text-sm font-medium text-gray-700 mb-2">Address</Text>
                 <TextInput
                   className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
                   placeholder="Enter full address (street, city, state/province, postal code, country)"
@@ -583,8 +582,8 @@ function EditProjectModal({
             </View>
 
             {/* Project Timeline */}
-            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-              <Text className="text-xl font-bold text-gray-900 mb-6">Project Timeline</Text>
+            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <Text className="text-xl font-bold text-gray-900 mb-4">Project Timeline</Text>
               
               <View className="flex-row space-x-4">
                 <View className="flex-1">
@@ -616,8 +615,8 @@ function EditProjectModal({
             </View>
 
             {/* Lead Project Manager */}
-            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-              <Text className="text-xl font-bold text-gray-900 mb-6">Lead Project Manager</Text>
+            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+              <Text className="text-xl font-bold text-gray-900 mb-4">Lead Project Manager</Text>
               
               <View className="space-y-3">
                 <Text className="text-sm text-gray-600">
