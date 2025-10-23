@@ -279,7 +279,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                     "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
                     errors.description ? "border-red-300" : "border-gray-300"
                   )}
-                  placeholder="Describe the project..."
+                  placeholder="Project description"
                   value={formData.description}
                   onChangeText={handleDescriptionChange}
                   multiline
@@ -303,7 +303,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                   onPress={() => setShowStatusPicker(!showStatusPicker)}
                   className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
                 >
-                  <Text className="text-gray-900 text-lg capitalize">
+                  <Text className="text-gray-900 text-base capitalize">
                     {formData.status.replace("_", " ")}
                   </Text>
                   <Ionicons 
@@ -330,7 +330,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                         )}
                       >
                           <Text className={cn(
-                            "text-lg capitalize",
+                            "text-base capitalize",
                             formData.status === status ? "text-blue-900 font-medium" : "text-gray-900"
                           )}>
                           {status.replace("_", " ")}
