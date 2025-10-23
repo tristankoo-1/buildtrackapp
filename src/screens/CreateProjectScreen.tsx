@@ -243,126 +243,144 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
           className="flex-1 px-6 py-4" 
           keyboardShouldPersistTaps="handled"
         >
-          {/* Basic Information */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Basic Information
-            </Text>
-
-            <InputField label="Project Name" error={errors.name}>
-              <TextInput
-                className={cn(
-                  "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
-                  errors.name ? "border-red-300" : "border-gray-300"
+          {/* Project Information */}
+          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+            <Text className="text-xl font-bold text-gray-900 mb-6">Project Information</Text>
+            
+            <View className="space-y-5">
+              {/* Project Name */}
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">
+                  Project Name <Text className="text-red-500">*</Text>
+                </Text>
+                <TextInput
+                  className={cn(
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    errors.name ? "border-red-300" : "border-gray-300"
+                  )}
+                  placeholder="Enter project name"
+                  value={formData.name}
+                  onChangeText={handleNameChange}
+                  maxLength={100}
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+                {errors.name && (
+                  <Text className="text-red-500 text-xs mt-1">{errors.name}</Text>
                 )}
-                placeholder="Enter project name"
-                value={formData.name}
-                onChangeText={handleNameChange}
-                maxLength={100}
-                autoCorrect={false}
-                returnKeyType="next"
-              />
-            </InputField>
-
-            <InputField label="Description" error={errors.description}>
-              <TextInput
-                className={cn(
-                  "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
-                  errors.description ? "border-red-300" : "border-gray-300"
-                )}
-                placeholder="Describe the project..."
-                value={formData.description}
-                onChangeText={handleDescriptionChange}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                maxLength={500}
-                autoCorrect={false}
-                returnKeyType="done"
-              />
-            </InputField>
-
-            <InputField label="Status">
-              <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                <Picker
-                  selectedValue={formData.status}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                  style={{ height: 50 }}
-                >
-                  <Picker.Item label="Planning" value="planning" />
-                  <Picker.Item label="Active" value="active" />
-                  <Picker.Item label="On Hold" value="on_hold" />
-                  <Picker.Item label="Completed" value="completed" />
-                  <Picker.Item label="Cancelled" value="cancelled" />
-                </Picker>
               </View>
-            </InputField>
+
+              {/* Description */}
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
+                <TextInput
+                  className={cn(
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    errors.description ? "border-red-300" : "border-gray-300"
+                  )}
+                  placeholder="Describe the project..."
+                  value={formData.description}
+                  onChangeText={handleDescriptionChange}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  maxLength={500}
+                  autoCorrect={false}
+                  returnKeyType="done"
+                />
+                {errors.description && (
+                  <Text className="text-red-500 text-xs mt-1">{errors.description}</Text>
+                )}
+              </View>
+
+              {/* Status */}
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
+                <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
+                  <Picker
+                    selectedValue={formData.status}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                    style={{ height: 50 }}
+                  >
+                    <Picker.Item label="Planning" value="planning" />
+                    <Picker.Item label="Active" value="active" />
+                    <Picker.Item label="On Hold" value="on_hold" />
+                    <Picker.Item label="Completed" value="completed" />
+                    <Picker.Item label="Cancelled" value="cancelled" />
+                  </Picker>
+                </View>
+              </View>
+            </View>
           </View>
 
           {/* Project Timeline */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Project Timeline
-            </Text>
-
-            <View className="flex-row space-x-4">
-              <View className="flex-1">
-                <InputField label="Start Date">
+          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+            <Text className="text-xl font-bold text-gray-900 mb-6">Project Timeline</Text>
+            
+            <View className="space-y-5">
+              <View className="flex-row space-x-4">
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Start Date</Text>
                   <Pressable
                     onPress={() => setShowStartDatePicker(true)}
-                    className="border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 flex-row items-center justify-between"
+                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
                   >
-                    <Text className="text-gray-900">
+                    <Text className="text-gray-900 text-base">
                       {formData.startDate.toLocaleDateString()}
                     </Text>
                     <Ionicons name="calendar-outline" size={20} color="#6b7280" />
                   </Pressable>
-                </InputField>
-              </View>
+                </View>
 
-              <View className="flex-1">
-                <InputField label="Estimated End Date" error={errors.endDate}>
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
                   <Pressable
                     onPress={() => setShowEndDatePicker(true)}
                     className={cn(
-                      "border rounded-lg px-3 py-3 bg-gray-50 flex-row items-center justify-between",
+                      "border rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between",
                       errors.endDate ? "border-red-300" : "border-gray-300"
                     )}
                   >
-                    <Text className="text-gray-900">
+                    <Text className="text-gray-900 text-base">
                       {formData.endDate.toLocaleDateString()}
                     </Text>
                     <Ionicons name="calendar-outline" size={20} color="#6b7280" />
                   </Pressable>
-                </InputField>
+                  {errors.endDate && (
+                    <Text className="text-red-500 text-xs mt-1">{errors.endDate}</Text>
+                  )}
+                </View>
+              </View>
+
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Budget</Text>
+                <TextInput
+                  className={cn(
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    errors.budget ? "border-red-300" : "border-gray-300"
+                  )}
+                  placeholder="Enter budget amount"
+                  value={formData.budget}
+                  onChangeText={handleBudgetChange}
+                  keyboardType="numeric"
+                  returnKeyType="next"
+                />
+                {errors.budget && (
+                  <Text className="text-red-500 text-xs mt-1">{errors.budget}</Text>
+                )}
               </View>
             </View>
-
-            <InputField label="Budget" required={false} error={errors.budget}>
-              <TextInput
-                className={cn(
-                  "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
-                  errors.budget ? "border-red-300" : "border-gray-300"
-                )}
-                placeholder="Enter budget amount"
-                value={formData.budget}
-                onChangeText={handleBudgetChange}
-                keyboardType="numeric"
-                returnKeyType="next"
-              />
-            </InputField>
           </View>
 
           {/* Location */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Location
-            </Text>
-
-            <InputField label="Location" error={errors.address}>
+          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+            <Text className="text-xl font-bold text-gray-900 mb-6">Location</Text>
+            
+            <View>
+              <Text className="text-sm font-medium text-gray-700 mb-2">Address</Text>
               <TextInput
                 className={cn(
-                  "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
                   errors.address ? "border-red-300" : "border-gray-300"
                 )}
                 placeholder="Enter full address (street, city, state/province, postal code, country)"
@@ -374,52 +392,72 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                 autoCorrect={false}
                 returnKeyType="default"
               />
-            </InputField>
+              {errors.address && (
+                <Text className="text-red-500 text-xs mt-1">{errors.address}</Text>
+              )}
+            </View>
           </View>
 
           {/* Client Information */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Client Information
-            </Text>
-
-            <InputField label="Client Name" error={errors.clientName}>
-              <TextInput
-                className={cn(
-                  "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
-                  errors.clientName ? "border-red-300" : "border-gray-300"
+          <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+            <Text className="text-xl font-bold text-gray-900 mb-6">Client Information</Text>
+            
+            <View className="space-y-5">
+              {/* Client Name */}
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Client Name</Text>
+                <TextInput
+                  className={cn(
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    errors.clientName ? "border-red-300" : "border-gray-300"
+                  )}
+                  placeholder="Enter client name"
+                  value={formData.clientInfo.name}
+                  onChangeText={(text) => handleClientChange("name", text)}
+                  maxLength={100}
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+                {errors.clientName && (
+                  <Text className="text-red-500 text-xs mt-1">{errors.clientName}</Text>
                 )}
-                placeholder="Enter client name"
-                value={formData.clientInfo.name}
-                onChangeText={(text) => handleClientChange("name", text)}
-                autoCorrect={false}
-                returnKeyType="next"
-              />
-            </InputField>
+              </View>
 
-            <InputField label="Client Email" required={false}>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                placeholder="Enter client email"
-                value={formData.clientInfo.email}
-                onChangeText={(text) => handleClientChange("email", text)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-              />
-            </InputField>
+              {/* Client Email */}
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Client Email</Text>
+                <TextInput
+                  className={cn(
+                    "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
+                    errors.clientEmail ? "border-red-300" : "border-gray-300"
+                  )}
+                  placeholder="Enter client email"
+                  value={formData.clientInfo.email}
+                  onChangeText={(text) => handleClientChange("email", text)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+                {errors.clientEmail && (
+                  <Text className="text-red-500 text-xs mt-1">{errors.clientEmail}</Text>
+                )}
+              </View>
 
-            <InputField label="Client Phone" required={false}>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                placeholder="Enter client phone"
-                value={formData.clientInfo.phone}
-                onChangeText={(text) => handleClientChange("phone", text)}
-                keyboardType="phone-pad"
-                returnKeyType="done"
-              />
-            </InputField>
+              {/* Client Phone */}
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Client Phone</Text>
+                <TextInput
+                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
+                  placeholder="Enter client phone"
+                  value={formData.clientInfo.phone}
+                  onChangeText={(text) => handleClientChange("phone", text)}
+                  keyboardType="phone-pad"
+                  maxLength={20}
+                  returnKeyType="done"
+                />
+              </View>
+            </View>
           </View>
 
           {/* Bottom Spacing */}

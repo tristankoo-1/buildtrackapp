@@ -475,60 +475,68 @@ function EditProjectModal({
           className="flex-1"
         >
           <ScrollView className="flex-1 px-6 py-4" keyboardShouldPersistTaps="handled">
-            {/* Project */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-2">
-                Project Name <Text className="text-red-500">*</Text>
-              </Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                placeholder="Enter project name"
-                value={formData.name}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-                maxLength={100}
-              />
-            </View>
+            {/* Project Information */}
+            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+              <Text className="text-xl font-bold text-gray-900 mb-6">Project Information</Text>
+              
+              <View className="space-y-5">
+                {/* Project Name */}
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-2">
+                    Project Name <Text className="text-red-500">*</Text>
+                  </Text>
+                  <TextInput
+                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
+                    placeholder="Enter project name"
+                    value={formData.name}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+                    maxLength={100}
+                  />
+                </View>
 
-            {/* Details */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-2">Description</Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                placeholder="Project description"
-                value={formData.description}
-                onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                maxLength={500}
-              />
-            </View>
+                {/* Description */}
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
+                  <TextInput
+                    className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
+                    placeholder="Project description"
+                    value={formData.description}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    maxLength={500}
+                  />
+                </View>
 
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-2">Status</Text>
-              <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                <Picker
-                  selectedValue={formData.status}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                  style={{ height: 50 }}
-                >
-                  <Picker.Item label="Planning" value="planning" />
-                  <Picker.Item label="Active" value="active" />
-                  <Picker.Item label="On Hold" value="on_hold" />
-                  <Picker.Item label="Completed" value="completed" />
-                  <Picker.Item label="Cancelled" value="cancelled" />
-                </Picker>
+                {/* Status */}
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
+                  <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
+                    <Picker
+                      selectedValue={formData.status}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                      style={{ height: 50 }}
+                    >
+                      <Picker.Item label="Planning" value="planning" />
+                      <Picker.Item label="Active" value="active" />
+                      <Picker.Item label="On Hold" value="on_hold" />
+                      <Picker.Item label="Completed" value="completed" />
+                      <Picker.Item label="Cancelled" value="cancelled" />
+                    </Picker>
+                  </View>
+                </View>
               </View>
             </View>
 
             {/* Location */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-4">Location</Text>
+            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+              <Text className="text-xl font-bold text-gray-900 mb-6">Location</Text>
               
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-700 mb-2">Location</Text>
+              <View>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Address</Text>
                 <TextInput
-                  className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
+                  className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base"
                   placeholder="Enter full address (street, city, state/province, postal code, country)"
                   value={formData.location.address}
                   onChangeText={(text) => setFormData(prev => ({
@@ -543,17 +551,17 @@ function EditProjectModal({
             </View>
 
             {/* Project Timeline */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-4">Project Timeline</Text>
+            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+              <Text className="text-xl font-bold text-gray-900 mb-6">Project Timeline</Text>
               
-              <View className="flex-row space-x-4 mb-4">
+              <View className="flex-row space-x-4">
                 <View className="flex-1">
                   <Text className="text-sm font-medium text-gray-700 mb-2">Start Date</Text>
                   <Pressable
                     onPress={() => setShowStartDatePicker(true)}
-                    className="border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 flex-row items-center justify-between"
+                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
                   >
-                    <Text className="text-gray-900">
+                    <Text className="text-gray-900 text-base">
                       {formData.startDate.toLocaleDateString()}
                     </Text>
                     <Ionicons name="calendar-outline" size={20} color="#6b7280" />
@@ -564,9 +572,9 @@ function EditProjectModal({
                   <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
                   <Pressable
                     onPress={() => setShowEndDatePicker(true)}
-                    className="border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 flex-row items-center justify-between"
+                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
                   >
-                    <Text className="text-gray-900">
+                    <Text className="text-gray-900 text-base">
                       {formData.endDate.toLocaleDateString()}
                     </Text>
                     <Ionicons name="calendar-outline" size={20} color="#6b7280" />
@@ -576,31 +584,33 @@ function EditProjectModal({
             </View>
 
             {/* Lead Project Manager */}
-            <View className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-              <View className="flex-row items-center mb-3">
-                <Ionicons name="star" size={18} color="#7c3aed" />
-                <Text className="text-lg font-semibold text-gray-900 ml-2">
-                  Lead Project Manager
+            <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+              <Text className="text-xl font-bold text-gray-900 mb-6">Lead Project Manager</Text>
+              
+              <View className="space-y-4">
+                <Text className="text-sm text-gray-600">
+                  The Lead PM has full visibility to all tasks and subtasks in this project
                 </Text>
-              </View>
-              <Text className="text-sm text-gray-600 mb-3">
-                The Lead PM has full visibility to all tasks and subtasks in this project
-              </Text>
-              <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                <Picker
-                  selectedValue={selectedLeadPM}
-                  onValueChange={(value) => setSelectedLeadPM(value)}
-                  style={{ height: 50 }}
-                >
-                  <Picker.Item label="No Lead PM (Select one)" value="" />
-                  {eligibleLeadPMs.map((user) => (
-                    <Picker.Item
-                      key={user.id}
-                      label={`${user.name} (${user.role})`}
-                      value={user.id}
-                    />
-                  ))}
-                </Picker>
+                
+                <View>
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Select Lead PM</Text>
+                  <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
+                    <Picker
+                      selectedValue={selectedLeadPM}
+                      onValueChange={(value) => setSelectedLeadPM(value)}
+                      style={{ height: 50 }}
+                    >
+                      <Picker.Item label="No Lead PM (Select one)" value="" />
+                      {eligibleLeadPMs.map((user) => (
+                        <Picker.Item
+                          key={user.id}
+                          label={`${user.name} (${user.role})`}
+                          value={user.id}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
               </View>
             </View>
 
