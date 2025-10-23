@@ -463,17 +463,17 @@ export default function DashboardScreen({
                 
                 {/* 5 Status Categories in Single Row */}
                 <View className="flex-row gap-2">
-                  {/* Not Started */}
+                  {/* New */}
                   <Pressable 
-                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-3 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
                       setStatusFilter("not_started");
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-gray-700 mb-1">{myNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                    <Text className="text-2xl font-bold text-yellow-700 mb-1">{myNotStartedTasks.length}</Text>
+                    <Text className="text-xs text-yellow-600 text-center">New</Text>
                   </Pressable>
                   
                   {/* Pending */}
@@ -544,17 +544,17 @@ export default function DashboardScreen({
                 
                 {/* 5 Status Categories in Single Row */}
                 <View className="flex-row gap-2">
-                  {/* Not Started */}
+                  {/* New */}
                   <Pressable 
-                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-3 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
                       setStatusFilter("not_started");
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-gray-700 mb-1">{inboxNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                    <Text className="text-2xl font-bold text-yellow-700 mb-1">{inboxNotStartedTasks.length}</Text>
+                    <Text className="text-xs text-yellow-600 text-center">New</Text>
                   </Pressable>
                   
                   {/* Pending */}

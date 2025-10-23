@@ -519,7 +519,7 @@ export default function ProjectsTasksScreen({
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View className="flex-row">
               <StatusFilterButton status="all" label="All" />
-              <StatusFilterButton status="not_started" label="Not Started" />
+              <StatusFilterButton status="not_started" label="New" />
               <StatusFilterButton status="pending" label="Pending" />
               <StatusFilterButton status="completed" label="Completed" />
               <StatusFilterButton status="overdue" label="Overdue" />
