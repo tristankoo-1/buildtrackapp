@@ -185,10 +185,28 @@ export default function ProjectForm({
           <Text className="text-xl font-bold text-gray-900 mb-4">Project Information</Text>
           
           <View className="space-y-4">
+            {/* Client Name */}
+            <View>
+              <Text className="text-sm font-medium text-gray-700 mb-2">Client</Text>
+              <TextInput
+                className={cn(
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
+                  errors.clientName ? "border-red-300" : "border-gray-300"
+                )}
+                placeholder="Enter client name"
+                value={formData.clientInfo.name}
+                onChangeText={(text) => handleClientChange("name", text)}
+                maxLength={100}
+              />
+              {errors.clientName && (
+                <Text className="text-red-500 text-xs mt-1">{errors.clientName}</Text>
+              )}
+            </View>
+
             {/* Project Name */}
             <View>
               <Text className="text-sm font-medium text-gray-700 mb-2">
-                Project Name <Text className="text-red-500">*</Text>
+                Project Title <Text className="text-red-500">*</Text>
               </Text>
               <TextInput
                 className={cn(
@@ -400,58 +418,6 @@ export default function ProjectForm({
                   ))}
                 </View>
               )}
-            </View>
-          </View>
-        </View>
-
-        {/* Client Information */}
-        <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-          <Text className="text-xl font-bold text-gray-900 mb-4">Client Information</Text>
-          
-          <View className="space-y-4">
-            {/* Client Name */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Client Name</Text>
-              <TextInput
-                className={cn(
-                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
-                  errors.clientName ? "border-red-300" : "border-gray-300"
-                )}
-                placeholder="Enter client name"
-                value={formData.clientInfo.name}
-                onChangeText={(text) => handleClientChange("name", text)}
-                maxLength={100}
-              />
-              {errors.clientName && (
-                <Text className="text-red-500 text-xs mt-1">{errors.clientName}</Text>
-              )}
-            </View>
-
-            {/* Client Email */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Client Email</Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
-                placeholder="Enter client email"
-                value={formData.clientInfo.email}
-                onChangeText={(text) => handleClientChange("email", text)}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                maxLength={100}
-              />
-            </View>
-
-            {/* Client Phone */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Client Phone</Text>
-              <TextInput
-                className="border border-gray-300 rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg"
-                placeholder="Enter client phone"
-                value={formData.clientInfo.phone}
-                onChangeText={(text) => handleClientChange("phone", text)}
-                keyboardType="phone-pad"
-                maxLength={20}
-              />
             </View>
           </View>
         </View>
