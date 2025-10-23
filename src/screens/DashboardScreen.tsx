@@ -157,10 +157,40 @@ export default function DashboardScreen({
 
   const myAllTasks = [...myTasks, ...mySubTasks];
   
-  const myNotStartedTasks = myAllTasks.filter(task => task.currentStatus === "not_started");
-  const myInProgressTasks = myAllTasks.filter(task => task.currentStatus === "in_progress");
-  const myCompletedTasks = myAllTasks.filter(task => task.currentStatus === "completed");
-  const myRejectedTasks = myAllTasks.filter(task => task.currentStatus === "rejected");
+  // Helper function to check if a task is overdue
+  const isOverdue = (task: any) => {
+    const dueDate = new Date(task.dueDate);
+    const now = new Date();
+    return dueDate < now;
+  };
+
+  // New categorization logic for tasks assigned to me
+  const myNotStartedTasks = myAllTasks.filter(task => 
+    task.currentStatus === "not_started" && !task.accepted
+  );
+  
+  const myPendingTasks = myAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage < 100 && 
+    !isOverdue(task) &&
+    task.currentStatus !== "rejected"
+  );
+  
+  const myCompletedTasks = myAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage === 100
+  );
+  
+  const myOverdueTasks = myAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage < 100 && 
+    isOverdue(task) &&
+    task.currentStatus !== "rejected"
+  );
+  
+  const myRejectedTasks = myAllTasks.filter(task => 
+    task.currentStatus === "rejected"
+  );
 
   // Section 2: Inbox - Tasks assigned to me by others (need acceptance)
   // These are tasks where others assigned them to me, but I didn't create them
@@ -182,10 +212,33 @@ export default function DashboardScreen({
 
   const inboxAllTasks = [...inboxTasks, ...inboxSubTasks];
   
-  const inboxNotStartedTasks = inboxAllTasks.filter(task => task.currentStatus === "not_started");
-  const inboxInProgressTasks = inboxAllTasks.filter(task => task.currentStatus === "in_progress");
-  const inboxCompletedTasks = inboxAllTasks.filter(task => task.currentStatus === "completed");
-  const inboxRejectedTasks = inboxAllTasks.filter(task => task.currentStatus === "rejected");
+  // Apply same categorization logic to inbox tasks
+  const inboxNotStartedTasks = inboxAllTasks.filter(task => 
+    task.currentStatus === "not_started" && !task.accepted
+  );
+  
+  const inboxPendingTasks = inboxAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage < 100 && 
+    !isOverdue(task) &&
+    task.currentStatus !== "rejected"
+  );
+  
+  const inboxCompletedTasks = inboxAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage === 100
+  );
+  
+  const inboxOverdueTasks = inboxAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage < 100 && 
+    isOverdue(task) &&
+    task.currentStatus !== "rejected"
+  );
+  
+  const inboxRejectedTasks = inboxAllTasks.filter(task => 
+    task.currentStatus === "rejected"
+  );
   
   // Section 3: Outbox - Tasks I assigned to others
   // These are tasks where I created them and assigned them to others (not myself)
@@ -408,59 +461,78 @@ export default function DashboardScreen({
                   </Text>
                 </View>
                 
-                {/* 4 Equal Status Buttons */}
-                <View className="flex-row gap-2">
-                  {/* Not Started */}
-                  <Pressable 
-                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("my_tasks");
-                      setStatusFilter("not_started");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-gray-700 mb-1">{myNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
-                  </Pressable>
+                {/* 5 New Status Categories */}
+                <View className="gap-2">
+                  {/* First Row - 3 buttons */}
+                  <View className="flex-row gap-2 mb-2">
+                    {/* Not Started */}
+                    <Pressable 
+                      className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("my_tasks");
+                        setStatusFilter("not_started");
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-gray-700 mb-1">{myNotStartedTasks.length}</Text>
+                      <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                    </Pressable>
+                    
+                    {/* Pending */}
+                    <Pressable 
+                      className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("my_tasks");
+                        setStatusFilter("pending" as any);
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-blue-700 mb-1">{myPendingTasks.length}</Text>
+                      <Text className="text-xs text-blue-600 text-center">Pending</Text>
+                    </Pressable>
+                    
+                    {/* Completed */}
+                    <Pressable 
+                      className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("my_tasks");
+                        setStatusFilter("completed");
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-green-700 mb-1">{myCompletedTasks.length}</Text>
+                      <Text className="text-xs text-green-600 text-center">Completed</Text>
+                    </Pressable>
+                  </View>
                   
-                  {/* In Progress */}
-                  <Pressable 
-                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("my_tasks");
-                      setStatusFilter("in_progress");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-blue-700 mb-1">{myInProgressTasks.length}</Text>
-                    <Text className="text-xs text-blue-600 text-center">In Progress</Text>
-                  </Pressable>
-                  
-                  {/* Completed */}
-                  <Pressable 
-                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("my_tasks");
-                      setStatusFilter("completed");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-green-700 mb-1">{myCompletedTasks.length}</Text>
-                    <Text className="text-xs text-green-600 text-center">Completed</Text>
-                  </Pressable>
-                  
-                  {/* Rejected */}
-                  <Pressable 
-                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("my_tasks");
-                      setStatusFilter("rejected");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-red-700 mb-1">{myRejectedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
-                  </Pressable>
+                  {/* Second Row - 2 buttons */}
+                  <View className="flex-row gap-2">
+                    {/* Overdue */}
+                    <Pressable 
+                      className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("my_tasks");
+                        setStatusFilter("overdue" as any);
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-orange-700 mb-1">{myOverdueTasks.length}</Text>
+                      <Text className="text-xs text-orange-600 text-center">Overdue</Text>
+                    </Pressable>
+                    
+                    {/* Rejected */}
+                    <Pressable 
+                      className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("my_tasks");
+                        setStatusFilter("rejected");
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-red-700 mb-1">{myRejectedTasks.length}</Text>
+                      <Text className="text-xs text-red-600 text-center">Rejected</Text>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
             </View>
@@ -476,59 +548,78 @@ export default function DashboardScreen({
                   </Text>
                 </View>
                 
-                {/* 4 Equal Status Buttons */}
-                <View className="flex-row gap-2">
-                  {/* Not Started */}
-                  <Pressable 
-                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("inbox");
-                      setStatusFilter("not_started");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-gray-700 mb-1">{inboxNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
-                  </Pressable>
+                {/* 5 New Status Categories */}
+                <View className="gap-2">
+                  {/* First Row - 3 buttons */}
+                  <View className="flex-row gap-2 mb-2">
+                    {/* Not Started */}
+                    <Pressable 
+                      className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("inbox");
+                        setStatusFilter("not_started");
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-gray-700 mb-1">{inboxNotStartedTasks.length}</Text>
+                      <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                    </Pressable>
+                    
+                    {/* Pending */}
+                    <Pressable 
+                      className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("inbox");
+                        setStatusFilter("pending" as any);
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-blue-700 mb-1">{inboxPendingTasks.length}</Text>
+                      <Text className="text-xs text-blue-600 text-center">Pending</Text>
+                    </Pressable>
+                    
+                    {/* Completed */}
+                    <Pressable 
+                      className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("inbox");
+                        setStatusFilter("completed");
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-green-700 mb-1">{inboxCompletedTasks.length}</Text>
+                      <Text className="text-xs text-green-600 text-center">Completed</Text>
+                    </Pressable>
+                  </View>
                   
-                  {/* In Progress */}
-                  <Pressable 
-                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("inbox");
-                      setStatusFilter("in_progress");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-blue-700 mb-1">{inboxInProgressTasks.length}</Text>
-                    <Text className="text-xs text-blue-600 text-center">In Progress</Text>
-                  </Pressable>
-                  
-                  {/* Completed */}
-                  <Pressable 
-                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("inbox");
-                      setStatusFilter("completed");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-green-700 mb-1">{inboxCompletedTasks.length}</Text>
-                    <Text className="text-xs text-green-600 text-center">Completed</Text>
-                  </Pressable>
-                  
-                  {/* Rejected */}
-                  <Pressable 
-                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
-                    onPress={() => {
-                      setSectionFilter("inbox");
-                      setStatusFilter("rejected");
-                      onNavigateToTasks();
-                    }}
-                  >
-                    <Text className="text-2xl font-bold text-red-700 mb-1">{inboxRejectedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
-                  </Pressable>
+                  {/* Second Row - 2 buttons */}
+                  <View className="flex-row gap-2">
+                    {/* Overdue */}
+                    <Pressable 
+                      className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("inbox");
+                        setStatusFilter("overdue" as any);
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-orange-700 mb-1">{inboxOverdueTasks.length}</Text>
+                      <Text className="text-xs text-orange-600 text-center">Overdue</Text>
+                    </Pressable>
+                    
+                    {/* Rejected */}
+                    <Pressable 
+                      className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                      onPress={() => {
+                        setSectionFilter("inbox");
+                        setStatusFilter("rejected");
+                        onNavigateToTasks();
+                      }}
+                    >
+                      <Text className="text-2xl font-bold text-red-700 mb-1">{inboxRejectedTasks.length}</Text>
+                      <Text className="text-xs text-red-600 text-center">Rejected</Text>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
             </View>

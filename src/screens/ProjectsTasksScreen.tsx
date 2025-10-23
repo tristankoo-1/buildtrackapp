@@ -47,7 +47,7 @@ export default function ProjectsTasksScreen({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [localSectionFilter, setLocalSectionFilter] = useState<"my_tasks" | "inbox" | "outbox" | "all">("all");
-  const [localStatusFilter, setLocalStatusFilter] = useState<TaskStatus | "all">("all");
+  const [localStatusFilter, setLocalStatusFilter] = useState<TaskStatus | "pending" | "overdue" | "all">("all");
   const [refreshing, setRefreshing] = useState(false);
 
   // Apply filters from store on mount
@@ -233,9 +233,33 @@ export default function ProjectsTasksScreen({
       const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            task.description.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Handle status filters
-      const matchesStatus = localStatusFilter === "all" || task.currentStatus === localStatusFilter;
-      return matchesSearch && matchesStatus;
+      // Handle status filters with new categorization logic
+      if (localStatusFilter === "all") {
+        return matchesSearch;
+      }
+      
+      // Helper function to check if a task is overdue
+      const isOverdue = (task: any) => {
+        const dueDate = new Date(task.dueDate);
+        const now = new Date();
+        return dueDate < now;
+      };
+      
+      // Apply new categorization logic
+      if (localStatusFilter === "not_started") {
+        return matchesSearch && task.currentStatus === "not_started" && !task.accepted;
+      } else if (localStatusFilter === "pending") {
+        return matchesSearch && task.accepted && task.completionPercentage < 100 && !isOverdue(task) && task.currentStatus !== "rejected";
+      } else if (localStatusFilter === "completed") {
+        return matchesSearch && task.accepted && task.completionPercentage === 100;
+      } else if (localStatusFilter === "overdue") {
+        return matchesSearch && task.accepted && task.completionPercentage < 100 && isOverdue(task) && task.currentStatus !== "rejected";
+      } else if (localStatusFilter === "rejected") {
+        return matchesSearch && task.currentStatus === "rejected";
+      } else {
+        // Fallback to original status matching
+        return matchesSearch && task.currentStatus === localStatusFilter;
+      }
     });
 
     // Sort tasks by priority (high to low) then by due date (earliest first)
@@ -418,7 +442,7 @@ export default function ProjectsTasksScreen({
     status, 
     label 
   }: { 
-    status: TaskStatus | "all"; 
+    status: TaskStatus | "pending" | "overdue" | "all"; 
     label: string 
   }) => (
     <Pressable
@@ -496,8 +520,9 @@ export default function ProjectsTasksScreen({
             <View className="flex-row">
               <StatusFilterButton status="all" label="All" />
               <StatusFilterButton status="not_started" label="Not Started" />
-              <StatusFilterButton status="in_progress" label="In Progress" />
+              <StatusFilterButton status="pending" label="Pending" />
               <StatusFilterButton status="completed" label="Completed" />
+              <StatusFilterButton status="overdue" label="Overdue" />
               <StatusFilterButton status="rejected" label="Rejected" />
             </View>
           </ScrollView>
@@ -520,10 +545,10 @@ export default function ProjectsTasksScreen({
           <View className="flex-1 items-center justify-center py-16">
             <Ionicons name="clipboard-outline" size={64} color="#9ca3af" />
             <Text className="text-gray-500 text-lg font-medium mt-4">
-              {searchQuery || statusFilter !== "all" ? "No matching tasks" : "No tasks yet"}
+              {searchQuery || localStatusFilter !== "all" ? "No matching tasks" : "No tasks yet"}
             </Text>
             <Text className="text-gray-400 text-center mt-2 px-8">
-              {searchQuery || statusFilter !== "all"
+              {searchQuery || localStatusFilter !== "all"
                 ? "Try adjusting your search or filters"
                 : "You haven't been assigned any tasks yet"
               }
