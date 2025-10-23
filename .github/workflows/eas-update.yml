@@ -41,7 +41,6 @@ jobs:
           expo-version: latest
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
-          cache: false
 
       - name: Clean install environment
         run: |
