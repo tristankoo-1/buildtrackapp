@@ -119,17 +119,27 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
             {/* Quick Login User List */}
             <View className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <Text className="text-sm font-semibold text-blue-800 mb-3">
-                👥 Quick Login - Tap any user (8 total):
+                👥 Quick Login - Tap any user (9 total):
               </Text>
               
               <View className="space-y-3">
-                {/* Tristan - Featured */}
+                {/* Admin Tristan - Featured */}
                 <Pressable 
                   className="bg-indigo-50 border-2 border-indigo-300 rounded-lg py-4 px-4 active:bg-indigo-100"
-                  onPress={() => handleQuickLogin('tristan@insitetech.com', 'password123')}
+                  onPress={() => handleQuickLogin('admin_tristan@insitetech.com', 'password123')}
                 >
                   <Text className="text-base font-bold text-indigo-900">
-                    ⭐ Insite Tech: Admin: Tristan
+                    ⭐ Insite Tech: Admin: Admin Tristan
+                  </Text>
+                </Pressable>
+                
+                {/* Tristan (Manager) */}
+                <Pressable 
+                  className="bg-indigo-50 border border-indigo-200 rounded-lg py-4 px-4 active:bg-indigo-100"
+                  onPress={() => handleQuickLogin('tristan@insitetech.com', 'password123')}
+                >
+                  <Text className="text-base font-semibold text-indigo-900">
+                    Insite Tech: Manager: Tristan
                   </Text>
                 </Pressable>
                 
