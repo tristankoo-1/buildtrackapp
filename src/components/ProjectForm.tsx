@@ -190,7 +190,7 @@ export default function ProjectForm({
               <Text className="text-sm font-medium text-gray-700 mb-2">Client</Text>
               <TextInput
                 className={cn(
-                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
                   errors.clientName ? "border-red-300" : "border-gray-300"
                 )}
                 placeholder="Enter client name"
@@ -210,7 +210,7 @@ export default function ProjectForm({
               </Text>
               <TextInput
                 className={cn(
-                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg",
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
                   errors.name ? "border-red-300" : "border-gray-300"
                 )}
                 placeholder="Enter project name"
@@ -228,7 +228,7 @@ export default function ProjectForm({
               <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
               <TextInput
                 className={cn(
-                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg min-h-[90px]",
+                  "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base min-h-[90px]",
                   errors.description ? "border-red-300" : "border-gray-300"
                 )}
                 placeholder="Project description"
@@ -254,7 +254,7 @@ export default function ProjectForm({
                 onPress={() => setShowStatusPicker(!showStatusPicker)}
                 className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
               >
-                <Text className="text-gray-900 text-lg capitalize">
+                <Text className="text-gray-900 text-base capitalize">
                   {formData.status.replace("_", " ")}
                 </Text>
                 <Ionicons 
@@ -281,7 +281,7 @@ export default function ProjectForm({
                       )}
                     >
                       <Text className={cn(
-                        "text-lg",
+                        "text-base",
                         formData.status === option.value ? "text-blue-900 font-medium" : "text-gray-900"
                       )}>
                         {option.label}
@@ -301,7 +301,7 @@ export default function ProjectForm({
           <View>
             <TextInput
               className={cn(
-                "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-lg min-h-[130px]",
+                "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base min-h-[130px]",
                 errors.address ? "border-red-300" : "border-gray-300"
               )}
               placeholder="Enter full address (street, city, state/province, postal code, country)"
@@ -329,7 +329,7 @@ export default function ProjectForm({
                 onPress={() => setShowStartDatePicker(true)}
                 className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
               >
-                <Text className="text-gray-900 text-lg">
+                <Text className="text-gray-900 text-base">
                   {formData.startDate.toLocaleDateString()}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#6b7280" />
@@ -345,7 +345,7 @@ export default function ProjectForm({
                   errors.endDate ? "border-red-300" : "border-gray-300"
                 )}
               >
-                <Text className="text-gray-900 text-lg">
+                <Text className="text-gray-900 text-base">
                   {formData.endDate.toLocaleDateString()}
                 </Text>
                 <Ionicons name="calendar-outline" size={20} color="#6b7280" />
@@ -372,7 +372,7 @@ export default function ProjectForm({
                 onPress={() => setShowLeadPMPicker(!showLeadPMPicker)}
                 className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
               >
-                <Text className="text-gray-900 text-lg">
+                <Text className="text-gray-900 text-base">
                   {formData.selectedLeadPM 
                     ? eligibleLeadPMs.find(u => u.id === formData.selectedLeadPM)?.name + ` (${eligibleLeadPMs.find(u => u.id === formData.selectedLeadPM)?.role})`
                     : "No Lead PM (Select one)"
@@ -395,7 +395,7 @@ export default function ProjectForm({
                     }}
                     className="px-4 py-3 border-b border-gray-200"
                   >
-                    <Text className="text-gray-900 text-lg">No Lead PM (Select one)</Text>
+                    <Text className="text-gray-900 text-base">No Lead PM (Select one)</Text>
                   </Pressable>
                   {eligibleLeadPMs.map((user) => (
                     <Pressable
@@ -411,7 +411,7 @@ export default function ProjectForm({
                       )}
                     >
                       <Text className={cn(
-                        "text-lg",
+                        "text-base",
                         user.id === formData.selectedLeadPM ? "text-blue-900 font-medium" : "text-gray-900"
                       )}>
                         {user.name} ({user.role})
