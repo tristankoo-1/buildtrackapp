@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24.x
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
@@ -47,6 +47,8 @@ jobs:
           echo "Cleaning install environment..."
           rm -rf node_modules package-lock.json
           echo "Environment cleaned"
+          echo "Node.js version: $(node --version)"
+          echo "npm version: $(npm --version)"
 
       - name: Install dependencies
         run: |
