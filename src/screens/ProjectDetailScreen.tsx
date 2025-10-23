@@ -663,45 +663,19 @@ function EditProjectModal({
               <Text className="text-lg font-semibold text-gray-900 mb-4">Location</Text>
               
               <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-700 mb-2">Address</Text>
+                <Text className="text-sm font-medium text-gray-700 mb-2">Location</Text>
                 <TextInput
                   className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                  placeholder="Street address"
+                  placeholder="Enter full address (street, city, state/province, postal code, country)"
                   value={formData.location.address}
                   onChangeText={(text) => setFormData(prev => ({
                     ...prev,
                     location: { ...prev.location, address: text }
                   }))}
+                  multiline={true}
+                  numberOfLines={5}
+                  textAlignVertical="top"
                 />
-              </View>
-
-              <View className="flex-row space-x-4 mb-4">
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">City</Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                    placeholder="City"
-                    value={formData.location.city}
-                    onChangeText={(text) => setFormData(prev => ({
-                      ...prev,
-                      location: { ...prev.location, city: text }
-                    }))}
-                  />
-                </View>
-
-                <View className="w-24">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">State</Text>
-                  <TextInput
-                    className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                    placeholder="State"
-                    value={formData.location.state}
-                    onChangeText={(text) => setFormData(prev => ({
-                      ...prev,
-                      location: { ...prev.location, state: text }
-                    }))}
-                    maxLength={2}
-                  />
-                </View>
               </View>
             </View>
 

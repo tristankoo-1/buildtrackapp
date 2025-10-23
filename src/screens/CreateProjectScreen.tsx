@@ -358,67 +358,22 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
               Location
             </Text>
 
-            <InputField label="Address" error={errors.address}>
+            <InputField label="Location" error={errors.address}>
               <TextInput
                 className={cn(
                   "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
                   errors.address ? "border-red-300" : "border-gray-300"
                 )}
-                placeholder="Enter street address"
+                placeholder="Enter full address (street, city, state/province, postal code, country)"
                 value={formData.location.address}
                 onChangeText={(text) => handleLocationChange("address", text)}
+                multiline={true}
+                numberOfLines={5}
+                textAlignVertical="top"
                 autoCorrect={false}
-                returnKeyType="next"
+                returnKeyType="default"
               />
             </InputField>
-
-            <View className="flex-row space-x-4">
-              <View className="flex-1">
-                <InputField label="City" error={errors.city}>
-                  <TextInput
-                    className={cn(
-                      "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
-                      errors.city ? "border-red-300" : "border-gray-300"
-                    )}
-                    placeholder="City"
-                    value={formData.location.city}
-                    onChangeText={(text) => handleLocationChange("city", text)}
-                    autoCorrect={false}
-                    returnKeyType="next"
-                  />
-                </InputField>
-              </View>
-
-              <View className="flex-1">
-                <InputField label="State" error={errors.state}>
-                  <TextInput
-                    className={cn(
-                      "border rounded-lg px-3 py-3 text-gray-900 bg-gray-50",
-                      errors.state ? "border-red-300" : "border-gray-300"
-                    )}
-                    placeholder="State"
-                    value={formData.location.state}
-                    onChangeText={(text) => handleLocationChange("state", text)}
-                    autoCorrect={false}
-                    returnKeyType="next"
-                  />
-                </InputField>
-              </View>
-
-              <View className="w-24">
-                <InputField label="ZIP" required={false}>
-                  <TextInput
-                    className="border border-gray-300 rounded-lg px-3 py-3 text-gray-900 bg-gray-50"
-                    placeholder="ZIP"
-                    value={formData.location.zipCode}
-                    onChangeText={(text) => handleLocationChange("zipCode", text)}
-                    keyboardType="numeric"
-                    maxLength={10}
-                    returnKeyType="next"
-                  />
-                </InputField>
-              </View>
-            </View>
           </View>
 
           {/* Client Information */}
