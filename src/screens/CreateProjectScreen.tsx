@@ -55,6 +55,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!user || user.role !== "admin") {
@@ -296,19 +297,48 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
               {/* Status */}
               <View>
                 <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
-                <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                  <Picker
-                    selectedValue={formData.status}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                    style={{ height: 50 }}
-                  >
-                    <Picker.Item label="Planning" value="planning" />
-                    <Picker.Item label="Active" value="active" />
-                    <Picker.Item label="On Hold" value="on_hold" />
-                    <Picker.Item label="Completed" value="completed" />
-                    <Picker.Item label="Cancelled" value="cancelled" />
-                  </Picker>
-                </View>
+                
+                {/* Custom Status Dropdown */}
+                <Pressable
+                  onPress={() => setShowStatusPicker(!showStatusPicker)}
+                  className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
+                >
+                  <Text className="text-gray-900 text-base capitalize">
+                    {formData.status.replace("_", " ")}
+                  </Text>
+                  <Ionicons 
+                    name={showStatusPicker ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#6b7280" 
+                  />
+                </Pressable>
+                
+                {/* Status Dropdown Options */}
+                {showStatusPicker && (
+                  <View className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                    {["planning", "active", "on_hold", "completed", "cancelled"].map((status, index) => (
+                      <Pressable
+                        key={status}
+                        onPress={() => {
+                          setFormData(prev => ({ ...prev, status: status as ProjectStatus }));
+                          setShowStatusPicker(false);
+                        }}
+                        className={cn(
+                          "px-4 py-3",
+                          formData.status === status && "bg-blue-50",
+                          index < 4 && "border-b border-gray-200"
+                        )}
+                      >
+                        <Text className={cn(
+                          "text-base capitalize",
+                          formData.status === status ? "text-blue-900 font-medium" : "text-gray-900"
+                        )}>
+                          {status.replace("_", " ")}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
               </View>
             </View>
           </View>

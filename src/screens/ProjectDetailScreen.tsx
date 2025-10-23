@@ -494,6 +494,8 @@ function EditProjectModal({
   const [selectedLeadPM, setSelectedLeadPM] = useState<string>("");
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showLeadPMPicker, setShowLeadPMPicker] = useState(false);
+  const [showStatusPicker, setShowStatusPicker] = useState(false);
 
   const companyUsers = React.useMemo(() => 
     user?.companyId ? getUsersByCompany(user.companyId) : [], 
@@ -502,8 +504,9 @@ function EditProjectModal({
 
   React.useEffect(() => {
     const currentLeadPM = getLeadPMForProject(project.id);
+    console.log(`ProjectDetailScreen: Setting Lead PM for project ${project.id}:`, currentLeadPM);
     setSelectedLeadPM(currentLeadPM || "");
-  }, [project.id]);
+  }, [project.id, getLeadPMForProject]);
 
   const eligibleLeadPMs = React.useMemo(() => 
     companyUsers.filter(u => u.role === "manager"), // Only managers can be Lead PM, not admins
@@ -616,19 +619,48 @@ function EditProjectModal({
                 {/* Status */}
                 <View>
                   <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
-                  <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                    <Picker
-                      selectedValue={formData.status}
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
-                      style={{ height: 50 }}
-                    >
-                      <Picker.Item label="Planning" value="planning" />
-                      <Picker.Item label="Active" value="active" />
-                      <Picker.Item label="On Hold" value="on_hold" />
-                      <Picker.Item label="Completed" value="completed" />
-                      <Picker.Item label="Cancelled" value="cancelled" />
-                    </Picker>
-                  </View>
+                  
+                  {/* Custom Status Dropdown */}
+                  <Pressable
+                    onPress={() => setShowStatusPicker(!showStatusPicker)}
+                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
+                  >
+                    <Text className="text-gray-900 text-base capitalize">
+                      {formData.status.replace("_", " ")}
+                    </Text>
+                    <Ionicons 
+                      name={showStatusPicker ? "chevron-up" : "chevron-down"} 
+                      size={20} 
+                      color="#6b7280" 
+                    />
+                  </Pressable>
+                  
+                  {/* Status Dropdown Options */}
+                  {showStatusPicker && (
+                    <View className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      {["planning", "active", "on_hold", "completed", "cancelled"].map((status, index) => (
+                        <Pressable
+                          key={status}
+                          onPress={() => {
+                            setFormData(prev => ({ ...prev, status: status as ProjectStatus }));
+                            setShowStatusPicker(false);
+                          }}
+                          className={cn(
+                            "px-4 py-3",
+                            formData.status === status && "bg-blue-50",
+                            index < 4 && "border-b border-gray-200"
+                          )}
+                        >
+                          <Text className={cn(
+                            "text-base capitalize",
+                            formData.status === status ? "text-blue-900 font-medium" : "text-gray-900"
+                          )}>
+                            {status.replace("_", " ")}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
@@ -691,29 +723,69 @@ function EditProjectModal({
             <View className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
               <Text className="text-xl font-bold text-gray-900 mb-6">Lead Project Manager</Text>
               
-              <View className="space-y-4">
+              <View className="space-y-3">
                 <Text className="text-sm text-gray-600">
                   The Lead PM has full visibility to all tasks and subtasks in this project
                 </Text>
                 
                 <View>
-                  <Text className="text-sm font-medium text-gray-700 mb-2">Select Lead PM</Text>
-                  <View className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                    <Picker
-                      selectedValue={selectedLeadPM}
-                      onValueChange={(value) => setSelectedLeadPM(value)}
-                      style={{ height: 50 }}
-                    >
-                      <Picker.Item label="No Lead PM (Select one)" value="" />
+                  <Text className="text-xs text-gray-500 mb-2">Debug: selectedLeadPM = "{selectedLeadPM}"</Text>
+                  
+                  {/* Custom Dropdown Picker */}
+                  <Pressable
+                    onPress={() => setShowLeadPMPicker(!showLeadPMPicker)}
+                    className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
+                  >
+                    <Text className="text-gray-900 text-base">
+                      {selectedLeadPM 
+                        ? eligibleLeadPMs.find(u => u.id === selectedLeadPM)?.name + ` (${eligibleLeadPMs.find(u => u.id === selectedLeadPM)?.role})`
+                        : "No Lead PM (Select one)"
+                      }
+                    </Text>
+                    <Ionicons 
+                      name={showLeadPMPicker ? "chevron-up" : "chevron-down"} 
+                      size={20} 
+                      color="#6b7280" 
+                    />
+                  </Pressable>
+                  
+                  {/* Dropdown Options */}
+                  {showLeadPMPicker && (
+                    <View className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      <Pressable
+                        onPress={() => {
+                          setSelectedLeadPM("");
+                          setShowLeadPMPicker(false);
+                          console.log(`ProjectDetailScreen: Lead PM changed to: ""`);
+                        }}
+                        className="px-4 py-3 border-b border-gray-200"
+                      >
+                        <Text className="text-gray-900 text-base">No Lead PM (Select one)</Text>
+                      </Pressable>
                       {eligibleLeadPMs.map((user) => (
-                        <Picker.Item
+                        <Pressable
                           key={user.id}
-                          label={`${user.name} (${user.role})`}
-                          value={user.id}
-                        />
+                          onPress={() => {
+                            setSelectedLeadPM(user.id);
+                            setShowLeadPMPicker(false);
+                            console.log(`ProjectDetailScreen: Lead PM changed to:`, user.id);
+                          }}
+                          className={cn(
+                            "px-4 py-3",
+                            user.id === selectedLeadPM && "bg-blue-50",
+                            user.id !== eligibleLeadPMs[eligibleLeadPMs.length - 1].id && "border-b border-gray-200"
+                          )}
+                        >
+                          <Text className={cn(
+                            "text-base",
+                            user.id === selectedLeadPM ? "text-blue-900 font-medium" : "text-gray-900"
+                          )}>
+                            {user.name} ({user.role})
+                          </Text>
+                        </Pressable>
                       ))}
-                    </Picker>
-                  </View>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
