@@ -506,7 +506,7 @@ function EditProjectModal({
   }, [project.id]);
 
   const eligibleLeadPMs = React.useMemo(() => 
-    companyUsers.filter(u => u.role === "manager" || u.role === "admin"),
+    companyUsers.filter(u => u.role === "manager"), // Only managers can be Lead PM, not admins
     [companyUsers]
   );
 
@@ -625,9 +625,9 @@ function EditProjectModal({
               </View>
             </View>
 
-            {/* Dates */}
+            {/* Project Timeline */}
             <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-              <Text className="text-lg font-semibold text-gray-900 mb-4">Timeline</Text>
+              <Text className="text-lg font-semibold text-gray-900 mb-4">Project Timeline</Text>
               
               <View className="flex-row space-x-4 mb-4">
                 <View className="flex-1">
@@ -644,7 +644,7 @@ function EditProjectModal({
                 </View>
 
                 <View className="flex-1">
-                  <Text className="text-sm font-medium text-gray-700 mb-2">End Date</Text>
+                  <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
                   <Pressable
                     onPress={() => setShowEndDatePicker(true)}
                     className="border border-gray-300 rounded-lg px-3 py-3 bg-gray-50 flex-row items-center justify-between"

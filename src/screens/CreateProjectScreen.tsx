@@ -298,10 +298,10 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
             </InputField>
           </View>
 
-          {/* Timeline */}
+          {/* Project Timeline */}
           <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
             <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Timeline
+              Project Timeline
             </Text>
 
             <View className="flex-row space-x-4">
@@ -320,7 +320,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
               </View>
 
               <View className="flex-1">
-                <InputField label="End Date" error={errors.endDate}>
+                <InputField label="Estimated End Date" error={errors.endDate}>
                   <Pressable
                     onPress={() => setShowEndDatePicker(true)}
                     className={cn(

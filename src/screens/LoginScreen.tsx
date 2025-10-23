@@ -123,13 +123,13 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
               </Text>
               
               <View className="space-y-3">
-                {/* Admin Tristan - Featured */}
+                {/* Admin Tristan */}
                 <Pressable 
-                  className="bg-indigo-50 border-2 border-indigo-300 rounded-lg py-4 px-4 active:bg-indigo-100"
+                  className="bg-indigo-50 border border-indigo-200 rounded-lg py-4 px-4 active:bg-indigo-100"
                   onPress={() => handleQuickLogin('admin_tristan@insitetech.com', 'password123')}
                 >
-                  <Text className="text-base font-bold text-indigo-900">
-                    ⭐ Insite Tech: Admin: Admin Tristan
+                  <Text className="text-base font-semibold text-indigo-900">
+                    Insite Tech: Admin: Admin Tristan
                   </Text>
                 </Pressable>
                 
