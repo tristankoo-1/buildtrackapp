@@ -187,7 +187,7 @@ export default function ProjectForm({
           <View className="space-y-4">
             {/* Client Name */}
             <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Client</Text>
+              <Text className="text-base font-medium text-gray-700 mb-2">Client</Text>
               <TextInput
                 className={cn(
                   "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base",
@@ -205,7 +205,7 @@ export default function ProjectForm({
 
             {/* Project Name */}
             <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">
+              <Text className="text-base font-medium text-gray-700 mb-2">
                 Project Title <Text className="text-red-500">*</Text>
               </Text>
               <TextInput
@@ -225,7 +225,7 @@ export default function ProjectForm({
 
             {/* Description */}
             <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Description</Text>
+              <Text className="text-base font-medium text-gray-700 mb-2">Description</Text>
               <TextInput
                 className={cn(
                   "border rounded-lg px-4 py-3 text-gray-900 bg-gray-50 text-base min-h-[90px]",
@@ -247,7 +247,7 @@ export default function ProjectForm({
 
             {/* Status */}
             <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">Status</Text>
+              <Text className="text-base font-medium text-gray-700 mb-2">Status</Text>
               
               {/* Custom Status Dropdown */}
               <Pressable
@@ -324,7 +324,7 @@ export default function ProjectForm({
           
           <View className="flex-row space-x-4">
             <View className="flex-1">
-              <Text className="text-sm font-medium text-gray-700 mb-2">Start Date</Text>
+              <Text className="text-base font-medium text-gray-700 mb-2">Start Date</Text>
               <Pressable
                 onPress={() => setShowStartDatePicker(true)}
                 className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
@@ -337,7 +337,7 @@ export default function ProjectForm({
             </View>
 
             <View className="flex-1">
-              <Text className="text-sm font-medium text-gray-700 mb-2">Estimated End Date</Text>
+              <Text className="text-base font-medium text-gray-700 mb-2">Estimated End Date</Text>
               <Pressable
                 onPress={() => setShowEndDatePicker(true)}
                 className={cn(
