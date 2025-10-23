@@ -16,7 +16,8 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useAuthStore } from "../state/authStore";
-import { useProjectStore } from "../state/projectStore.supabase";
+import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
+import { useUserStoreWithInit } from "../state/userStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { ProjectStatus } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -29,7 +30,8 @@ interface CreateProjectScreenProps {
 
 export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScreenProps) {
   const { user } = useAuthStore();
-  const { createProject } = useProjectStore();
+  const { createProject, assignUserToProject } = useProjectStoreWithCompanyInit(user?.companyId || "");
+  const { getUsersByCompany } = useUserStoreWithInit();
   const { getCompanyBanner } = useCompanyStore();
 
   const [formData, setFormData] = useState({
@@ -55,7 +57,21 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [showStatusPicker, setShowStatusPicker] = useState(false);
+  const [selectedLeadPM, setSelectedLeadPM] = useState<string>("");
+  const [showLeadPMPicker, setShowLeadPMPicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Get company users for Lead PM selection
+  const companyUsers = React.useMemo(() => 
+    getUsersByCompany(user?.companyId || ""),
+    [getUsersByCompany, user?.companyId]
+  );
+
+  // Only managers can be Lead PM, not admins
+  const eligibleLeadPMs = React.useMemo(() => 
+    companyUsers.filter(u => u.role === "manager"),
+    [companyUsers]
+  );
 
   if (!user || user.role !== "admin") {
     return (
@@ -115,7 +131,7 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
     setIsSubmitting(true);
 
     try {
-      createProject({
+      const newProject = await createProject({
         name: formData.name,
         description: formData.description,
         status: formData.status,
@@ -130,6 +146,11 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
         createdBy: user.id,
         companyId: user.companyId,
       });
+
+      // Assign Lead PM if selected
+      if (selectedLeadPM && newProject) {
+        await assignUserToProject(selectedLeadPM, newProject.id, "lead_project_manager", user.id);
+      }
 
       // Notify all users about the new project
       notifyDataMutation('project');
@@ -392,6 +413,73 @@ export default function CreateProjectScreen({ onNavigateBack }: CreateProjectScr
                 </Pressable>
                 {errors.endDate && (
                   <Text className="text-red-500 text-xs mt-1">{errors.endDate}</Text>
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Lead Project Manager */}
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-xl font-bold text-gray-900 mb-4">Lead Project Manager</Text>
+            
+            <View className="space-y-3">
+              <Text className="text-sm text-gray-600">
+                The Lead PM has full visibility to all tasks and subtasks in this project
+              </Text>
+              
+              <View>
+                {/* Custom Dropdown Picker */}
+                <Pressable
+                  onPress={() => setShowLeadPMPicker(!showLeadPMPicker)}
+                  className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50 flex-row items-center justify-between"
+                >
+                  <Text className="text-gray-900 text-base">
+                    {selectedLeadPM 
+                      ? eligibleLeadPMs.find(u => u.id === selectedLeadPM)?.name + ` (${eligibleLeadPMs.find(u => u.id === selectedLeadPM)?.role})`
+                      : "No Lead PM (Select one)"
+                    }
+                  </Text>
+                  <Ionicons 
+                    name={showLeadPMPicker ? "chevron-up" : "chevron-down"} 
+                    size={20} 
+                    color="#6b7280" 
+                  />
+                </Pressable>
+                
+                {/* Dropdown Options */}
+                {showLeadPMPicker && (
+                  <View className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                    <Pressable
+                      onPress={() => {
+                        setSelectedLeadPM("");
+                        setShowLeadPMPicker(false);
+                      }}
+                      className="px-4 py-3 border-b border-gray-200"
+                    >
+                      <Text className="text-gray-900 text-base">No Lead PM (Select one)</Text>
+                    </Pressable>
+                    {eligibleLeadPMs.map((user) => (
+                      <Pressable
+                        key={user.id}
+                        onPress={() => {
+                          setSelectedLeadPM(user.id);
+                          setShowLeadPMPicker(false);
+                        }}
+                        className={cn(
+                          "px-4 py-3",
+                          user.id === selectedLeadPM && "bg-blue-50",
+                          user.id !== eligibleLeadPMs[eligibleLeadPMs.length - 1].id && "border-b border-gray-200"
+                        )}
+                      >
+                        <Text className={cn(
+                          "text-base",
+                          user.id === selectedLeadPM ? "text-blue-900 font-medium" : "text-gray-900"
+                        )}>
+                          {user.name} ({user.role})
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
                 )}
               </View>
             </View>
