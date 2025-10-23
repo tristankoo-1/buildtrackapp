@@ -263,10 +263,33 @@ export default function DashboardScreen({
 
   const outboxAllTasks = [...outboxTasks, ...outboxSubTasks];
   
-  const outboxNotStartedTasks = outboxAllTasks.filter(task => task.currentStatus === "not_started");
-  const outboxInProgressTasks = outboxAllTasks.filter(task => task.currentStatus === "in_progress");
-  const outboxCompletedTasks = outboxAllTasks.filter(task => task.currentStatus === "completed");
-  const outboxRejectedTasks = outboxAllTasks.filter(task => task.currentStatus === "rejected");
+  // Apply same categorization logic to outbox tasks
+  const outboxNotStartedTasks = outboxAllTasks.filter(task => 
+    task.currentStatus === "not_started" && !task.accepted
+  );
+  
+  const outboxPendingTasks = outboxAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage < 100 && 
+    !isOverdue(task) &&
+    task.currentStatus !== "rejected"
+  );
+  
+  const outboxCompletedTasks = outboxAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage === 100
+  );
+  
+  const outboxOverdueTasks = outboxAllTasks.filter(task => 
+    task.accepted && 
+    task.completionPercentage < 100 && 
+    isOverdue(task) &&
+    task.currentStatus !== "rejected"
+  );
+  
+  const outboxRejectedTasks = outboxAllTasks.filter(task => 
+    task.currentStatus === "rejected"
+  );
 
   // Debug logging to understand task counts
   console.log('🔍 Dashboard Task Analysis:', {
@@ -465,7 +488,7 @@ export default function DashboardScreen({
                 <View className="flex-row gap-2">
                   {/* New */}
                   <Pressable 
-                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
                       setStatusFilter("not_started");
@@ -473,12 +496,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-yellow-700 mb-1">{myNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-yellow-600 text-center">New</Text>
+                    <Text className="text-xs text-yellow-600 text-center" numberOfLines={1}>New</Text>
                   </Pressable>
                   
                   {/* Pending */}
                   <Pressable 
-                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
                       setStatusFilter("pending" as any);
@@ -486,12 +509,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-blue-700 mb-1">{myPendingTasks.length}</Text>
-                    <Text className="text-xs text-blue-600 text-center">Pending</Text>
+                    <Text className="text-xs text-blue-600 text-center" numberOfLines={1}>Pending</Text>
                   </Pressable>
                   
                   {/* Completed */}
                   <Pressable 
-                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
                       setStatusFilter("completed");
@@ -499,12 +522,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-green-700 mb-1">{myCompletedTasks.length}</Text>
-                    <Text className="text-xs text-green-600 text-center">Completed</Text>
+                    <Text className="text-xs text-green-600 text-center" numberOfLines={1}>Completed</Text>
                   </Pressable>
                   
                   {/* Overdue */}
                   <Pressable 
-                    className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
                       setStatusFilter("overdue" as any);
@@ -512,12 +535,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-orange-700 mb-1">{myOverdueTasks.length}</Text>
-                    <Text className="text-xs text-orange-600 text-center">Overdue</Text>
+                    <Text className="text-xs text-orange-600 text-center" numberOfLines={1}>Overdue</Text>
                   </Pressable>
                   
                   {/* Rejected */}
                   <Pressable 
-                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("my_tasks");
                       setStatusFilter("rejected");
@@ -525,7 +548,7 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-red-700 mb-1">{myRejectedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
+                    <Text className="text-xs text-red-600 text-center" numberOfLines={1}>Rejected</Text>
                   </Pressable>
                 </View>
               </View>
@@ -546,7 +569,7 @@ export default function DashboardScreen({
                 <View className="flex-row gap-2">
                   {/* New */}
                   <Pressable 
-                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
                       setStatusFilter("not_started");
@@ -554,12 +577,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-yellow-700 mb-1">{inboxNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-yellow-600 text-center">New</Text>
+                    <Text className="text-xs text-yellow-600 text-center" numberOfLines={1}>New</Text>
                   </Pressable>
                   
                   {/* Pending */}
                   <Pressable 
-                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
                       setStatusFilter("pending" as any);
@@ -567,12 +590,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-blue-700 mb-1">{inboxPendingTasks.length}</Text>
-                    <Text className="text-xs text-blue-600 text-center">Pending</Text>
+                    <Text className="text-xs text-blue-600 text-center" numberOfLines={1}>Pending</Text>
                   </Pressable>
                   
                   {/* Completed */}
                   <Pressable 
-                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
                       setStatusFilter("completed");
@@ -580,12 +603,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-green-700 mb-1">{inboxCompletedTasks.length}</Text>
-                    <Text className="text-xs text-green-600 text-center">Completed</Text>
+                    <Text className="text-xs text-green-600 text-center" numberOfLines={1}>Completed</Text>
                   </Pressable>
                   
                   {/* Overdue */}
                   <Pressable 
-                    className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
                       setStatusFilter("overdue" as any);
@@ -593,12 +616,12 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-orange-700 mb-1">{inboxOverdueTasks.length}</Text>
-                    <Text className="text-xs text-orange-600 text-center">Overdue</Text>
+                    <Text className="text-xs text-orange-600 text-center" numberOfLines={1}>Overdue</Text>
                   </Pressable>
                   
                   {/* Rejected */}
                   <Pressable 
-                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("inbox");
                       setStatusFilter("rejected");
@@ -606,7 +629,7 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-red-700 mb-1">{inboxRejectedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
+                    <Text className="text-xs text-red-600 text-center" numberOfLines={1}>Rejected</Text>
                   </Pressable>
                 </View>
               </View>
@@ -623,37 +646,37 @@ export default function DashboardScreen({
                   </Text>
                 </View>
                 
-                {/* 4 Equal Status Buttons */}
+                {/* 5 Status Categories in Single Row */}
                 <View className="flex-row gap-2">
-                  {/* Not Started */}
+                  {/* New */}
                   <Pressable 
-                    className="flex-1 bg-gray-100 border border-gray-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-yellow-50 border border-yellow-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("outbox");
                       setStatusFilter("not_started");
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-gray-700 mb-1">{outboxNotStartedTasks.length}</Text>
-                    <Text className="text-xs text-gray-600 text-center">Not Started</Text>
+                    <Text className="text-2xl font-bold text-yellow-700 mb-1">{outboxNotStartedTasks.length}</Text>
+                    <Text className="text-xs text-yellow-600 text-center" numberOfLines={1}>New</Text>
                   </Pressable>
                   
-                  {/* In Progress */}
+                  {/* Pending */}
                   <Pressable 
-                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-blue-50 border border-blue-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("outbox");
-                      setStatusFilter("in_progress");
+                      setStatusFilter("pending" as any);
                       onNavigateToTasks();
                     }}
                   >
-                    <Text className="text-2xl font-bold text-blue-700 mb-1">{outboxInProgressTasks.length}</Text>
-                    <Text className="text-xs text-blue-600 text-center">In Progress</Text>
+                    <Text className="text-2xl font-bold text-blue-700 mb-1">{outboxPendingTasks.length}</Text>
+                    <Text className="text-xs text-blue-600 text-center" numberOfLines={1}>Pending</Text>
                   </Pressable>
                   
                   {/* Completed */}
                   <Pressable 
-                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-green-50 border border-green-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("outbox");
                       setStatusFilter("completed");
@@ -661,12 +684,25 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-green-700 mb-1">{outboxCompletedTasks.length}</Text>
-                    <Text className="text-xs text-green-600 text-center">Completed</Text>
+                    <Text className="text-xs text-green-600 text-center" numberOfLines={1}>Completed</Text>
+                  </Pressable>
+                  
+                  {/* Overdue */}
+                  <Pressable 
+                    className="flex-1 bg-orange-50 border border-orange-300 rounded-lg p-2 items-center"
+                    onPress={() => {
+                      setSectionFilter("outbox");
+                      setStatusFilter("overdue" as any);
+                      onNavigateToTasks();
+                    }}
+                  >
+                    <Text className="text-2xl font-bold text-orange-700 mb-1">{outboxOverdueTasks.length}</Text>
+                    <Text className="text-xs text-orange-600 text-center" numberOfLines={1}>Overdue</Text>
                   </Pressable>
                   
                   {/* Rejected */}
                   <Pressable 
-                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-3 items-center"
+                    className="flex-1 bg-red-50 border border-red-300 rounded-lg p-2 items-center"
                     onPress={() => {
                       setSectionFilter("outbox");
                       setStatusFilter("rejected");
@@ -674,7 +710,7 @@ export default function DashboardScreen({
                     }}
                   >
                     <Text className="text-2xl font-bold text-red-700 mb-1">{outboxRejectedTasks.length}</Text>
-                    <Text className="text-xs text-red-600 text-center">Rejected</Text>
+                    <Text className="text-xs text-red-600 text-center" numberOfLines={1}>Rejected</Text>
                   </Pressable>
                 </View>
               </View>
