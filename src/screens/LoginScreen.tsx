@@ -167,20 +167,20 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
                 
                 {/* BuildTrack - Admin */}
                 <Pressable 
-                  className="bg-red-50 border border-red-200 rounded-lg py-4 px-4 active:bg-red-100"
+                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
                   onPress={() => handleQuickLogin('admin@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-red-900">
+                  <Text className="text-base font-semibold text-blue-900">
                     BuildTrack: Admin: Alex Administrator
                   </Text>
                 </Pressable>
                 
                 {/* BuildTrack - Manager */}
                 <Pressable 
-                  className="bg-purple-50 border border-purple-200 rounded-lg py-4 px-4 active:bg-purple-100"
+                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
                   onPress={() => handleQuickLogin('manager@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-purple-900">
+                  <Text className="text-base font-semibold text-blue-900">
                     BuildTrack: Manager: John Manager
                   </Text>
                 </Pressable>
@@ -196,20 +196,20 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
                 </Pressable>
                 
                 <Pressable 
-                  className="bg-green-50 border border-green-200 rounded-lg py-4 px-4 active:bg-green-100"
+                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
                   onPress={() => handleQuickLogin('worker@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-green-900">
+                  <Text className="text-base font-semibold text-blue-900">
                     BuildTrack: Worker: Sarah Worker
                   </Text>
                 </Pressable>
                 
                 {/* Elite Electric - Admin */}
                 <Pressable 
-                  className="bg-teal-50 border border-teal-200 rounded-lg py-4 px-4 active:bg-teal-100"
+                  className="bg-orange-50 border border-orange-200 rounded-lg py-4 px-4 active:bg-orange-100"
                   onPress={() => handleQuickLogin('admin@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-teal-900">
+                  <Text className="text-base font-semibold text-orange-900">
                     Elite Electric: Admin: Mike Johnson
                   </Text>
                 </Pressable>
