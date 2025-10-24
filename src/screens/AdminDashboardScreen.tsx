@@ -84,8 +84,15 @@ export default function AdminDashboardScreen({
   // Get company user IDs for filtering
   const companyUserIds = new Set(companyUsers.map(u => u.id));
   
-  // Filter projects created by company users
-  const companyProjects = allProjects.filter(project => companyUserIds.has(project.createdBy));
+  // Filter projects where company users are involved (either created by them OR assigned to them)
+  const assignedProjectIds = new Set(
+    userAssignments
+      .filter(a => companyUserIds.has(a.userId) && a.isActive)
+      .map(a => a.projectId)
+  );
+  const companyProjects = allProjects.filter(project => 
+    companyUserIds.has(project.createdBy) || assignedProjectIds.has(project.id)
+  );
   
   // Filter tasks that belong to company projects
   const companyProjectIds = new Set(companyProjects.map(p => p.id));
