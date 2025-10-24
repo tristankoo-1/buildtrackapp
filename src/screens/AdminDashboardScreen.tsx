@@ -393,12 +393,17 @@ export default function AdminDashboardScreen({
           </View>
         </View>
 
-        {/* Project Status Breakdown */}
+        {/* Company Overview */}
         <View className="px-6 pb-4">
           <Text className="text-lg font-semibold text-gray-900 mb-4">
-            Project Status Breakdown
+            Company Overview
           </Text>
-          <View className="bg-white rounded-xl border border-gray-200 p-4">
+          
+          {/* Project Status Breakdown */}
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-base font-semibold text-gray-900 mb-3">
+              Project Status
+            </Text>
             <View className="flex-row flex-wrap">
               {projectsByStatus.active > 0 && (
                 <View className="flex-row items-center mr-4 mb-2">
@@ -432,14 +437,12 @@ export default function AdminDashboardScreen({
               )}
             </View>
           </View>
-        </View>
 
-        {/* User Role Breakdown */}
-        <View className="px-6 pb-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
-            User Role Distribution
-          </Text>
+          {/* User Role Distribution */}
           <View className="bg-white rounded-xl border border-gray-200 p-4">
+            <Text className="text-base font-semibold text-gray-900 mb-3">
+              User Roles
+            </Text>
             <View className="flex-row justify-between">
               <View className="items-center">
                 <Text className="text-xl font-bold text-purple-600">{usersByRole.admin}</Text>
