@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useAuthStore } from "../state/authStore";
 import { useTaskStore } from "../state/taskStore.supabase";
 import { useUserStore } from "../state/userStore.supabase";
+import { useProjectStoreWithCompanyInit } from "../state/projectStore.supabase";
 import { useCompanyStore } from "../state/companyStore";
 import { TaskStatus, Priority, Task } from "../types/buildtrack";
 import { cn } from "../utils/cn";
@@ -34,6 +35,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
   const { user } = useAuthStore();
   const tasks = useTaskStore(state => state.tasks);
   const markTaskAsRead = useTaskStore(state => state.markTaskAsRead);
+  const updateTask = useTaskStore(state => state.updateTask);
   const updateSubTaskStatus = useTaskStore(state => state.updateSubTaskStatus);
   const acceptSubTask = useTaskStore(state => state.acceptSubTask);
   const declineSubTask = useTaskStore(state => state.declineSubTask);
@@ -43,6 +45,7 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
   const acceptTask = useTaskStore(state => state.acceptTask);
   const declineTask = useTaskStore(state => state.declineTask);
   const { getUserById, getAllUsers } = useUserStore();
+  const { getProjectUserAssignments } = useProjectStoreWithCompanyInit(user?.companyId || "");
   const { getCompanyBanner } = useCompanyStore();
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -56,6 +59,9 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
   const [showUserPicker, setShowUserPicker] = useState(false);
   const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
   const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<Task | null>(null);
+  const [showReassignModal, setShowReassignModal] = useState(false);
+  const [selectedUsersForReassign, setSelectedUsersForReassign] = useState<string[]>([]);
+  const [reassignSearchQuery, setReassignSearchQuery] = useState("");
 
   // Get the parent task
   const parentTask = tasks.find(t => t.id === taskId);
@@ -179,6 +185,33 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
       ],
       "plain-text"
     );
+  };
+
+  const handleReassignTask = async () => {
+    if (selectedUsersForReassign.length === 0) {
+      Alert.alert("Error", "Please select at least one user to reassign the task to.");
+      return;
+    }
+
+    try {
+      await updateTask(task.id, {
+        assignedTo: selectedUsersForReassign,
+        accepted: undefined,
+        currentStatus: "not_started",
+        declineReason: undefined,
+      });
+
+      Alert.alert(
+        "Task Reassigned",
+        `Task has been reassigned to ${selectedUsersForReassign.length} user(s).`,
+        [{ text: "OK", onPress: () => setShowReassignModal(false) }]
+      );
+      setSelectedUsersForReassign([]);
+      setReassignSearchQuery("");
+    } catch (error) {
+      console.error("Error reassigning task:", error);
+      Alert.alert("Error", "Failed to reassign task. Please try again.");
+    }
   };
 
   const handleAddPhotos = async () => {
@@ -389,6 +422,37 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
               <Text className="text-white font-semibold text-base ml-2">Decline</Text>
             </Pressable>
           </View>
+        </View>
+      )}
+
+      {/* Rejected Task Banner - Shown when task is rejected and user is the assigner */}
+      {task.currentStatus === "rejected" && task.assignedBy === user.id && (
+        <View className="bg-red-50 border-b-2 border-red-200 px-6 py-4">
+          <View className="flex-row items-center mb-3">
+            <View className="w-10 h-10 bg-red-100 rounded-full items-center justify-center mr-3">
+              <Ionicons name="close-circle" size={24} color="#dc2626" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-red-900">
+                Task Rejected
+              </Text>
+              <Text className="text-sm text-red-700">
+                This task was declined by the assignee
+              </Text>
+              {task.declineReason && (
+                <Text className="text-sm text-red-600 mt-1 italic">
+                  Reason: {task.declineReason}
+                </Text>
+              )}
+            </View>
+          </View>
+          <Pressable
+            onPress={() => setShowReassignModal(true)}
+            className="bg-blue-600 py-3.5 rounded-lg items-center flex-row justify-center"
+          >
+            <Ionicons name="people" size={20} color="white" />
+            <Text className="text-white font-semibold text-base ml-2">Reassign to Another User</Text>
+          </Pressable>
         </View>
       )}
 
@@ -920,6 +984,119 @@ export default function TaskDetailScreen({ taskId, subTaskId, onNavigateBack, on
               </View>
             </ScrollView>
           )}
+        </SafeAreaView>
+      </Modal>
+
+      {/* Reassign Modal */}
+      <Modal
+        visible={showReassignModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setShowReassignModal(false)}
+      >
+        <SafeAreaView className="flex-1 bg-gray-50">
+          <StatusBar style="dark" />
+          
+          <ModalHandle />
+
+          {/* Modal Header */}
+          <View className="flex-row items-center bg-white border-b border-gray-200 px-6 py-4">
+            <Pressable onPress={() => setShowReassignModal(false)} className="mr-4">
+              <Ionicons name="close" size={24} color="#374151" />
+            </Pressable>
+            <Text className="flex-1 text-lg font-semibold text-gray-900">
+              Reassign Task
+            </Text>
+            <Pressable
+              onPress={handleReassignTask}
+              className="bg-blue-600 px-4 py-2 rounded-lg"
+            >
+              <Text className="text-white font-medium">Reassign</Text>
+            </Pressable>
+          </View>
+
+          {/* Search */}
+          <View className="px-6 pt-4 pb-3">
+            <View className="flex-row items-center bg-white border border-gray-300 rounded-lg px-4 py-3">
+              <Ionicons name="search" size={20} color="#6b7280" />
+              <TextInput
+                className="flex-1 ml-2 text-base"
+                placeholder="Search users..."
+                value={reassignSearchQuery}
+                onChangeText={setReassignSearchQuery}
+              />
+            </View>
+          </View>
+
+          {/* User List */}
+          <ScrollView className="flex-1 px-6">
+            <Text className="text-sm text-gray-600 mb-3">
+              Select user(s) to reassign this task to:
+            </Text>
+            
+            {(() => {
+              const projectUsers = task?.projectId 
+                ? getProjectUserAssignments(task.projectId)
+                    .filter(assignment => assignment.isActive)
+                    .map(assignment => getUserById(assignment.userId))
+                    .filter(Boolean)
+                : [];
+
+              const filteredUsers = projectUsers.filter(u => 
+                u && (
+                  u.name.toLowerCase().includes(reassignSearchQuery.toLowerCase()) ||
+                  (u.email && u.email.toLowerCase().includes(reassignSearchQuery.toLowerCase()))
+                )
+              );
+
+              return filteredUsers.map((projectUser) => {
+                if (!projectUser) return null;
+                const isSelected = selectedUsersForReassign.includes(projectUser.id);
+                
+                return (
+                  <Pressable
+                    key={projectUser.id}
+                    onPress={() => {
+                      if (isSelected) {
+                        setSelectedUsersForReassign(prev => prev.filter(id => id !== projectUser.id));
+                      } else {
+                        setSelectedUsersForReassign(prev => [...prev, projectUser.id]);
+                      }
+                    }}
+                    className={cn(
+                      "flex-row items-center p-4 rounded-lg border mb-3",
+                      isSelected ? "bg-blue-50 border-blue-300" : "bg-white border-gray-200"
+                    )}
+                  >
+                    <View className={cn(
+                      "w-6 h-6 rounded border-2 items-center justify-center mr-3",
+                      isSelected ? "bg-blue-600 border-blue-600" : "bg-white border-gray-300"
+                    )}>
+                      {isSelected && <Ionicons name="checkmark" size={16} color="white" />}
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-gray-900">
+                        {projectUser.name}
+                      </Text>
+                      <Text className="text-sm text-gray-500 capitalize">
+                        {projectUser.role}
+                      </Text>
+                      <Text className="text-xs text-gray-400">
+                        {projectUser.email}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              });
+            })()}
+          </ScrollView>
+
+          {/* Selected Count */}
+          <View className="bg-white border-t border-gray-200 px-6 py-4">
+            <Text className="text-sm text-gray-600 text-center">
+              {selectedUsersForReassign.length} user(s) selected
+            </Text>
+          </View>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
