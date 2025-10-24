@@ -356,7 +356,7 @@ export default function AdminDashboardScreen({
 
         {/* Company Overview */}
         <View className="px-6 pb-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
+          <Text className="text-lg font-semibold text-gray-900 mb-3">
             Company Overview
           </Text>
           
@@ -404,42 +404,40 @@ export default function AdminDashboardScreen({
         </View>
 
         {/* Administrative Actions */}
-        <View className="px-6 py-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
+        <View className="px-6 pb-4">
+          <Text className="text-lg font-semibold text-gray-900 mb-3">
             Administrative Actions
           </Text>
-          {/* Action Buttons */}
-          <View className="mt-4">
-            <QuickActionCard
-              title="Manage Projects"
-              description="Create, edit, and oversee all construction projects"
-              icon="folder-open-outline"
-              color="bg-blue-50"
-              iconColor="#3b82f6"
-              borderColor="border-blue-300"
-              onPress={onNavigateToProjects}
-            />
+          
+          <QuickActionCard
+            title="Manage Projects"
+            description="Create, edit, and oversee all construction projects"
+            icon="folder-open-outline"
+            color="bg-blue-50"
+            iconColor="#3b82f6"
+            borderColor="border-blue-300"
+            onPress={onNavigateToProjects}
+          />
 
-            <QuickActionCard
-              title="User Management"
-              description="Assign users to projects and manage team categories"
-              icon="people-outline"
-              color="bg-purple-50"
-              iconColor="#7c3aed"
-              borderColor="border-purple-300"
-              onPress={onNavigateToUserManagement}
-            />
+          <QuickActionCard
+            title="User Management"
+            description="Assign users to projects and manage team categories"
+            icon="people-outline"
+            color="bg-purple-50"
+            iconColor="#7c3aed"
+            borderColor="border-purple-300"
+            onPress={onNavigateToUserManagement}
+          />
 
-            <QuickActionCard
-              title="Company Banner"
-              description="Customize the banner displayed across all company screens"
-              icon="megaphone-outline"
-              color="bg-amber-50"
-              iconColor="#f59e0b"
-              borderColor="border-amber-300"
-              onPress={openBannerModal}
-            />
-          </View>
+          <QuickActionCard
+            title="Company Banner"
+            description="Customize the banner displayed across all company screens"
+            icon="megaphone-outline"
+            color="bg-amber-50"
+            iconColor="#f59e0b"
+            borderColor="border-amber-300"
+            onPress={openBannerModal}
+          />
         </View>
       </ScrollView>
 
