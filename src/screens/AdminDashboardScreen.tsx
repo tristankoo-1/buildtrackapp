@@ -354,10 +354,10 @@ export default function AdminDashboardScreen({
           </View>
         )}
 
-        {/* Company Overview */}
+        {/* Administrative Actions */}
         <View className="px-6 py-4">
           <Text className="text-lg font-semibold text-gray-900 mb-4">
-            Company Overview
+            Administrative Actions
           </Text>
           {/* Action Buttons */}
           <View className="mt-4">
