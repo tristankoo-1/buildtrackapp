@@ -138,88 +138,88 @@ export default function LoginScreen({ onToggleRegister }: LoginScreenProps) {
               <View className="space-y-3">
                 {/* Insite Tech Ltd - Admin */}
                 <Pressable 
-                  className="bg-indigo-50 border border-indigo-200 rounded-lg py-4 px-4 active:bg-indigo-100"
+                  className="bg-purple-50 border border-purple-200 rounded-lg py-4 px-4 active:bg-purple-100"
                   onPress={() => handleQuickLogin('admin_tristan@insitetech.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-indigo-900">
+                  <Text className="text-base font-semibold text-purple-900">
                     Insite Tech: Admin: Admin Tristan
                   </Text>
                 </Pressable>
                 
                 {/* Insite Tech Ltd - Managers */}
                 <Pressable 
-                  className="bg-indigo-50 border border-indigo-200 rounded-lg py-4 px-4 active:bg-indigo-100"
+                  className="bg-purple-50 border border-purple-200 rounded-lg py-4 px-4 active:bg-purple-100"
                   onPress={() => handleQuickLogin('tristan@insitetech.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-indigo-900">
+                  <Text className="text-base font-semibold text-purple-900">
                     Insite Tech: Manager: Tristan
                   </Text>
                 </Pressable>
                 
                 <Pressable 
-                  className="bg-indigo-50 border border-indigo-200 rounded-lg py-4 px-4 active:bg-indigo-100"
+                  className="bg-purple-50 border border-purple-200 rounded-lg py-4 px-4 active:bg-purple-100"
                   onPress={() => handleQuickLogin('dennis@insitetech.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-indigo-900">
+                  <Text className="text-base font-semibold text-purple-900">
                     Insite Tech: Manager: Dennis
                   </Text>
                 </Pressable>
                 
                 {/* BuildTrack - Admin */}
                 <Pressable 
-                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
+                  className="bg-emerald-50 border border-emerald-200 rounded-lg py-4 px-4 active:bg-emerald-100"
                   onPress={() => handleQuickLogin('admin@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-blue-900">
+                  <Text className="text-base font-semibold text-emerald-900">
                     BuildTrack: Admin: Alex Administrator
                   </Text>
                 </Pressable>
                 
                 {/* BuildTrack - Manager */}
                 <Pressable 
-                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
+                  className="bg-emerald-50 border border-emerald-200 rounded-lg py-4 px-4 active:bg-emerald-100"
                   onPress={() => handleQuickLogin('manager@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-blue-900">
+                  <Text className="text-base font-semibold text-emerald-900">
                     BuildTrack: Manager: John Manager
                   </Text>
                 </Pressable>
                 
                 {/* BuildTrack - Workers */}
                 <Pressable 
-                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
+                  className="bg-emerald-50 border border-emerald-200 rounded-lg py-4 px-4 active:bg-emerald-100"
                   onPress={() => handleQuickLogin('peter@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-blue-900">
+                  <Text className="text-base font-semibold text-emerald-900">
                     BuildTrack: Worker: Peter
                   </Text>
                 </Pressable>
                 
                 <Pressable 
-                  className="bg-blue-50 border border-blue-200 rounded-lg py-4 px-4 active:bg-blue-100"
+                  className="bg-emerald-50 border border-emerald-200 rounded-lg py-4 px-4 active:bg-emerald-100"
                   onPress={() => handleQuickLogin('worker@buildtrack.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-blue-900">
+                  <Text className="text-base font-semibold text-emerald-900">
                     BuildTrack: Worker: Sarah Worker
                   </Text>
                 </Pressable>
                 
                 {/* Elite Electric - Admin */}
                 <Pressable 
-                  className="bg-orange-50 border border-orange-200 rounded-lg py-4 px-4 active:bg-orange-100"
+                  className="bg-amber-50 border border-amber-200 rounded-lg py-4 px-4 active:bg-amber-100"
                   onPress={() => handleQuickLogin('admin@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-orange-900">
+                  <Text className="text-base font-semibold text-amber-900">
                     Elite Electric: Admin: Mike Johnson
                   </Text>
                 </Pressable>
                 
                 {/* Elite Electric - Worker */}
                 <Pressable 
-                  className="bg-orange-50 border border-orange-200 rounded-lg py-4 px-4 active:bg-orange-100"
+                  className="bg-amber-50 border border-amber-200 rounded-lg py-4 px-4 active:bg-amber-100"
                   onPress={() => handleQuickLogin('lisa@eliteelectric.com', 'password123')}
                 >
-                  <Text className="text-base font-semibold text-orange-900">
+                  <Text className="text-base font-semibold text-amber-900">
                     Elite Electric: Worker: Lisa Martinez
                   </Text>
                 </Pressable>
