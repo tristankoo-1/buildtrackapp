@@ -392,6 +392,13 @@ export default function ProjectsTasksScreen({
           </View>
         </View>
         
+        {/* Task Description */}
+        {task.description && (
+          <Text className="text-sm text-gray-600 mb-2" numberOfLines={2}>
+            {task.description}
+          </Text>
+        )}
+        
         {/* Line 2: Due Date and Status */}
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center">
