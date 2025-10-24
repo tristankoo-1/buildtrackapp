@@ -362,7 +362,7 @@ export default function AdminDashboardScreen({
         )}
 
         {/* Company Overview */}
-        <View className="px-6 pb-4">
+        <View className="px-6 pb-4 pt-6">
           <Text className="text-lg font-semibold text-gray-900 mb-3">
             Company Overview
           </Text>
