@@ -365,16 +365,16 @@ export default function AdminDashboardScreen({
             <Text className="text-base font-semibold text-gray-900 mb-3">
               Project Status
             </Text>
-            <View className="flex-row justify-between">
-              <View className="items-center">
+            <View className="flex-row">
+              <View className="flex-1 items-center">
                 <Text className="text-xl font-bold text-blue-600">{stats.totalProjects}</Text>
                 <Text className="text-xs text-gray-600">Total Projects</Text>
               </View>
-              <View className="items-center">
+              <View className="flex-1 items-center">
                 <Text className="text-xl font-bold text-green-600">{projectsByStatus.active}</Text>
                 <Text className="text-xs text-gray-600">In Progress</Text>
               </View>
-              <View className="items-center">
+              <View className="flex-1 items-center">
                 <Text className="text-xl font-bold text-gray-600">{projectsByStatus.completed}</Text>
                 <Text className="text-xs text-gray-600">Completed</Text>
               </View>
@@ -386,16 +386,16 @@ export default function AdminDashboardScreen({
             <Text className="text-base font-semibold text-gray-900 mb-3">
               User Roles
             </Text>
-            <View className="flex-row justify-between">
-              <View className="items-center">
+            <View className="flex-row">
+              <View className="flex-1 items-center">
                 <Text className="text-xl font-bold text-purple-600">{usersByRole.admin}</Text>
                 <Text className="text-xs text-gray-600">Admins</Text>
               </View>
-              <View className="items-center">
+              <View className="flex-1 items-center">
                 <Text className="text-xl font-bold text-blue-600">{usersByRole.manager}</Text>
                 <Text className="text-xs text-gray-600">Managers</Text>
               </View>
-              <View className="items-center">
+              <View className="flex-1 items-center">
                 <Text className="text-xl font-bold text-green-600">{usersByRole.worker}</Text>
                 <Text className="text-xs text-gray-600">Workers</Text>
               </View>
