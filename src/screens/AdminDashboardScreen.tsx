@@ -380,6 +380,16 @@ export default function AdminDashboardScreen({
               borderColor="border-purple-300"
               onPress={onNavigateToUserManagement}
             />
+
+            <QuickActionCard
+              title="Company Banner"
+              description="Customize the banner displayed across all company screens"
+              icon="megaphone-outline"
+              color="bg-amber-50"
+              iconColor="#f59e0b"
+              borderColor="border-amber-300"
+              onPress={openBannerModal}
+            />
           </View>
         </View>
 
@@ -442,35 +452,6 @@ export default function AdminDashboardScreen({
               <View className="items-center">
                 <Text className="text-xl font-bold text-green-600">{usersByRole.worker}</Text>
                 <Text className="text-xs text-gray-600">Workers</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Quick Actions */}
-        <View className="px-6 pb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
-            Administrative Actions
-          </Text>
-
-          <QuickActionCard
-            title="Company Banner"
-            description="Customize the banner displayed across all company screens"
-            icon="megaphone-outline"
-            iconColor="#f59e0b"
-            onPress={openBannerModal}
-          />
-
-          <View className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <View className="flex-row items-start">
-              <Ionicons name="information-circle-outline" size={20} color="#f59e0b" />
-              <View className="flex-1 ml-3">
-                <Text className="text-sm font-medium text-amber-800">
-                  Administrator Role
-                </Text>
-                <Text className="text-xs text-amber-700 mt-1">
-                  As an admin, you manage projects and users. Tasks are handled by managers and workers.
-                </Text>
               </View>
             </View>
           </View>
