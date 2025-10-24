@@ -10,7 +10,7 @@ import PQueue from 'p-queue';
 import * as FileSystem from 'expo-file-system';
 import { CachedFile, NetworkInfo, UploadQueueItem } from './types';
 import { cacheMetadataStore } from './CacheMetadataStore';
-import { supabase } from '@/api/supabase';
+import { supabase } from '../../api/supabase';
 import { DEFAULT_CACHE_CONFIG, CACHE_DIRECTORIES, getCacheDirectoryForType } from './config';
 
 export class UploadQueue {

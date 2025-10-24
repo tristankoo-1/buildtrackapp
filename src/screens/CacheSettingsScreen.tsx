@@ -16,8 +16,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { cacheManager, uploadQueue } from '@/services/cache';
-import { CacheStats } from '@/services/cache/types';
+import { cacheManager, uploadQueue } from '../services/cache';
+import { CacheStats } from '../services/cache/types';
 
 export default function CacheSettingsScreen({ navigation }: any) {
   const [stats, setStats] = useState<CacheStats | null>(null);

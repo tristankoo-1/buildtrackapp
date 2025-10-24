@@ -16,8 +16,8 @@ import {
   CachedFile,
   CacheStats,
   ClearCacheOptions,
-} from '@/services/cache';
-import { compressImage } from '@/api/imageCompressionService';
+} from '../services/cache';
+import { compressImage } from '../api/imageCompressionService';
 
 export function useFileCache() {
   const [isInitialized, setIsInitialized] = useState(false);

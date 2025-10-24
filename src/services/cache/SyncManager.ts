@@ -7,7 +7,7 @@
 
 import NetInfo from '@react-native-community/netinfo';
 import * as FileSystem from 'expo-file-system';
-import { supabase } from '@/api/supabase';
+import { supabase } from '../../api/supabase';
 import { CachedFile, RealtimeFileEvent, NetworkInfo } from './types';
 import { cacheManager } from './CacheManager';
 import { cacheMetadataStore } from './CacheMetadataStore';
