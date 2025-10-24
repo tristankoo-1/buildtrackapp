@@ -354,6 +354,55 @@ export default function AdminDashboardScreen({
           </View>
         )}
 
+        {/* Company Overview */}
+        <View className="px-6 pb-4">
+          <Text className="text-lg font-semibold text-gray-900 mb-4">
+            Company Overview
+          </Text>
+          
+          {/* Project Status */}
+          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+            <Text className="text-base font-semibold text-gray-900 mb-3">
+              Project Status
+            </Text>
+            <View className="flex-row justify-between">
+              <View className="items-center">
+                <Text className="text-xl font-bold text-blue-600">{stats.totalProjects}</Text>
+                <Text className="text-xs text-gray-600">Total Projects</Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-xl font-bold text-green-600">{projectsByStatus.active}</Text>
+                <Text className="text-xs text-gray-600">In Progress</Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-xl font-bold text-gray-600">{projectsByStatus.completed}</Text>
+                <Text className="text-xs text-gray-600">Completed</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* User Role Distribution */}
+          <View className="bg-white rounded-xl border border-gray-200 p-4">
+            <Text className="text-base font-semibold text-gray-900 mb-3">
+              User Roles
+            </Text>
+            <View className="flex-row justify-between">
+              <View className="items-center">
+                <Text className="text-xl font-bold text-purple-600">{usersByRole.admin}</Text>
+                <Text className="text-xs text-gray-600">Admins</Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-xl font-bold text-blue-600">{usersByRole.manager}</Text>
+                <Text className="text-xs text-gray-600">Managers</Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-xl font-bold text-green-600">{usersByRole.worker}</Text>
+                <Text className="text-xs text-gray-600">Workers</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         {/* Administrative Actions */}
         <View className="px-6 py-4">
           <Text className="text-lg font-semibold text-gray-900 mb-4">
@@ -390,73 +439,6 @@ export default function AdminDashboardScreen({
               borderColor="border-amber-300"
               onPress={openBannerModal}
             />
-          </View>
-        </View>
-
-        {/* Company Overview */}
-        <View className="px-6 pb-4">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
-            Company Overview
-          </Text>
-          
-          {/* Project Status Breakdown */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-            <Text className="text-base font-semibold text-gray-900 mb-3">
-              Project Status
-            </Text>
-            <View className="flex-row flex-wrap">
-              {projectsByStatus.active > 0 && (
-                <View className="flex-row items-center mr-4 mb-2">
-                  <View className="w-3 h-3 bg-green-500 rounded-full mr-2" />
-                  <Text className="text-sm text-gray-700">Active: {projectsByStatus.active}</Text>
-                </View>
-              )}
-              {projectsByStatus.planning > 0 && (
-                <View className="flex-row items-center mr-4 mb-2">
-                  <View className="w-3 h-3 bg-blue-500 rounded-full mr-2" />
-                  <Text className="text-sm text-gray-700">Planning: {projectsByStatus.planning}</Text>
-                </View>
-              )}
-              {projectsByStatus.on_hold > 0 && (
-                <View className="flex-row items-center mr-4 mb-2">
-                  <View className="w-3 h-3 bg-yellow-500 rounded-full mr-2" />
-                  <Text className="text-sm text-gray-700">On Hold: {projectsByStatus.on_hold}</Text>
-                </View>
-              )}
-              {projectsByStatus.completed > 0 && (
-                <View className="flex-row items-center mr-4 mb-2">
-                  <View className="w-3 h-3 bg-gray-500 rounded-full mr-2" />
-                  <Text className="text-sm text-gray-700">Completed: {projectsByStatus.completed}</Text>
-                </View>
-              )}
-              {projectsByStatus.cancelled > 0 && (
-                <View className="flex-row items-center mr-4 mb-2">
-                  <View className="w-3 h-3 bg-red-500 rounded-full mr-2" />
-                  <Text className="text-sm text-gray-700">Cancelled: {projectsByStatus.cancelled}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* User Role Distribution */}
-          <View className="bg-white rounded-xl border border-gray-200 p-4">
-            <Text className="text-base font-semibold text-gray-900 mb-3">
-              User Roles
-            </Text>
-            <View className="flex-row justify-between">
-              <View className="items-center">
-                <Text className="text-xl font-bold text-purple-600">{usersByRole.admin}</Text>
-                <Text className="text-xs text-gray-600">Admins</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-xl font-bold text-blue-600">{usersByRole.manager}</Text>
-                <Text className="text-xs text-gray-600">Managers</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-xl font-bold text-green-600">{usersByRole.worker}</Text>
-                <Text className="text-xs text-gray-600">Workers</Text>
-              </View>
-            </View>
           </View>
         </View>
       </ScrollView>
