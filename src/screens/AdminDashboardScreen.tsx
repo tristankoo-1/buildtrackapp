@@ -380,24 +380,6 @@ export default function AdminDashboardScreen({
               borderColor="border-purple-300"
               onPress={onNavigateToUserManagement}
             />
-
-            <QuickActionCard
-              title="Total Tasks"
-              description={`${stats.totalTasks} tasks • ${stats.completedTasks} completed`}
-              icon="list-outline"
-              color="bg-green-50"
-              iconColor="#10b981"
-              borderColor="border-green-300"
-            />
-
-            <QuickActionCard
-              title="Task Completion"
-              description={`${stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0}% completion rate`}
-              icon="checkmark-circle-outline"
-              color="bg-orange-50"
-              iconColor="#f59e0b"
-              borderColor="border-orange-300"
-            />
           </View>
         </View>
 
